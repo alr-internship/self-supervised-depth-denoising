@@ -69,3 +69,13 @@ Install pip packages:
     pip install -r requirements.txt
 
 Done!!!
+
+Update Environment
+------------------
+Make sure you are in the correct conda environment
+    conda activate depth-denoising
+
+execute following commands to update conda and pip files
+
+    conda env export > depth-denoising.yml
+    pip freeze > requirements.txt
