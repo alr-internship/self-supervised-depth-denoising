@@ -2,6 +2,7 @@ from models import *
 from models import camera_interfaces
 from visualization.visualize_images import visualize_depth_image
 
+
 if __name__ == "__main__":
     realSense = camera_interfaces.RealSense()
 

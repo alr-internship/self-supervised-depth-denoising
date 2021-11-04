@@ -1,6 +1,7 @@
 import pyrealsense2 as rs
 import numpy as np
 
+
 class RealSense:
 
     def __init__(self) -> None:
@@ -30,7 +31,7 @@ class RealSense:
         color_frame = frames.get_color_frame()
 
         if not depth_frame or not color_frame:
-            return None, None 
+            return None, None
 
         # convert frames to np arrays
         depth_image = np.asanyarray(frames.get_depth_frame().get_data())

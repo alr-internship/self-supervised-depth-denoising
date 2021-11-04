@@ -17,4 +17,4 @@ implement the first stage of the pipeline, the U-Net
 
 6. implement LSTM
 
-7 train LSTM
+7. train LSTM
