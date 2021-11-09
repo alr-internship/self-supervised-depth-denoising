@@ -65,12 +65,8 @@ Setup Environment
 ------------------
 Create a new conda environment with the required packages and activate it:
 
-    conda env create -f depth-deonising.yml 
+    conda env create -f depth-denoising.yml 
     conda activate depth-denoising
-
-Install pip packages:
-
-    pip install -r requirements.txt
 
 Since the `python-zivid` pip package in version 2.1.0.2.2.0 failes to build,
 its git repository is included in [./3rdparty/zivid-python](./3rdparty/zivid-python) as submodule.
@@ -78,8 +74,18 @@ Follow these instructions to install patched `python-zivid` version.
 **Note: execute these commands from the root folder of this repository**
 
     git submodule update --init
-    cd 3rdparty/zivid-python
-    git apply --directory 3rdparty/zivid-python ../zivid-python-depfix.patch
+    git apply --directory 3rdparty/zivid-python 3rdparty/zivid-python-depfix.patch
+    pip install 3rdparty/zivid-python
+
+
+If the last command failes with an error like 
+
+    CMake Error: The current CMakeCache.txt directory /tmp/.../CMakeCache.txt is different
+
+execute following command and retry the *pip install* command:
+
+    rm -r 3rdparty/zivid-python/_skbuild
+
 
 
 Done!!!
@@ -90,6 +96,6 @@ Make sure you are in the correct conda environment
     conda activate depth-denoising
 
 execute following commands to update conda and pip files
+**IMPORTANT: remove the zivid requirement from pip, as it is installed by hand**
 
     conda env export > depth-denoising.yml
-    pip freeze > requirements.txt
