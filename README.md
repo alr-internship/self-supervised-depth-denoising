@@ -72,6 +72,16 @@ Install pip packages:
 
     pip install -r requirements.txt
 
+Since the `python-zivid` pip package in version 2.1.0.2.2.0 failes to build,
+its git repository is included in [./3rdparty/zivid-python](./3rdparty/zivid-python) as submodule.
+Follow these instructions to install patched `python-zivid` version.
+**Note: execute these commands from the root folder of this repository**
+
+    git submodule update --init
+    cd 3rdparty/zivid-python
+    git apply --directory 3rdparty/zivid-python ../zivid-python-depfix.patch
+
+
 Done!!!
 
 Update Environment

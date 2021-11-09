@@ -1,0 +1,24 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ef440c2..48e196b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -10,8 +10,8 @@ endif()
+ include(${CMAKE_BINARY_DIR}/conan.cmake)
+ 
+ conan_cmake_run(REQUIRES 
+-                    eigen/3.3.7@conan/stable
+-                    pybind11/2.3.0@conan/stable
++                    eigen/3.3.7
++                    pybind11/2.4.3
+                 BASIC_SETUP)
+ 
+ set(CMAKE_CXX_STANDARD 17)
+@@ -25,7 +25,7 @@ if(MSVC)
+ endif()
+ 
+ find_package(Zivid ${ZIVID_SDK_VERSION} EXACT COMPONENTS Core REQUIRED)
+-find_package(pybind11 2.3.0 REQUIRED)
++find_package(pybind11 2.4.3 REQUIRED)
+ find_package(Eigen3 3.3 REQUIRED)
+ 
+ add_subdirectory(src)

@@ -1,0 +1,4 @@
+[submodule "3rdparty/zivid-python"]
+	path = 3rdparty/zivid-python
+	url = https://github.com/zivid/zivid-python
+	branch = v2.1.0.2.2.0
