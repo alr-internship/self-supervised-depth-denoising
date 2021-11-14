@@ -3,8 +3,67 @@ depth-denoising
 
 self supervised depth denoising
 
+Structure
+======
+- [Installation](#installation)
+  - [Setup Environment](#setup-environment)
+  - [Update Environment](#update-environment)
+- [Project Organization](#project-organization)
+
+Installation
+=====
+
+Setup Environment
+------------------
+
+The major packages will be installed with the conda environment.
+Due to a bug in the Zivid Python package v2.1.0.2.2.0,
+a pached version of this package will be installed.
+
+### Create Conda Environment
+
+Create a new conda environment with the required packages and activate it:
+
+    conda env create -f depth-denoising.yml 
+    conda activate depth-denoising
+
+### Install Zivid SDK and Python package
+
+This repository requires the [Zivid SDK v2.2.0](https://github.com/zivid/zivid-cpp-samples/releases/tag/v2.2.0) to be installed already.
+Otherwise the following commands will fail.
+
+Since the `python-zivid` pip package in version 2.1.0.2.2.0 failes to build,
+its git repository is included in [./3rdparty/zivid-python](./3rdparty/zivid-python) as submodule.
+Follow these instructions to install patched `python-zivid` version.
+**Note: execute these commands from the root folder of this repository**
+
+    git submodule update --init
+    git apply --directory 3rdparty/zivid-python 3rdparty/zivid-python-depfix.patch
+    pip install 3rdparty/zivid-python
+
+
+If the last command failes with an error like 
+
+    CMake Error: The current CMakeCache.txt directory /tmp/.../CMakeCache.txt is different
+
+execute following command and retry the *pip install* command:
+
+    rm -r 3rdparty/zivid-python/_skbuild
+
+
+Update Environment
+------------------
+Make sure you are in the correct conda environment
+    conda activate depth-denoising
+
+execute following commands to update conda and pip files
+**IMPORTANT: remove the zivid requirement from pip, as it must be installed by hand**
+
+    conda env export > depth-denoising.yml
+
+
 Project Organization
-------------
+======
 
     ├── LICENSE
     ├── Makefile           <- Makefile with commands like `make data` or `make train`
@@ -16,6 +75,7 @@ Project Organization
     │   └── raw            <- The original, immutable data dump.
     │
     ├── docs               <- A default Sphinx project; see sphinx-doc.org for details
+        └── roadmap.md     <- Lists the general roadmap
     │
     ├── models             <- Trained and serialized models, model predictions, or model summaries
     │
@@ -56,46 +116,3 @@ Project Organization
 
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
 
-
-Important files
------------------
-Relevant documentation files are listed below [./docs](./docs)
-
-Setup Environment
-------------------
-Create a new conda environment with the required packages and activate it:
-
-    conda env create -f depth-denoising.yml 
-    conda activate depth-denoising
-
-Since the `python-zivid` pip package in version 2.1.0.2.2.0 failes to build,
-its git repository is included in [./3rdparty/zivid-python](./3rdparty/zivid-python) as submodule.
-Follow these instructions to install patched `python-zivid` version.
-**Note: execute these commands from the root folder of this repository**
-
-    git submodule update --init
-    git apply --directory 3rdparty/zivid-python 3rdparty/zivid-python-depfix.patch
-    pip install 3rdparty/zivid-python
-
-
-If the last command failes with an error like 
-
-    CMake Error: The current CMakeCache.txt directory /tmp/.../CMakeCache.txt is different
-
-execute following command and retry the *pip install* command:
-
-    rm -r 3rdparty/zivid-python/_skbuild
-
-
-
-Done!!!
-
-Update Environment
-------------------
-Make sure you are in the correct conda environment
-    conda activate depth-denoising
-
-execute following commands to update conda and pip files
-**IMPORTANT: remove the zivid requirement from pip, as it is installed by hand**
-
-    conda env export > depth-denoising.yml
