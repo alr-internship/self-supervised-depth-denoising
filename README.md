@@ -17,38 +17,18 @@ Setup Environment
 ------------------
 
 The major packages will be installed with the conda environment.
-Due to a bug in the Zivid Python package v2.1.0.2.2.0,
+Due to a bug in the Zivid Python package v2.3.0.2.5.0,
 a pached version of this package will be installed.
 
 ### Create Conda Environment
+
+**This repository requires the [Zivid SDK v2.5.0](https://www.zivid.com/downloads) to be installed already.
+Otherwise the following commands will fail.**
 
 Create a new conda environment with the required packages and activate it:
 
     conda env create -f depth-denoising.yml 
     conda activate depth-denoising
-
-### Install Zivid SDK and Python package
-
-This repository requires the [Zivid SDK v2.2.0](https://github.com/zivid/zivid-cpp-samples/releases/tag/v2.2.0) to be installed already.
-Otherwise the following commands will fail.
-
-Since the `python-zivid` pip package in version 2.1.0.2.2.0 failes to build,
-its git repository is included in [./3rdparty/zivid-python](./3rdparty/zivid-python) as submodule.
-Follow these instructions to install patched `python-zivid` version.
-**Note: execute these commands from the root folder of this repository**
-
-    git submodule update --init
-    git apply --directory 3rdparty/zivid-python 3rdparty/zivid-python-depfix.patch
-    pip install 3rdparty/zivid-python
-
-
-If the last command failes with an error like 
-
-    CMake Error: The current CMakeCache.txt directory /tmp/.../CMakeCache.txt is different
-
-execute following command and retry the *pip install* command:
-
-    rm -r 3rdparty/zivid-python/_skbuild
 
 
 Update Environment
