@@ -126,6 +126,7 @@ dependencies:
   - zlib=1.2.11=h36c2ea0_1013
   - zstd=1.5.0=ha95c52a_0
   - pip:
+    - opencv-contrib-python==4.5.4.58
     - pyrealsense2==2.49.0.3474
     - zivid==2.3.0.2.5.0
 prefix: /home/depth_denoising/miniconda3/envs/depth-denoising
