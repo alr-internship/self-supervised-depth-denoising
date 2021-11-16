@@ -4,9 +4,14 @@ import cv2
 import math
 import numpy as np
 
+
 class Zivid:
 
-    def __init__(self) -> None:
+    def __init__(self, capture_time: int = 1200) -> None:
+        """Initializes the camera and takes photos to setup camera settings automatically
+        Args:
+            capture_time: the capture time of the camera in milliseconds
+        """
         app = zivid.Application()
 
         """cameras = app.cameras()
@@ -16,9 +21,14 @@ class Zivid:
         print("connecting to camera")
         self.camera = app.connect_camera()
 
+        self.configure(capture_time=capture_time)
+
+    def configure(self, capture_time: int = 1200):
+        """configures the camera by taking multiple frames
+        """
         print("automatically configuring settings")
         suggest_settings_parameters = zivid.capture_assistant.SuggestSettingsParameters(
-            max_capture_time=datetime.timedelta(milliseconds=1200),
+            max_capture_time=datetime.timedelta(milliseconds=capture_time),
             ambient_light_frequency=zivid.capture_assistant.SuggestSettingsParameters.AmbientLightFrequency.none,
         )
 
@@ -36,7 +46,6 @@ class Zivid:
             depth_image = Zivid._convert_2_depth_image(point_cloud=point_cloud)
 
             return rgb_image, depth_image
-
 
     def _convert_2_bgr_image(point_cloud: zivid.PointCloud):
         """Convert from point cloud to 2D image.
