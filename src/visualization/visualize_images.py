@@ -10,5 +10,5 @@ def get_visualized_depth_image(depth_image: np.array):
     return depth_colormap
 
 
-def convert_bgr_to_grb(image):
+def convert_bgr_to_rgb(image):
     return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)

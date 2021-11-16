@@ -1,36 +1,44 @@
 import zivid
 import datetime
 import cv2
+import math
+import numpy as np
 
 class Zivid:
 
     def __init__(self) -> None:
         app = zivid.Application()
 
-        print("Connecting to camera")
+        """cameras = app.cameras()
+        for cam in cameras:
+            print(f"Connecting camera: {cam.serialNumber()}")"""
+
+        print("connecting to camera")
         self.camera = app.connect_camera()
 
-        print("Configuring settings")
-        self.settings = zivid.Settings()
-        self.settings.acquisitions.append(zivid.Settings.Acquisition())
-        self.settings.acquisitions[0].aperture = 5.66
-        self.settings.acquisitions[0].exposure_time = datetime.timedelta(microseconds=6500)
-        self.settings.processing.filters.outlier.removal.enabled = True
-        self.settings.processing.filters.outlier.removal.threshold = 5.0        
+        print("automatically configuring settings")
+        suggest_settings_parameters = zivid.capture_assistant.SuggestSettingsParameters(
+            max_capture_time=datetime.timedelta(milliseconds=1200),
+            ambient_light_frequency=zivid.capture_assistant.SuggestSettingsParameters.AmbientLightFrequency.none,
+        )
+
+        self.settings = zivid.capture_assistant.suggest_settings(
+            self.camera, suggest_settings_parameters
+        )
+        print("camera configured")
 
     def collect_frame(self):
         print("Capturing frame")
         with self.camera.capture(self.settings) as frame:
-            data_file = "Frame.zdf"
-            print(f"Saving frame to file: {data_file}")
-            frame.save(data_file)
+            point_cloud = frame.point_cloud()
 
-            rgb_image = Zivid._convert_2_2d(point_cloud=frame)
+            rgb_image = Zivid._convert_2_bgr_image(point_cloud=point_cloud)
+            depth_image = Zivid._convert_2_depth_image(point_cloud=point_cloud)
 
-            return rgb_image
+            return rgb_image, depth_image
 
 
-    def _convert_2_2d(point_cloud):
+    def _convert_2_bgr_image(point_cloud: zivid.PointCloud):
         """Convert from point cloud to 2D image.
         Args:
             point_cloud: a handle to point cloud in the GPU memory
@@ -39,3 +47,6 @@ class Zivid:
         rgba = point_cloud.copy_data("rgba")
         bgr = cv2.cvtColor(rgba, cv2.COLOR_RGBA2BGR)
         return bgr
+
+    def _convert_2_depth_image(point_cloud: zivid.PointCloud):
+        return point_cloud.copy_data("z")

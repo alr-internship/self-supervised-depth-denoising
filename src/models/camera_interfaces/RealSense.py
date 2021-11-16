@@ -36,5 +36,5 @@ class RealSense:
         # convert frames to np arrays
         depth_image = np.asanyarray(frames.get_depth_frame().get_data())
         color_image = np.asanyarray(frames.get_color_frame().get_data())
-
+        
         return depth_image, color_image
