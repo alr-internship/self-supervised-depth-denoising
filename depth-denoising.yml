@@ -127,4 +127,5 @@ dependencies:
   - zstd=1.5.0=ha95c52a_0
   - pip:
     - pyrealsense2==2.49.0.3474
+    - zivid==2.3.0.2.5.0
 prefix: /home/depth_denoising/miniconda3/envs/depth-denoising
