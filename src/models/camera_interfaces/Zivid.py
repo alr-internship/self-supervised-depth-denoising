@@ -8,20 +8,16 @@ from zivid import point_cloud
 
 class Zivid:
 
-    def __init__(self, capture_time: int = 1200) -> None:
+    def __init__(self):
         """Initializes the camera and takes photos to setup camera settings automatically
         Args:
             capture_time: the capture time of the camera in milliseconds
         """
-        app = zivid.Application()
+        self.app = zivid.Application()
 
-        """cameras = app.cameras()
-        for cam in cameras:
-            print(f"Connecting camera: {cam.serialNumber()}")"""
-
+    def connect(self, capture_time: int = 1200):
         print("connecting to camera")
-        self.camera = app.connect_camera()
-
+        self.camera = self.app.connect_camera()
         self.configure(capture_time=capture_time)
 
     def configure(self, capture_time: int = 1200):
