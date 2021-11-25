@@ -8,7 +8,7 @@ from zivid import point_cloud
 
 class Zivid:
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes the camera and takes photos to setup camera settings automatically
         Args:
             capture_time: the capture time of the camera in milliseconds
@@ -16,6 +16,8 @@ class Zivid:
         self.app = zivid.Application()
 
     def connect(self, capture_time: int = 1200):
+        """connect to camera
+        """
         print("connecting to camera")
         self.camera = self.app.connect_camera()
         self.configure(capture_time=capture_time)
@@ -44,7 +46,7 @@ class Zivid:
 
             return rgb_image, depth_image
 
-    def _convert_zdf_to_png(self, zdf_path: str, color_path: str, depth_path: str):
+    def convert_zdf_to_png(self, zdf_path: str, color_path: str, depth_path: str):
       """
       @param zdf_path str: file path the .zdf file is located
       @param color_path str: path the rgb image should be saved with cv2.imwrite()
