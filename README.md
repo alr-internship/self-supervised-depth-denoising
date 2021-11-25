@@ -17,8 +17,6 @@ Setup Environment
 ------------------
 
 The major packages will be installed with the conda environment.
-Due to a bug in the Zivid Python package v2.3.0.2.5.0,
-a pached version of this package will be installed.
 
 ### Create Conda Environment
 
