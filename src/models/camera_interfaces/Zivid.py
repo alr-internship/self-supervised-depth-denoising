@@ -3,11 +3,10 @@ import datetime
 import cv2
 import math
 import numpy as np
+from zivid import point_cloud
 
 
 class Zivid:
-
-    id: int = 0
 
     def __init__(self, capture_time: int = 1200) -> None:
         """Initializes the camera and takes photos to setup camera settings automatically
@@ -42,14 +41,26 @@ class Zivid:
     def collect_frame(self):
         print("Capturing frame")
         with self.camera.capture(self.settings) as frame:
-            frame.save(str(self.id) + "_zivid.zdf")
-            self.id = self.id + 1
             point_cloud = frame.point_cloud()
 
             rgb_image = Zivid._convert_2_bgr_image(point_cloud=point_cloud)
             depth_image = Zivid._convert_2_depth_image(point_cloud=point_cloud)
 
             return rgb_image, depth_image
+
+    def _convert_zdf_to_png(zdf_path: str, color_path: str, depth_path: str):
+      """
+      @param zdf_path str: file path the .zdf file is located
+      @param color_path str: path the rgb image should be saved with cv2.imwrite()
+      @param depth_path str: path the depth image should be saved with cv2.imwrite()
+      @return None
+      """
+      frame = zivid.Frame(zdf_path)
+      point_cloud = frame.point_cloud()
+      rgb_image = Zivid._convert_2_bgr_image(point_cloud=point_cloud)
+      depth_image = Zivid._convert_2_depth_image(point_cloud=point_cloud)
+      cv2.imwrite(color_path, rgb_image)
+      cv2.imwrite(depth_path, depth_image)
 
     def _convert_2_bgr_image(point_cloud: zivid.PointCloud):
         """Convert from point cloud to 2D image.
