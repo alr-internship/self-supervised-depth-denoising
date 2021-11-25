@@ -5,29 +5,26 @@ self supervised depth denoising
 
 Structure
 ======
-- [Installation](#installation)
+- [Dataset Generation](#dataset-generation)
   - [Setup Environment](#setup-environment)
   - [Update Environment](#update-environment)
 - [Project Organization](#project-organization)
 
-Installation
+Dataset Generation
 =====
 
 Setup Environment
 ------------------
 
-The major packages will be installed with the conda environment.
+All packages will be installed with a conda environment.
 
-### Create Conda Environment
-
-**This repository requires the [Zivid SDK v2.5.0](https://www.zivid.com/downloads) to be installed already.
+**To generate a dataset, the environment requires the [Zivid SDK v2.5.0](https://www.zivid.com/downloads) to be installed already.
 Otherwise the following commands will fail.**
 
 Create a new conda environment with the required packages and activate it:
 
     conda env create -f depth-denoising.yml 
     conda activate depth-denoising
-
 
 Update Environment
 ------------------
@@ -38,6 +35,21 @@ execute following commands to update conda and pip files
 **IMPORTANT: remove the zivid requirement from pip, as it must be installed by hand**
 
     conda env export > depth-denoising.yml
+
+Training Networks
+=====
+
+Setup Environment
+----
+
+    conda env create -f depth-denoising_training.yml 
+    conda activate depth-denoising_training
+
+Update Environment
+----
+
+    conda env export > depth-denoising_training.yml
+
 
 
 Project Organization
