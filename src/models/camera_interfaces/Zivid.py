@@ -44,7 +44,7 @@ class Zivid:
 
             return rgb_image, depth_image
 
-    def _convert_zdf_to_png(zdf_path: str, color_path: str, depth_path: str):
+    def _convert_zdf_to_png(self, zdf_path: str, color_path: str, depth_path: str):
       """
       @param zdf_path str: file path the .zdf file is located
       @param color_path str: path the rgb image should be saved with cv2.imwrite()
