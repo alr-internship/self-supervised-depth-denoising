@@ -7,6 +7,8 @@ import numpy as np
 
 class Zivid:
 
+    id: int = 0
+
     def __init__(self, capture_time: int = 1200) -> None:
         """Initializes the camera and takes photos to setup camera settings automatically
         Args:
@@ -40,6 +42,8 @@ class Zivid:
     def collect_frame(self):
         print("Capturing frame")
         with self.camera.capture(self.settings) as frame:
+            frame.save(str(self.id) + "_zivid.zdf")
+            self.id = self.id + 1
             point_cloud = frame.point_cloud()
 
             rgb_image = Zivid._convert_2_bgr_image(point_cloud=point_cloud)
