@@ -55,8 +55,12 @@ class Zivid:
       """
       frame = zivid.Frame(zdf_path)
       point_cloud = frame.point_cloud()
+
+      # convert point cloud to rgb and depth image
       rgb_image = Zivid._convert_2_bgr_image(point_cloud=point_cloud)
       depth_image = Zivid._convert_2_depth_image(point_cloud=point_cloud)
+
+      # write images
       cv2.imwrite(color_path, rgb_image)
       cv2.imwrite(depth_path, depth_image)
 
@@ -71,4 +75,11 @@ class Zivid:
         return bgr
 
     def _convert_2_depth_image(point_cloud: zivid.PointCloud):
-        return point_cloud.copy_data("z")
+        depth_map = point_cloud.copy_data("z")
+        min = np.nanmin(depth_map)
+        max = np.nanmax(depth_map)
+        print(min, max)
+        depth_map_uint8 = (
+            (depth_map - min) / (max - min) * 255
+        ).astype(np.uint8)
+        return depth_map_uint8
