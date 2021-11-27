@@ -1,55 +1,55 @@
-depth-denoising
+Self-Supervices Depth-Denoising
 ==============================
 
-self supervised depth denoising
+Self-Supervised Depth-Denoising
 
-Structure
-======
-- [Dataset Generation](#dataset-generation)
-  - [Setup Environment](#setup-environment)
+The Project structure:
+- [Setup](#setup)
+  - [Create Environment](#create-environment)
   - [Update Environment](#update-environment)
 - [Project Organization](#project-organization)
 
-Dataset Generation
+
+Setup
 =====
 
-Setup Environment
-------------------
+The project consists of multiple stages, named:
+- dataset
+- training
+- ...
 
-All packages will be installed with a conda environment.
+All those stages have their own [conda](https://anaconda.org) environment,
+to reduce the size of each environment and prevent dependency conflicts
+(especially with different python versions).
 
-**To generate a dataset, the environment requires the [Zivid SDK v2.5.0](https://www.zivid.com/downloads) to be installed already.
-Otherwise the following commands will fail.**
+Create Environment
+-----
 
-Create a new conda environment with the required packages and activate it:
+To create a specific conda environment,
+there is a .yml file located in [envs](./envs), that should be used.
+All files are named *depth-denoising_%STAGE%.yml*,
+where *%STAGE%* must be replaced with one of the stages listed above.
 
-    conda env create -f depth-denoising.yml 
-    conda activate depth-denoising
+To create an environment execute following commands 
+
+    conda env create -f ./envs/depth-denoising_%STAGE%.yml 
+    conda activate depth-denoising_%STAGE%
+
+E.g. to generate the environment for training, execute:
+
+    conda env create -f ./envs/depth-denoising_training.yml
+    conda activate depth-denoising_training
+
+**Note: To create the environment of stage dataset, the [Zivid SDK v2.5.0](https://www.zivid.com/downloads) must be installed first. Otherwise the above commands will fail.**
 
 Update Environment
 ------------------
 Make sure you are in the correct conda environment
-    conda activate depth-denoising
+    conda activate depth-denoising_%STAGE%
 
 execute following commands to update conda and pip files
-**IMPORTANT: remove the zivid requirement from pip, as it must be installed by hand**
 
-    conda env export > depth-denoising.yml
-
-Training Networks
-=====
-
-Setup Environment
-----
-
-    conda env create -f depth-denoising_training.yml 
-    conda activate depth-denoising_training
-
-Update Environment
-----
-
-    conda env export > depth-denoising_training.yml
-
+    conda env export > ./envs/depth-denoising_%STAGE%.yml
 
 
 Project Organization
