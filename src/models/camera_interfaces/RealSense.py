@@ -39,8 +39,6 @@ class RealSense:
         print(f"Principal Point: {color_i.ppx} {color_i.ppy}")
         print(f"Focal Length:    {color_i.fx} {color_i.fy}")
 
-    id = 0
-
     def collect_frame(self):
         """
         return values are None when at least one frame collected from camera is None
@@ -61,11 +59,14 @@ class RealSense:
         depth_image = np.asanyarray(frames.get_depth_frame().get_data())
         color_image = np.asanyarray(frames.get_color_frame().get_data())
 
-        cv2.imwrite(str(self.id) + "_realsense_depth.png", depth_image)
-        cv2.imwrite(str(self.id) + "_realsense_color.png", color_image)
-        self.id = self.id + 1
-
         return depth_image, color_image
+
+    def collect_and_save_pointcloud(self, path: str):
+        color_frame, depth_frame = self.collect_frame()
+        pc = rs.pointcloud()
+        pc.map_to(color_frame)
+        pointcloud = pc.calculate(depth_frame)
+        pointcloud.export_to_ply(path, color_frame)
 
     def __del__(self):
         self.pipeline.stop()

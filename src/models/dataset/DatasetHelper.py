@@ -1,6 +1,7 @@
 from functools import reduce
 import numpy as np
 import open3d as o3d
+import cv2
 
 def saveImageDataset(
     datasetPath: str,
@@ -99,4 +100,4 @@ def load_coefficients(
     transf_matrix = cv_file.getNode('T').mat()
 
     cv_file.release()
-    return [camera_matrix, dist_matrix, transf_matrix]
+    return transf_matrix

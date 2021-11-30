@@ -20,9 +20,9 @@ class Zivid:
         """
         print("connecting to camera")
         self.camera = self.app.connect_camera()
-        self.configure(capture_time=capture_time)
+        self.calibrate(capture_time=capture_time)
 
-    def configure(self, capture_time: int = 1200):
+    def calibrate(self, capture_time: int = 1200):
         """configures the camera by taking multiple frames
         """
         print("automatically configuring settings")
@@ -39,12 +39,17 @@ class Zivid:
     def collect_frame(self):
         print("Capturing frame")
         with self.camera.capture(self.settings) as frame:
-            point_cloud = frame.point_cloud()
 
             rgb_image = Zivid._convert_2_bgr_image(point_cloud=point_cloud)
             depth_image = Zivid._convert_2_depth_image(point_cloud=point_cloud)
 
             return rgb_image, depth_image
+
+    def collect_and_save_pointcloud(self, path: str):
+        print("Capturing frame")
+        with self.camera.capture(self.settings) as frame:
+            frame.save(path)
+
 
     def convert_zdf_to_png(self, zdf_path: str, color_path: str, depth_path: str):
       """
