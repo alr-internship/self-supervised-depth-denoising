@@ -62,7 +62,13 @@ class RealSense:
         return depth_image, color_image
 
     def collect_and_save_pointcloud(self, path: str):
-        color_frame, depth_frame = self.collect_frame()
+        # get frames from camera
+        frames = self.pipeline.wait_for_frames()
+        frames = self.align.process(frames)
+
+        depth_frame = frames.get_depth_frame()
+        color_frame = frames.get_color_frame()
+
         pc = rs.pointcloud()
         pc.map_to(color_frame)
         pointcloud = pc.calculate(depth_frame)
