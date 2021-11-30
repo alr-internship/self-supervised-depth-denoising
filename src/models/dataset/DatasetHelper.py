@@ -49,4 +49,27 @@ def openImageDataset(
 
     return realsenseColor, realsenseDepth, zividColor, zividDepth
 
-    
+
+def save_coefficients(
+    tmat=np.array, 
+    path=str
+): 
+    '''Save the camera matrix and the distortion coefficients to given path/file.''' 
+    cv_file = cv2.FileStorage(path, cv2.FILE_STORAGE_WRITE)
+    cv_file.write('T', tmat)
+    # note you *release* you don't close() a FileStorage object
+    cv_file.release()
+
+def load_coefficients(
+    path=str
+):
+    '''Loads camera matrix and distortion coefficients.'''
+    # FILE_STORAGE_READ
+    cv_file = cv2.FileStorage(path, cv2.FILE_STORAGE_READ)
+
+    # note we also have to specify the type to retrieve other wise we only get a
+    # FileNode object back instead of a matrix
+    transf_matrix = cv_file.getNode('T').mat()
+
+    cv_file.release()
+    return [camera_matrix, dist_matrix, transf_matrix]
