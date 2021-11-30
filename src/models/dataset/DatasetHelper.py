@@ -1,6 +1,6 @@
 from functools import reduce
 import numpy as np
-
+import open3d as o3d
 
 def saveImageDataset(
     datasetPath: str,
@@ -49,6 +49,33 @@ def openImageDataset(
 
     return realsenseColor, realsenseDepth, zividColor, zividDepth
 
+def open_image_dataset_o3d(
+    dataset_path: str
+):
+    """
+    Returns
+    ----------
+    rgbd_rs_images, rgbd_zv_images
+
+    """
+    realsense_color, realsense_depth, zivid_color, zivid_depth = openImageDataset(dataset_path)
+
+    rgbd_rs_images = []
+    rgbd_zv_images = []
+    for rs_color_image, rs_depth_image, zv_color_image, zv_depth_image in zip(realsense_color, realsense_depth, zivid_color, zivid_depth):
+        rgbd_rs_images.append(
+            o3d.geometry.RGBDImage.create_from_color_and_depth(
+                o3d.geometry.Image(rs_color_image), 
+                o3d.geometry.Image(rs_depth_image)
+            )
+        )
+        rgbd_zv_images.append(
+            o3d.geometry.RGBDImage.create_from_color_and_depth(
+                o3d.geometry.Image(zv_color_image), 
+                o3d.geometry.Image(zv_depth_image)
+            )
+        )
+    return rgbd_rs_images, rgbd_zv_images
 
 def save_coefficients(
     tmat=np.array, 

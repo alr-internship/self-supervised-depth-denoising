@@ -22,6 +22,16 @@ All those stages have their own [conda](https://anaconda.org) environment,
 to reduce the size of each environment and prevent dependency conflicts
 (especially with different python versions).
 
+Setup Git lfs
+-----
+This repository uses [git-lfs](https://git-lfs.github.com/) to store the dataset files.
+To use all notebooks without any problem reasure that GIT lfs is 
+installed and initialized on your system.
+To fetch git-lfs stored files after the repository was cloned,
+execute following command
+
+    git lfs fetch
+
 Create Environment
 -----
 
