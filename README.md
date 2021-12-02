@@ -23,9 +23,9 @@ to reduce the size of each environment and prevent dependency conflicts
 Get Resources
 -----
 
-All resources of this repository are stored ing [dvc](https://dvc.org).
+All resources of this repository are stored in [dvc](https://dvc.org).
 Therefore, they won't be downloaded when cloning the repository.
-To clone them, dvc must be installed on the system.
+To clone them, dvc **and dvc-ssh* must be installed on the system.
 Visit [https://dvc.org/doc/install](https://dvc.org/doc/install) for further information.
 
 Afterwards the resources can be pulled with following command
@@ -41,16 +41,20 @@ To create a specific conda environment,
 there is a .yml file located in [envs](./envs), that should be used.
 All files are named *depth-denoising_%STAGE%.yml*,
 where *%STAGE%* must be replaced with one of the stages listed above.
+To ensure all notebooks execute correctly, the last command adds the PYTHONPATH 
+environment variable to the environment pointing to the src folder.
 
 To create an environment execute following commands 
 
     conda env create -f ./envs/depth-denoising_%STAGE%.yml 
     conda activate depth-denoising_%STAGE%
+    conda env config vars set PYTHONPATH=$PWD/src
 
 E.g. to generate the environment for training, execute:
 
     conda env create -f ./envs/depth-denoising_training.yml
     conda activate depth-denoising_training
+    conda env config vars set PYTHONPATH=$PWD/src
 
 **Note: To create the environment of stage dataset, the [Zivid SDK v2.5.0](https://www.zivid.com/downloads) must be installed first. Otherwise the above commands will fail.**
 
@@ -117,4 +121,5 @@ Project Organization
 --------
 
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
+
 
