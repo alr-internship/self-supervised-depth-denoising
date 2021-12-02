@@ -8,20 +8,24 @@ class RealSense:
 
     def __init__(self) -> None:
         self.pipeline = rs.pipeline()
-        config = rs.config()
 
         # setup depth and color stream
-        config.enable_stream(rs.stream.depth, width=1280, height=720, format=rs.format.z16, framerate=30)
-        config.enable_stream(rs.stream.color, width=1920, height=1080, format=rs.format.bgr8, framerate=30)
+        self.config = rs.config()
+        self.config.enable_stream(rs.stream.depth, width=1280, height=720, format=rs.format.z16, framerate=30)
+        self.config.enable_stream(rs.stream.color, width=1920, height=1080, format=rs.format.bgr8, framerate=30)
         self.align = rs.align(rs.stream.color)
-
-        # start streaming
-        self.pipeline.start(config)
 
         # print intrinsics
         self._print_camera_specs()
 
+    def connect(self):
+        # start streaming
+        self.pipeline.start(self.config)
+
+
     def _print_camera_specs(self):
+        print("=============================================================")
+        print("RealSense Configuration")
         pipeline_profile = self.pipeline.get_active_profile()
         product_line = pipeline_profile.get_device().get_info(info=rs.camera_info.product_line)
         product_id = pipeline_profile.get_device().get_info(info=rs.camera_info.product_id)
@@ -38,6 +42,7 @@ class RealSense:
         print("Color Camera Intrinsics")
         print(f"Principal Point: {color_i.ppx} {color_i.ppy}")
         print(f"Focal Length:    {color_i.fx} {color_i.fy}")
+        print("=============================================================")
 
     id = 0
 
