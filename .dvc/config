@@ -1,0 +1,4 @@
+[core]
+    remote = server
+['remote "server"']
+    url = ssh://claudiuskienle@gitlab.vincentcui.de:9022/var/opt/dvc/
