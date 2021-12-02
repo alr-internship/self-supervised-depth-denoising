@@ -1,4 +1,4 @@
-Self-Supervices Depth-Denoising
+Self-Supervised Depth-Denoising
 ==============================
 
 The Project structure:
