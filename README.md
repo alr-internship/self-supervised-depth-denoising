@@ -1,14 +1,12 @@
 Self-Supervices Depth-Denoising
 ==============================
 
-Self-Supervised Depth-Denoising
-
 The Project structure:
 - [Setup](#setup)
+  - [Get Resources](#get-resources)
   - [Create Environment](#create-environment)
   - [Update Environment](#update-environment)
 - [Project Organization](#project-organization)
-
 
 Setup
 =====
@@ -21,6 +19,20 @@ The project consists of multiple stages, named:
 All those stages have their own [conda](https://anaconda.org) environment,
 to reduce the size of each environment and prevent dependency conflicts
 (especially with different python versions).
+
+Get Resources
+-----
+
+All resources of this repository are stored ing [dvc](https://dvc.org).
+Therefore, they won't be downloaded when cloning the repository.
+To clone them, dvc must be installed on the system.
+Visit [https://dvc.org/doc/install](https://dvc.org/doc/install) for further information.
+
+Afterwards the resources can be pulled with following command
+
+    dvc pull
+
+**Note: The used dvc remote server isn't available to the public.**
 
 Create Environment
 -----
