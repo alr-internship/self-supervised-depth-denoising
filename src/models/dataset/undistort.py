@@ -28,7 +28,7 @@ def undistort_images(
     N = distorted_shape[0] # amount of images
 
     # convert z images to xyz images
-    xy_indices = np.indices(distorted_shape[1:]).transpose((1, 2, 0)) 
+    xy_indices = np.indices(distorted_shape[1:]).transpose((1, 2, 0))
     xy_indices = np.repeat(xy_indices[None, ...], N, axis=0)
     ones = np.ones(distorted_shape)
     distorted_xyz_images = np.concatenate((xy_indices, z_images[..., None], ones[..., None]), axis=3)
@@ -53,7 +53,7 @@ def undistort_images(
         for x_old in range(undistorted_xyz_images.shape[1]): 
             for y_old in range(undistorted_xyz_images.shape[2]):
                 idx = (n, *xy_indices[n, x_old, y_old])
-                undistorted_z_images[idx] = undistorted_xyz_images[(*idx, 2)] # copy new z value
+                undistorted_z_images[idx] = undistorted_xyz_images[n, x_old, y_old, 2] # copy new z value
                 undistorted_rgb_images[idx] = rgb_images[n, x_old, y_old] # copy old rgb value
 
     return undistorted_z_images, undistorted_rgb_images
