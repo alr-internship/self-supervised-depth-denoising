@@ -34,7 +34,7 @@ def undistort_images(
     distorted_xyz_images = np.concatenate((xy_indices, z_images[..., None], ones[..., None]), axis=3)
 
     # undistort images
-    undistorted_xyz_images = distorted_xyz_images @ transformation_matrix.T
+    undistorted_xyz_images = distorted_xyz_images @ transformation_matrix
     undistorted_xyz_images = undistorted_xyz_images[..., :3] # remove trailing ones
     
     # convert x`y`z images to z images (update x and y coordinate)
