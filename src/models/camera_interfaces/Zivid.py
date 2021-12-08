@@ -1,9 +1,7 @@
 import zivid
 import datetime
 import cv2
-import math
 import numpy as np
-from zivid import point_cloud
 
 
 class Zivid:
