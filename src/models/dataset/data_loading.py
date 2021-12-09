@@ -18,7 +18,7 @@ from .DatasetHelper import openImageDataset
 
 class BasicDataset(Dataset):
     def __init__(self, dataset_path: Path, scale: float = 1.0):
-        self.dataset = list(zip(*openImageDataset(datasetPath=dataset_path)));
+        self.dataset = list(zip(*openImageDataset(datasetPath=dataset_path)))
 
         assert 0 < scale <= 1, 'Scale must be between 0 and 1'
         self.scale = scale
