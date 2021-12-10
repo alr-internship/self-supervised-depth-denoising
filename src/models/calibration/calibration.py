@@ -1,5 +1,7 @@
 from typing import Sequence
 
+from pathlib import Path
+from models.dataset.dataset_container import DatasetContainer
 import numpy as np
 import cv2
 
@@ -17,6 +19,28 @@ class StereoCalibration:
         self.__map1y = np.copy(map1y)
         self.__map2x = np.copy(map2x)
         self.__map2y = np.copy(map2y)
+
+    def configure_from_dataset(
+        self,
+        charuco_dict,
+        charuco_board,
+        dataset_container: DatasetContainer,
+        common_points_threshold: int = 40,
+        alpha: int = -1,
+        silent: bool = True,
+    ):
+        self.configure(
+            charuco_dict=charuco_dict,
+            charuco_board=charuco_board,
+            common_points_threshold=common_points_threshold,
+            imgs_1=dataset_container.realsense.rgb,
+            imgs_1_cm=dataset_container.realsense.camera_matrix,
+            imgs_1_dc=dataset_container.realsense.distortion_coefficients,
+            imgs_2=dataset_container.zivid.rgb,
+            imgs_2_cm=dataset_container.zivid.camera_matrix,
+            imgs_2_dc=dataset_container.zivid.distortion_coefficients,
+            alpha=alpha,
+            silent=silent)
 
     def configure(self,
                   charuco_dict,
@@ -199,11 +223,11 @@ class StereoCalibration:
         return map(np.copy,
                    [self.__map1x, self.__map1y, self.__map2x, self.__map2y])
 
-    def save_calibration(self, path: str):
+    def save_calibration(self, path: Path):
         assert self.__map1x is not None and self.__map1y is not None
         assert self.__map2x is not None and self.__map2y is not None
 
-        cv_file = cv2.FileStorage(path, cv2.FILE_STORAGE_WRITE)
+        cv_file = cv2.FileStorage(path.as_posix(), cv2.FILE_STORAGE_WRITE)
         cv_file.write('map1x', self.__map1x)
         cv_file.write('map1y', self.__map1y)
         cv_file.write('map2x', self.__map2x)
@@ -211,8 +235,8 @@ class StereoCalibration:
         # note you *release* you don't close() a FileStorage object
         cv_file.release()
 
-    def load_calibration(self, path: str):
-        cv_file = cv2.FileStorage(path, cv2.FILE_STORAGE_READ)
+    def load_calibration(self, path: Path):
+        cv_file = cv2.FileStorage(path.as_posix(), cv2.FILE_STORAGE_READ)
         self.__map1x = cv_file.getNode('map1x').mat()
         self.__map1y = cv_file.getNode('map1y').mat()
         self.__map2x = cv_file.getNode('map2x').mat()
