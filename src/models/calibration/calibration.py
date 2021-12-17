@@ -13,7 +13,7 @@ class StereoCalibration:
         self.__map2x = None
         self.__map2y = None
 
-    def configure(self, map1x: np.array, map1y: np.array, map2x: np.array,
+    def configure_by_matrizes(self, map1x: np.array, map1y: np.array, map2x: np.array,
                   map2y: np.array):
         self.__map1x = np.copy(map1x)
         self.__map1y = np.copy(map1y)
@@ -74,7 +74,6 @@ class StereoCalibration:
             rotation matrix 
         T: np.array (shape: 3)
             translation vector
-
         """
         assert len(imgs_1) == len(imgs_2) > 0
 
@@ -129,7 +128,7 @@ class StereoCalibration:
                 )  # intersection between obj points
 
                 if len(common) < common_points_threshold:
-                    raise Exception("To few respective points found in images")
+                    raise Exception(f"To few respective points found in images ({len(common)})")
 
                 # fill arrays where each index specifies one markers objectPoint and both
                 # respective imagePoints
@@ -150,6 +149,9 @@ class StereoCalibration:
                 if not silent:
                     print(f"Skipped frame: {e}")
                 continue
+
+        if len(obj_points) == 0:
+            raise Exception("No image with enough feature points given")
 
         # calculates transformation (T) and rotation (R) between both cameras
         results = cv2.stereoCalibrate(obj_points,

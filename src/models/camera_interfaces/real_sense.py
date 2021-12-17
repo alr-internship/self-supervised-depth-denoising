@@ -76,8 +76,7 @@ class RealSense:
         """
 
         pipeline_profile = self.pipeline.get_active_profile()
-        color_stream_profile = pipeline_profile.get_stream(
-            rs.stream.color).as_video_stream_profile()
+        color_stream_profile = pipeline_profile.get_stream(rs.stream.color).as_video_stream_profile()
         color_i = color_stream_profile.get_intrinsics()
         camera_matrix = np.array([[color_i.fx, 0, color_i.ppx],
                                   [0, color_i.fy, color_i.ppy], [0, 0, 1]])
@@ -90,8 +89,8 @@ class RealSense:
 
         Returns
         -------
-        depth_frame: np.array
         color_frame: np.array 
+        depth_frame: np.array
         """
         # get frames from camera
         frames = self.pipeline.wait_for_frames()
@@ -107,8 +106,4 @@ class RealSense:
         depth_image = np.asanyarray(frames.get_depth_frame().get_data())
         color_image = np.asanyarray(frames.get_color_frame().get_data())
 
-        cv2.imwrite(str(self.id) + "_realsense_depth.png", depth_image)
-        cv2.imwrite(str(self.id) + "_realsense_color.png", color_image)
-        self.id = self.id + 1
-
-        return depth_image, color_image
+        return color_image, depth_image
