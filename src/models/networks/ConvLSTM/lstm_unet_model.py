@@ -2,12 +2,15 @@ import torch.nn as nn
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from models.common import conv, norm, ListModule, BloorPool, ConvLSTMCell
 
+from UNet.unet_model import unetConv2, unetDown, unetUp
+from ConvLSTM.conv_lstm import ConvLSTMCell 
 
 class LSTMUNet(nn.Module):
-    '''
+    '''/conv
         upsample_mode in ['deconv', 'nearest', 'bilinear']
+import torch.nn.functional as F
+from models.common import conv, norm, ListModule, BloorPool, ConvLSTMCell
         pad in ['zero', 'replication', 'none']
     '''
     def __init__(self, num_input_channels=3, num_output_channels=3, 
@@ -29,15 +32,6 @@ class LSTMUNet(nn.Module):
         self.down2 = unetDown(filters[1], filters[2] if not concat_x else filters[2] - num_input_channels, norm_layer, need_bias, pad, downsample_mode)
         self.down3 = unetDown(filters[2], filters[3] if not concat_x else filters[3] - num_input_channels, norm_layer, need_bias, pad, downsample_mode)
         self.down4 = unetDown(filters[3], filters[4] if not concat_x else filters[4] - num_input_channels, norm_layer, need_bias, pad, downsample_mode)
-
-        # more downsampling layers
-        if self.more_layers > 0:
-            self.more_downs = [
-                unetDown(filters[4], filters[4] if not concat_x else filters[4] - num_input_channels , norm_layer, need_bias, pad) for i in range(self.more_layers)]
-            self.more_ups = [unetUp(filters[4], upsample_mode, need_bias, pad, same_num_filt =True) for i in range(self.more_layers)]
-
-            self.more_downs = ListModule(*self.more_downs)
-            self.more_ups   = ListModule(*self.more_ups)
 
         self.up4 = unetUp(filters[3], upsample_mode, need_bias, pad)
         self.up3 = NewunetUp(filters[2], upsample_mode, need_bias, pad)
