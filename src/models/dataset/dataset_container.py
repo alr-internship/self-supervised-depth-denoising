@@ -71,14 +71,14 @@ class DatasetContainer:
             self.realsense = CameraDataset(
                 camera_matrix=dataset["realsense_cm"],
                 distortion_coefficients=dataset["realsense_dc"],
-                rgb=dataset["realsense_color"],
-                depth=dataset["realsense_depth"],
+                rgb=list(dataset["realsense_color"]),
+                depth=list(dataset["realsense_depth"]),
             )
             self.zivid = CameraDataset(
                 camera_matrix=dataset['zivid_cm'],
                 distortion_coefficients=dataset['zivid_dc'],
-                rgb=dataset["zivid_color"],
-                depth=dataset["zivid_depth"],
+                rgb=list(dataset["zivid_color"]),
+                depth=list(dataset["zivid_depth"]),
             )
 
     def __getitem__(self, arg):
@@ -117,6 +117,12 @@ class DatasetContainer:
         self.realsense.depth.append(rs_depth)
         self.zivid.rgb.append(zv_rgb)
         self.zivid.depth.append(zv_depth)
+
+    def extend(self, dataset_container: 'DatasetContainer'):
+        self.realsense.rgb.extend(dataset_container.realsense.rgb)
+        self.realsense.depth.extend(dataset_container.realsense.depth)
+        self.zivid.rgb.extend(dataset_container.zivid.rgb)
+        self.zivid.depth.extend(dataset_container.zivid.depth)
 
     def save(self, dataset_path: Path):
         """
