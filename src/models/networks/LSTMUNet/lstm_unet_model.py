@@ -5,7 +5,6 @@ import numpy as np
 import torch.nn.functional as F
 
 from UNet.unet_parts import DoubleConv, Down, Up, OutConv
-from UNet.unet_model import UNet
 from lstm_unet_parts import ConvLSTMCell
 
 
@@ -31,10 +30,11 @@ class LSTMUNet(nn.Module):
 
         self.InConv = DoubleConv(n_channels, 64)
 
-        self.Down1 = Down(64, 128)
-        self.Down2 = Down(128, 256)
-        self.Down3 = Down(256, 512)
-        self.Down4 = Down(512, 1024 // factor)
+        # '- n_channels' for concatenation later of skip connections
+        self.Down1 = Down(64, 128 - n_channels)
+        self.Down2 = Down(128, 256 - n_channels)
+        self.Down3 = Down(256, 512 - n_channels)
+        self.Down4 = Down(512, 1024 // factor - n_channels)
 
         self.Up1 = Up(1024, 512 // factor, bilinear)
         self.Up2 = Up(512, 256 // factor, bilinear)
