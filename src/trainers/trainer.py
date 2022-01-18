@@ -33,6 +33,7 @@ class OutOfFoldTrainer:
         self.device = device
         self.args = args,
 
+        # TODO: split up dataset to the P's randomly
         dataset = BasicDataset(args.dataset_path, args.scale)
 
         self.P_1 = None
@@ -56,4 +57,5 @@ class OutOfFoldTrainer:
             bilinear=Args.bilinear,
         )
 
+    # TODO: implement train, evaluate, update_dataset
     def train():
