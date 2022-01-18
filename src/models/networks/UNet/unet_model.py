@@ -4,20 +4,16 @@ from .unet_parts import *
 Reference: https://github.com/milesial/Pytorch-UNet
 """
 
-# TODO: check concat_x from original implementation for skip connections
-
 
 class UNet(nn.Module):
     def __init__(
         self,
         n_channels,
-        n_classes,
         bilinear=True
     ):
         super().__init__()
 
         self.n_channels = n_channels
-        self.n_classes = n_classes
         self.bilinear = bilinear
 
         factor = 2 if bilinear else 1
@@ -35,7 +31,7 @@ class UNet(nn.Module):
         self.Up3 = Up(256, 128 // factor, bilinear)
         self.Up4 = Up(128, 64, bilinear)
 
-        self.OutConv = OutConv(64, n_classes)
+        self.OutConv = OutConv(64, n_channels)
 
     def forward(self, inputs):
         AdaptSize = nn.AvgPool2d(2, 2)
