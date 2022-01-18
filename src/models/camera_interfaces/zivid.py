@@ -4,9 +4,12 @@ import cv2
 import numpy as np
 from pathlib import Path
 
-from zivid import camera
-
-
+"""
+provides an interface to the zivid camera and has
+some handy methods to configure the camera.
+The interface can printout hard coded intrinsic camera parameters
+and also make rgb and depth images converted to opencv.
+"""
 class Zivid:
     def __init__(self) -> None:
         """Initializes the camera and takes photos to setup camera settings automatically
@@ -18,20 +21,20 @@ class Zivid:
     def connect(self):
         """connect to camera
         """
-        print("connecting to camera")
         self.camera = self.app.connect_camera()
+
+        self._print_camera_specs()
 
     def configure_manual(self, path: Path):
         """configures the camera by taking multiple frames
         """
-        print("manually configuring settings")
+        print("manually configuring zivid camera settings")
         self.settings = zivid.Settings.load(path)
-        print("camera configured")
 
     def configure_automatically(self, capture_time: int = 1200):
         """configures the camera by taking multiple frames
         """
-        print("automatically configuring settings")
+        print("automatically configuring zivid camera settings")
         suggest_settings_parameters = zivid.capture_assistant.SuggestSettingsParameters(
             max_capture_time=datetime.timedelta(milliseconds=capture_time),
             ambient_light_frequency=zivid.capture_assistant.
@@ -40,7 +43,6 @@ class Zivid:
 
         self.settings = zivid.capture_assistant.suggest_settings(
             self.camera, suggest_settings_parameters)
-        print("camera configured")
 
     def get_camera_matrix_and_distortion(self):
         """returns hard coded camera intrinsics
@@ -53,14 +55,26 @@ class Zivid:
             cameras distortion coefficients
         """
         camera_matrix = np.array(
-            [[2.74373118e+03, 0.00000000e+00, 9.46713918e+02],
-             [0.00000000e+00, 2.73588758e+03, 5.82900437e+02],
-             [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
+            [[2760.12, 0, 951.68],
+             [0, 2759.78, 594.779],
+             [0, 0, 1]])
+        # k1, k2, p1, p2, k3
         distortion_coefficients = np.array([
-            -1.89468196e-01, -1.39553226e+00, -4.97692120e-04, 2.41059098e-03,
-            1.30000987e+01
+            -0.27315, 0.354379, -0.000344441, 0.000198413, -0.322515
         ])
         return camera_matrix, distortion_coefficients
+
+    def _print_camera_specs(self):
+        """prints camera matrix and distortion coefficients to stdout
+        """
+        camera_matrix, distortion_coefficients = self.get_camera_matrix_and_distortion()
+        print("=============================================================")
+        print("Zivid Configuration")
+        print("Color Camera Intrinsics")
+        print(f"Principal Point (ppx ppy):    {camera_matrix[0, 2]} {camera_matrix[1, 2]}")
+        print(f"Focal Length (fx fy):         {camera_matrix[0, 0]} {camera_matrix[1, 1]}")
+        print(f"Distortion Coeffs:            {distortion_coefficients}")
+        print("=============================================================")
 
     def collect_frame(self):
         """captures a point cloud and converts it into bgr and depth image

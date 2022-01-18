@@ -1,7 +1,6 @@
 from typing import Sequence
 
 from pathlib import Path
-from models.dataset.dataset_container import DatasetContainer
 import numpy as np
 import cv2
 
@@ -13,34 +12,12 @@ class StereoCalibration:
         self.__map2x = None
         self.__map2y = None
 
-    def configure(self, map1x: np.array, map1y: np.array, map2x: np.array,
-                  map2y: np.array):
+    def configure_by_matrizes(self, map1x: np.array, map1y: np.array,
+                              map2x: np.array, map2y: np.array):
         self.__map1x = np.copy(map1x)
         self.__map1y = np.copy(map1y)
         self.__map2x = np.copy(map2x)
         self.__map2y = np.copy(map2y)
-
-    def configure_from_dataset(
-        self,
-        charuco_dict,
-        charuco_board,
-        dataset_container: DatasetContainer,
-        common_points_threshold: int = 40,
-        alpha: int = -1,
-        silent: bool = True,
-    ):
-        self.configure(
-            charuco_dict=charuco_dict,
-            charuco_board=charuco_board,
-            common_points_threshold=common_points_threshold,
-            imgs_1=dataset_container.realsense.rgb,
-            imgs_1_cm=dataset_container.realsense.camera_matrix,
-            imgs_1_dc=dataset_container.realsense.distortion_coefficients,
-            imgs_2=dataset_container.zivid.rgb,
-            imgs_2_cm=dataset_container.zivid.camera_matrix,
-            imgs_2_dc=dataset_container.zivid.distortion_coefficients,
-            alpha=alpha,
-            silent=silent)
 
     def configure(self,
                   charuco_dict,
@@ -74,7 +51,6 @@ class StereoCalibration:
             rotation matrix 
         T: np.array (shape: 3)
             translation vector
-
         """
         assert len(imgs_1) == len(imgs_2) > 0
 
@@ -109,7 +85,7 @@ class StereoCalibration:
                     raise Exception("Can't interpolate corners")
 
                 # Find common points in both frames (is there a nicer way?)
-                obj_points_1, img_1_common_frame_points = cv2.aruco.getBoardObjectAndImagePoints(
+                obj_points_1, img_1_points = cv2.aruco.getBoardObjectAndImagePoints(
                     charuco_board, img_1_corners, img_1_ids)
                 obj_points_2, img_2_points = cv2.aruco.getBoardObjectAndImagePoints(
                     charuco_board, img_2_corners, img_2_ids)
@@ -117,32 +93,31 @@ class StereoCalibration:
                 # Create dictionary for each frame objectPoint:imagePoint to get common markers detected
                 img_1_obj_to_points = {
                     tuple(a): tuple(b)
-                    for a, b in zip(obj_points_1[:, 0],
-                                    img_1_common_frame_points[:, 0])
+                    for a, b in zip(obj_points_1[:, 0], img_1_points[:, 0])
                 }
                 img_2_obj_to_points = {
                     tuple(a): tuple(b)
                     for a, b in zip(obj_points_2[:, 0], img_2_points[:, 0])
                 }
-                common = set(img_1_obj_to_points.keys()) & set(
-                    img_2_obj_to_points.keys()
-                )  # intersection between obj points
+                common = set(img_1_obj_to_points.keys())\
+                     & set(img_2_obj_to_points.keys())
 
                 if len(common) < common_points_threshold:
-                    raise Exception("To few respective points found in images")
+                    raise Exception(
+                        f"To few respective points found in images ({len(common)})"
+                    )
 
                 # fill arrays where each index specifies one markers objectPoint and both
                 # respective imagePoints
                 img_common_obj_points = []
-                img_1_common_frame_points = []
+                img_1_points = []
                 img_2_common_frame_points = []
                 for objP in common:
                     img_common_obj_points.append(np.array(objP))
-                    img_1_common_frame_points.append(
-                        np.array(img_1_obj_to_points[objP]))
+                    img_1_points.append(np.array(img_1_obj_to_points[objP]))
                     img_2_common_frame_points.append(
                         np.array(img_2_obj_to_points[objP]))
-                imgs_1_points.append(np.array(img_1_common_frame_points))
+                imgs_1_points.append(np.array(img_1_points))
                 imgs_2_points.append(np.array(img_2_common_frame_points))
                 obj_points.append(np.array(img_common_obj_points))
 
@@ -150,6 +125,9 @@ class StereoCalibration:
                 if not silent:
                     print(f"Skipped frame: {e}")
                 continue
+
+        if len(obj_points) == 0:
+            raise Exception("No image with enough feature points given")
 
         # calculates transformation (T) and rotation (R) between both cameras
         results = cv2.stereoCalibrate(obj_points,
@@ -162,7 +140,10 @@ class StereoCalibration:
                                       img_1_size,
                                       flags=cv2.CALIB_FIX_INTRINSIC)
 
-        _, _, _, _, _, R, T, _, _ = results
+        retval, _, _, _, _, R, T, _, _ = results
+
+        if not silent:
+            print(f"Calibrate Stereo reprojection error: {retval}")
 
         if not silent:
             print("R")
@@ -171,20 +152,23 @@ class StereoCalibration:
             print(T)
 
         # calculate rectification and projection matrizes for both cameras
-        R1, R2, P1, P2, _, _, _ = cv2.stereoRectify(imgs_1_cm,
-                                                    imgs_1_dc,
-                                                    imgs_2_cm,
-                                                    imgs_2_dc,
-                                                    img_1_size,
-                                                    R,
-                                                    T,
-                                                    alpha=alpha)
+        finalImageSize = (1920, 1080)
+        R1, R2, P1, P2, _, _, _ = cv2.stereoRectify(
+            imgs_1_cm,
+            imgs_1_dc,
+            imgs_2_cm,
+            imgs_2_dc,
+            img_1_size,
+            R,
+            T,
+            alpha=alpha,
+            newImageSize=finalImageSize)
 
         # produces maps to remap images later on
         self.__map1x, self.__map1y = cv2.initUndistortRectifyMap(
-            imgs_1_cm, imgs_1_dc, R1, P1, img_1_size, cv2.CV_32FC1)
+            imgs_1_cm, imgs_1_dc, R1, P1, finalImageSize, cv2.CV_32FC1)
         self.__map2x, self.__map2y = cv2.initUndistortRectifyMap(
-            imgs_2_cm, imgs_2_dc, R2, P2, img_2_size, cv2.CV_32FC1)
+            imgs_2_cm, imgs_2_dc, R2, P2, finalImageSize, cv2.CV_32FC1)
 
     def remap(self, img1: np.array, img2: np.array):
         """

@@ -13,23 +13,24 @@ from PIL import Image
 from torch.utils import data
 from torch.utils.data import Dataset 
 
-from .DatasetHelper import openImageDataset
+from models.dataset.dataset_container import DatasetContainer
 
 
 class BasicDataset(Dataset):
     def __init__(self, dataset_path: Path, scale: float = 1.0):
-        self.dataset = list(zip(*openImageDataset(datasetPath=dataset_path)))
+        self.dataset_container = DatasetContainer()
+        self.dataset_container.load_from_dataset(dataset_path=dataset_path)
 
         assert 0 < scale <= 1, 'Scale must be between 0 and 1'
         self.scale = scale
 
-        if len(self.dataset) == 0:
+        if self.dataset_container.size() == 0:
             raise RuntimeError(f'Dataset {dataset_path} contains no images, make sure you put your images there')
 
-        logging.info(f'Creating dataset with {len(self.dataset)} examples')
+        logging.info(f'Creating dataset with {self.dataset_container.size()} examples')
 
     def __len__(self):
-        return len(self.dataset)
+        return self.dataset_container.size()
 
     @classmethod
     def preprocess(cls, pil_img: np.ndarray, scale: float):
@@ -47,7 +48,7 @@ class BasicDataset(Dataset):
         return img_ndarray
 
     def __getitem__(self, idx):
-        _ , img, _, mask = self.dataset[idx]
+        _ , img, _, mask = self.dataset_container[idx]
 
         img = Image.fromarray(img)
         mask = Image.fromarray(mask)

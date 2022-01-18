@@ -59,6 +59,11 @@ E.g. to generate the environment for *training*, execute:
 
 Update Environment
 ------------------
+
+    conda env update --file ./envs/depth-denoising_%STAGE%.yml
+
+Export Environment
+------------------
 Make sure you are in the correct conda environment
 
     conda activate depth-denoising_%STAGE%
