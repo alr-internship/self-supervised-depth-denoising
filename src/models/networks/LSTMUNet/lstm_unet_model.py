@@ -21,12 +21,14 @@ class LSTMUNet(nn.Module):
         n_channels,
         n_classes,
         bilinear=True,
+        name='LSTMUNet',
     ):
         super().__init__()
 
         self.n_channels = n_channels
         self.n_classes = n_classes
         self.bilinear = bilinear
+        self.name = name                     # name for wandb
 
         factor = 2 if bilinear else 1
 

@@ -9,12 +9,14 @@ class UNet(nn.Module):
     def __init__(
         self,
         n_channels,
-        bilinear=True
+        bilinear=True,
+        name='UNet'                     # name for wandb
     ):
         super().__init__()
 
         self.n_channels = n_channels
         self.bilinear = bilinear
+        self.name = name
 
         factor = 2 if bilinear else 1
 
