@@ -1,6 +1,7 @@
 import logging
 import os
 from pathlib import Path
+import numpy as np
 import torch
 import torch.nn as nn
 from torch import optim
@@ -27,8 +28,15 @@ class Args:
     save = False                # save trained model
     n_channels = 4              # rgbd
     bilinear = True             # unet using bilinear
-    dataset_path = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), '..', '..', 'resources', 'images')
+    dataset_path = os.path.join(os.path.dirname(
+            os.path.realpath(__file__)), 
+            '..', 
+            '..', 
+            'resources', 
+            'images',
+            'calibrated',
+            'c_dataset_h_1.npz'
+        )
 
 
 class OutOfFoldTrainer:
@@ -42,8 +50,9 @@ class OutOfFoldTrainer:
 
         # TODO: split up dataset to the P's randomly
         dataset = BasicDataset(args.dataset_path, args.scale)
-        lens = torch.floor([len(dataset) * args.p for _ in range(3)])
-
+        lens = np.floor([len(dataset) * args.p for _ in range(3)])
+        lens[-1] += len(dataset) - lens[-1]/args.p 
+        assert(sum(lens) == len(dataset))
         self.P_1, self.P_2, self.P_test = random_split(dataset, lens)
 
         self.M_11 = UNet(
