@@ -39,7 +39,6 @@ dependencies:
   - hdf5=1.12.1=nompi_h2750804_102
   - icu=68.2=h9c3ff4c_0
   - ipykernel=6.5.0=py38he5a9106_1
-  - ipython=7.30.0=py38h578d9bd_0
   - jasper=2.0.33=ha77e612_0
   - jbig=2.1=h7f98852_2003
   - jedi=0.18.1=py38h578d9bd_0
