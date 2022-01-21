@@ -36,3 +36,20 @@ Separated camera intrinsic parameters with description:
     K3: -0.322515    Third radial distortion term
     P1: -0.000344441 First tangential distortion term
     P2: 0.000198413  Second tangential distortion term
+
+Realsense
+====
+CameraMatrix
+[[1.37764490e+03 0.00000000e+00 9.36484680e+02]
+ [0.00000000e+00 1.37572400e+03 5.37487793e+02]
+ [0.00000000e+00 0.00000000e+00 1.00000000e+00]]
+Distortion Coefficient
+[0. 0. 0. 0. 0.]
+Zivid
+====
+CameraMatrix
+[[2.76012e+03 0.00000e+00 9.51680e+02]
+ [0.00000e+00 2.75978e+03 5.94779e+02]
+ [0.00000e+00 0.00000e+00 1.00000e+00]]
+Distortion Coefficient
+[-2.73150e-01  3.54379e-01 -3.44441e-04  1.98413e-04 -3.22515e-01]

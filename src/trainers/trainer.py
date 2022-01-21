@@ -27,8 +27,7 @@ class Args:
     save = False                # save trained model
     n_channels = 4              # rgbd
     bilinear = True             # unet using bilinear
-    dataset_path = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), '..', '..', 'resources', 'images')
+    dataset_path = Path(__file__).parent / "../../resources/images"
 
 
 class OutOfFoldTrainer:
@@ -42,27 +41,28 @@ class OutOfFoldTrainer:
 
         # TODO: split up dataset to the P's randomly
         dataset = BasicDataset(args.dataset_path, args.scale)
-        lens = torch.floor([len(dataset) * args.p for _ in range(3)])
+        len_per_set = len(dataset) // 3
+        lens = [len_per_set] * 2 + [len(dataset) - 2 * len_per_set]
 
         self.P_1, self.P_2, self.P_test = random_split(dataset, lens)
 
         self.M_11 = UNet(
-            n_in_channels=Args.n_channels,
+            n_channels=Args.n_channels,
             bilinear=Args.bilinear,
             name='M_11'
         )
         self.M_12 = UNet(
-            n_in_channels=Args.n_channels,
+            n_channels=Args.n_channels,
             bilinear=Args.bilinear,
             name='M_12'
         )
         self.M_1 = UNet(
-            n_in_channels=Args.n_channels,
+            n_channels=Args.n_channels,
             bilinear=Args.bilinear,
             name='M_1'
         )
         self.M_2 = LSTMUNet(
-            n_in_channels=Args.n_channels,
+            n_channels=Args.n_channels,
             bilinear=Args.bilinear,
             name='M_2'
         )
