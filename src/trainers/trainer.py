@@ -43,8 +43,8 @@ class OutOfFoldTrainer:
 
         # TODO: split up dataset to the P's randomly
         dataset = BasicDataset(args.dataset_path, args.scale)
-        lens = np.floor([len(dataset) * args.p for _ in range(3)])
-        lens[-1] += len(dataset) - lens[-1]/args.p 
+        lens = np.floor([len(dataset) * args.p for _ in range(3)]).astype(np.int32)
+        lens[-1] += len(dataset) - lens[-1] // args.p 
         assert(sum(lens) == len(dataset))
         self.P_1, self.P_2, self.P_test = random_split(dataset, lens)
 
