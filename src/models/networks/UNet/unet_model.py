@@ -20,7 +20,7 @@ class UNet(nn.Module):
 
         factor = 2 if bilinear else 1
 
-        self.InConv = DoubleConv(n_channels, 64)
+        self.InConv = DoubleConv(n_channels, 64 - n_channels)
 
         # '- n_channels' for concatenation later of skip connections
         self.Down1 = Down(64, 128 - n_channels)

@@ -32,12 +32,13 @@ class BasicDataset(Dataset):
         return len(self.dataset_interface)
 
     @classmethod
-    def preprocess(cls, pil_img: np.ndarray, scale: float):
+    def preprocess(cls, pil_img, scale: float):
         # scale images 
         w, h = pil_img.size
         newW, newH = int(scale * w), int(scale * h)
         assert newW > 0 and newH > 0, 'Scale is too small, resized images would have no pixel'
-        pil_img = pil_img.resize((newW, newH), resample=Image.BICUBIC)
+        pil_img = pil_img.resize((newW, newH), resample=Image.NEAREST)
+        # pil_img = pil_img.resize((newW, newH), resample=Image.BICUBIC)
 
         # normalize images
         img_ndarray = np.asarray(pil_img, dtype=np.float32)

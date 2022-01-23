@@ -24,23 +24,12 @@ class Args:
     validation = 10.0
     p = 1/3                     # length of each P for OOF training
     amp = False                 # Use mixed precision
-    wandb = True                # toggle the usage of wandb for logging purposes
+    wandb = False               # toggle the usage of wandb for logging purposes
     save = False                # save trained model
-    n_channels = 4              # rgbd
+    n_channels = 1              # only depth information
     bilinear = True             # unet using bilinear
-<<<<<<< HEAD
-    dataset_path = os.path.join(os.path.dirname(
-            os.path.realpath(__file__)), 
-            '..', 
-            '..', 
-            'resources', 
-            'images',
-            'calibrated',
-            'c_dataset_h_1.npz'
-        )
-=======
-    dataset_path = Path(__file__).parent / "../../resources/images"
->>>>>>> 88d302543c43113bb42ffa9de104b6805db8241d
+    dataset_path = Path(__file__).parent / "../../resources/images/calibrated"
+    dir_checkpoint = Path(__file__).parent / "../../resources/networks"
 
 
 class OutOfFoldTrainer:
@@ -54,37 +43,31 @@ class OutOfFoldTrainer:
 
         # TODO: split up dataset to the P's randomly
         dataset = BasicDataset(args.dataset_path, args.scale)
-<<<<<<< HEAD
         lens = np.floor([len(dataset) * args.p for _ in range(3)])
         lens[-1] += len(dataset) - lens[-1]/args.p 
         assert(sum(lens) == len(dataset))
-=======
-        len_per_set = len(dataset) // 3
-        lens = [len_per_set] * 2 + [len(dataset) - 2 * len_per_set]
-
->>>>>>> 88d302543c43113bb42ffa9de104b6805db8241d
         self.P_1, self.P_2, self.P_test = random_split(dataset, lens)
 
         self.M_11 = UNet(
-            n_channels=Args.n_channels,
-            bilinear=Args.bilinear,
+            n_channels=args.n_channels,
+            bilinear=args.bilinear,
             name='M_11'
         )
         self.M_12 = UNet(
-            n_channels=Args.n_channels,
-            bilinear=Args.bilinear,
+            n_channels=args.n_channels,
+            bilinear=args.bilinear,
             name='M_12'
         )
         self.M_1 = UNet(
-            n_channels=Args.n_channels,
-            bilinear=Args.bilinear,
+            n_channels=args.n_channels,
+            bilinear=args.bilinear,
             name='M_1'
         )
-        self.M_2 = LSTMUNet(
-            n_channels=Args.n_channels,
-            bilinear=Args.bilinear,
-            name='M_2'
-        )
+        # self.M_2 = LSTMUNet(
+        #     n_channels=Args.n_channels,
+        #     bilinear=Args.bilinear,
+        #     name='M_2'
+        # )
 
     # TODO: implement train, evaluate, update_dataset
 
@@ -124,23 +107,26 @@ class OutOfFoldTrainer:
         train_set: list,
         val_set: list,
         device: torch.device,
+        dir_checkpoint: Path,
         epochs: int = 5,
         batch_size: int = 1,
         learning_rate: float = 0.001,
         save_checkpoint: bool = True,
         img_scale: float = 0.5,
         amp: bool = False,
+        activate_wandb: bool = False,
     ):
         n_train = len(train_set)
         n_val = len(val_set)
 
         # (Initialize logging)
-        if self.args.wandb:
+        if activate_wandb:
             experiment = wandb.init(
                 project=net.name, resume='allow', entity="depth-denoising")
             experiment.config.update(dict(epochs=epochs, batch_size=batch_size, learning_rate=learning_rate,
                                           save_checkpoint=save_checkpoint, img_scale=img_scale,
                                           amp=amp))
+
         logging.info(f'''Starting training:
             Epochs:          {epochs}
             Batch size:      {batch_size}
@@ -226,7 +212,7 @@ class OutOfFoldTrainer:
                     global_step += 1
                     epoch_loss += loss.item()
 
-                    if self.args.wandb:
+                    if activate_wandb:
                         experiment.log({
                             'train loss': loss.item(),
                             'step': global_step,
@@ -243,7 +229,7 @@ class OutOfFoldTrainer:
 
                         logging.info('Validation Loss: {}'.format(val_loss))
 
-                        if self.args.wandb:
+                        if activate_wandb:
                             histograms = {}
                             for tag, value in net.named_parameters():
                                 tag = tag.replace('/', '.')
@@ -279,24 +265,39 @@ def main():
         device=device,
         args=args,
     )
+
+    params = dict(
+        device=device,
+        epochs=args.epochs,
+        batch_size=args.batch_size,
+        learning_rate=args.learning_rate,
+        save_checkpoint=args.save,
+        img_scale=args.scale,
+        amp=args.amp,
+        dir_checkpoint=args.dir_checkpoint,
+        activate_wandb=args.wandb
+    )
+
     # Training M_11
     oof.train(
         net=oof.M_11,
         train_set=oof.P_1,
-        val_set=oof.P_2
+        val_set=oof.P_2,
+        **params
     )
     # Training M_12
     oof.train(
         net=oof.M_12,
         train_set=oof.P_2,
         val_set=oof.P_1
+        **params
     )
     # Training M_1
-    oof.train(
-        net=oof.M_1,
-        train_set=None,  # TODO
-        val_set=None,  # TODO
-    )
+    # oof.train(
+    #     net=oof.M_1,
+    #     train_set=None,  # TODO
+    #     val_set=None,  # TODO
+    # )
     # TODO: function to create M_x(P_x)
     # TODO: save net weights
 
