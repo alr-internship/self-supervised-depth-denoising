@@ -114,7 +114,7 @@ class OutOfFoldTrainer:
             experiment.config.update(
                 dict(epochs=epochs, batch_size=batch_size,
                      learning_rate=learning_rate, save_checkpoint=save_checkpoint, img_scale=img_scale,
-                     amp=amp
+                     amp=amp)
             )
 
         net.to(device)
