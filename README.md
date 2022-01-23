@@ -7,6 +7,7 @@ The Project structure:
   - [Create Environment](#create-environment)
   - [Update Environment](#update-environment)
 - [Project Organization](#project-organization)
+- [Train Model on BwUniCluster 2.0] (#train-model-on-bwunicluster-2.0)
 
 Setup
 =====
@@ -128,3 +129,18 @@ Project Organization
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
 
 
+Train Model on BwUniCluster 2.0
+====
+
+There are multiple scripts located in models, that might be helpful to train all the models on the BwUniCluster 2.0.
+To enqueue the training step execute following command in the 
+
+    sbatch ./models/enqueue_job.sh
+
+To test the training, one can execute following command to queue the training on a dev node
+
+    sbatch ./models/enqueue_dev_job.sh
+
+The process will be logged into `train_models.out`
+
+For further information, visit [https://wiki.bwhpc.de/e/BwUniCluster_2.0_Slurm_common_Features](https://wiki.bwhpc.de/e/BwUniCluster_2.0_Slurm_common_Features)

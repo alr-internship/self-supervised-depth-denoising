@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from distutils.util import strtobool
 import logging
 import os
 from pathlib import Path
@@ -13,24 +14,6 @@ from models.networks.LSTMUNet.lstm_unet_model import LSTMUNet
 from tqdm import tqdm
 from models.dataset.data_loading import BasicDataset
 from models.networks.UNet.unet_model import UNet
-
-
-class Args:
-    epochs = 5
-    batch_size = 1
-    learning_rate = 0.00001
-    load = None
-    scale = 0.5
-    validation = 10.0
-    p = 1/3
-    amp = False
-    wandb = True
-    save = False
-    n_input_channels = 4
-    n_output_channels = 1
-    bilinear = True
-    dataset_path = Path(__file__).parent / "../../resources/images/calibrated"
-    dir_checkpoint = Path(__file__).parent / "../../resources/networks"
 
 
 class OutOfFoldTrainer:
@@ -56,6 +39,7 @@ class OutOfFoldTrainer:
         self.M_11 = UNet(
             n_input_channels=n_input_channels,
             n_output_channels=n_output_channels,
+            name='M_11'
         )
         self.M_12 = UNet(
             n_input_channels=n_input_channels,
@@ -124,18 +108,18 @@ class OutOfFoldTrainer:
         activate_wandb: bool = False,
     ):
 
-        net.to(device)
-
-        n_train = len(train_set)
-        n_val = len(val_set)
-
         # (Initialize logging)
         if activate_wandb:
             experiment = wandb.init(
                 project=net.name, resume='allow', entity="depth-denoising")
-            experiment.config.update(dict(epochs=epochs, batch_size=batch_size, learning_rate=learning_rate,
-                                          save_checkpoint=save_checkpoint, img_scale=img_scale,
+            experiment.config.update(dict(epochs=epochs, batch_size=batch_size,
+                                          learning_rate=learning_rate, save_checkpoint=save_checkpoint, img_scale=img_scale,
                                           amp=amp))
+
+        net.to(device)
+
+        n_train = len(train_set)
+        n_val = len(val_set)
 
         logging.info(f'''Starting training:
             Epochs:          {epochs}
@@ -321,12 +305,12 @@ if __name__ == '__main__':
     parser.add_argument("--validation_percentage", type=float, default=10.0)
     # Percent of the data that is used as validation (0-100)
     parser.add_argument("--oof_p", type=float, default=1/3)  # length of each P for OOF training)
-    parser.add_argument("--wandb", type=bool, default=True)  # toggle the usage of wandb for logging purposes
-    parser.add_argument("--save", type=bool, default=True)   # save trained model
+    parser.add_argument("--wandb", type=lambda x:bool(strtobool(x)), nargs='?', const=True, default=True)  # toggle the usage of wandb for logging purposes
+    parser.add_argument("--save", type=lambda x: bool(strtobool(x)), nargs='?', const=True, default=True)   # save trained model
     parser.add_argument("--dataset_path", type=Path, default=file_dir / "../../resources/images/calibrated")
     parser.add_argument("--dir_checkpoint", type=Path, default=file_dir / "../../resources/networks")
-    parser.add_argument("--bilinear", type=bool, default=True)      # unet using bilinear
+    parser.add_argument("--bilinear", type=lambda x:bool(strtobool(x)), nargs='?', const=True, default=True)      # unet using bilinear
     parser.add_argument("--n_input_channels", type=int, default=4)          # rgbd as input
     parser.add_argument("--n_output_channels", type=int, default=1)     # depth as output
-    parser.add_argument("--amp", type=bool, default=False)  # Use mixed precision
+    parser.add_argument("--amp", type=lambda x:bool(strtobool(x)), nargs='?', const=True, default=False)  # Use mixed precision
     main(parser.parse_args())
