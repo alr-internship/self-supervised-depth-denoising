@@ -1,10 +1,11 @@
+from argparse import ArgumentParser
 import logging
 import os
 from pathlib import Path
 import numpy as np
 import torch
 import torch.nn as nn
-from torch import optim
+from torch import not_equal, optim
 from torch.utils.data import DataLoader, random_split
 import wandb
 from models.networks.LSTMUNet.lstm_unet_model import LSTMUNet
@@ -15,19 +16,19 @@ from models.networks.UNet.unet_model import UNet
 
 
 class Args:
-    epochs = 5                  # Number of epochs
-    batch_size = 1              # Batch size
-    learning_rate = 0.00001     # Learning rate
-    load = None                 # Load model from a .pth file (path)
-    scale = 0.5                 # Downscaling factor of the images
-    # Percent of the data that is used as validation (0-100)
+    epochs = 5
+    batch_size = 1
+    learning_rate = 0.00001
+    load = None
+    scale = 0.5
     validation = 10.0
-    p = 1/3                     # length of each P for OOF training
-    amp = False                 # Use mixed precision
-    wandb = True                # toggle the usage of wandb for logging purposes
-    save = False                # save trained model
-    n_channels = 4              # rgbd as input
-    bilinear = True             # unet using bilinear
+    p = 1/3
+    amp = False
+    wandb = True
+    save = False
+    n_input_channels = 4
+    n_output_channels = 1
+    bilinear = True
     dataset_path = Path(__file__).parent / "../../resources/images/calibrated"
     dir_checkpoint = Path(__file__).parent / "../../resources/networks"
 
@@ -36,31 +37,36 @@ class OutOfFoldTrainer:
     def __init__(
         self,
         device: torch.device,
-        args: Args,
+        dataset_path: str,
+        scale: float,
+        oof_p: float,
+        n_input_channels: int,
+        n_output_channels: int,
+        bilinear: bool,
     ):
         self.device = device
-        self.args = args,
 
         # TODO: split up dataset to the P's randomly
-        dataset = BasicDataset(args.dataset_path, args.scale)
-        lens = np.floor([len(dataset) * args.p for _ in range(3)]).astype(np.int32)
-        lens[-1] += len(dataset) - lens[-1] // args.p 
+        dataset = BasicDataset(Path(dataset_path), scale)
+        lens = np.floor([len(dataset) * oof_p for _ in range(3)]).astype(np.int32)
+        lens[-1] += len(dataset) - lens[-1] // oof_p
         assert(sum(lens) == len(dataset))
         self.P_1, self.P_2, self.P_test = random_split(dataset, lens)
 
         self.M_11 = UNet(
-            n_channels=args.n_channels,
-            bilinear=args.bilinear,
-            name='M_11'
+            n_input_channels=n_input_channels,
+            n_output_channels=n_output_channels,
         )
         self.M_12 = UNet(
-            n_channels=args.n_channels,
-            bilinear=args.bilinear,
+            n_input_channels=n_input_channels,
+            n_output_channels=n_output_channels,
+            bilinear=bilinear,
             name='M_12'
         )
         self.M_1 = UNet(
-            n_channels=args.n_channels,
-            bilinear=args.bilinear,
+            n_input_channels=n_input_channels,
+            n_output_channels=n_output_channels,
+            bilinear=bilinear,
             name='M_1'
         )
         # self.M_2 = LSTMUNet(
@@ -87,7 +93,7 @@ class OutOfFoldTrainer:
             image, mask_true = batch['image'], batch['mask']
             # move images and labels to correct device and type
             image = image.to(device=device, dtype=torch.float32)
-            mask_true = mask_true.to(device=device, dtype=torch.float32)            
+            mask_true = mask_true.to(device=device, dtype=torch.float32)
 
             with torch.no_grad():
                 # predict the mask
@@ -191,7 +197,7 @@ class OutOfFoldTrainer:
                         'the images are loaded correctly.'
 
                     images = images.to(device=device, dtype=torch.float32)
-                    true_masks = true_masks.to( device=device, dtype=torch.float32)
+                    true_masks = true_masks.to(device=device, dtype=torch.float32)
 
                     with torch.cuda.amp.autocast(enabled=amp):
                         masks_pred = net(images)
@@ -255,12 +261,16 @@ class OutOfFoldTrainer:
                 logging.info(f'Checkpoint {epoch + 1} saved!')
 
 
-def main():
-    args = Args()
+def main(args):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     oof = OutOfFoldTrainer(
         device=device,
-        args=args,
+        dataset_path=args.dataset_path,
+        scale=args.scale_images,
+        oof_p=args.oof_p,
+        n_input_channels=args.n_input_channels,
+        n_output_channels=args.n_output_channels,
+        bilinear=args.bilinear
     )
 
     params = dict(
@@ -269,9 +279,9 @@ def main():
         batch_size=args.batch_size,
         learning_rate=args.learning_rate,
         save_checkpoint=args.save,
-        img_scale=args.scale,
+        img_scale=args.scale_images,
         amp=args.amp,
-        dir_checkpoint=args.dir_checkpoint,
+        dir_checkpoint=Path(args.dir_checkpoint),
         activate_wandb=args.wandb
     )
 
@@ -286,7 +296,7 @@ def main():
     oof.train(
         net=oof.M_12,
         train_set=oof.P_2,
-        val_set=oof.P_1
+        val_set=oof.P_1,
         **params
     )
     # Training M_1
@@ -300,4 +310,23 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    file_dir = Path(__file__).parent
+
+    parser = ArgumentParser()
+    parser.add_argument("--epochs", type=int, default=5)  # Number of epochs
+    parser.add_argument("--batch_size", type=int, default=1)  # Batch size
+    parser.add_argument("--learning_rate", type=float, default=0.00001)  # Learning rate
+    parser.add_argument("--load_from_model", type=str, default=None)  # Load model from a .pth file (path)
+    parser.add_argument("--scale_images", type=float, default=0.5)  # Downscaling factor of the images
+    parser.add_argument("--validation_percentage", type=float, default=10.0)
+    # Percent of the data that is used as validation (0-100)
+    parser.add_argument("--oof_p", type=float, default=1/3)  # length of each P for OOF training)
+    parser.add_argument("--wandb", type=bool, default=True)  # toggle the usage of wandb for logging purposes
+    parser.add_argument("--save", type=bool, default=True)   # save trained model
+    parser.add_argument("--dataset_path", type=Path, default=file_dir / "../../resources/images/calibrated")
+    parser.add_argument("--dir_checkpoint", type=Path, default=file_dir / "../../resources/networks")
+    parser.add_argument("--bilinear", type=bool, default=True)      # unet using bilinear
+    parser.add_argument("--n_input_channels", type=int, default=4)          # rgbd as input
+    parser.add_argument("--n_output_channels", type=int, default=1)     # depth as output
+    parser.add_argument("--amp", type=bool, default=False)  # Use mixed precision
+    main(parser.parse_args())

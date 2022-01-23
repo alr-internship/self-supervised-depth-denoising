@@ -8,32 +8,33 @@ Reference: https://github.com/milesial/Pytorch-UNet
 class UNet(nn.Module):
     def __init__(
         self,
-        n_channels,
+        n_input_channels,
+        n_output_channels,
         bilinear=True,
         name='UNet'                     # name for wandb
     ):
         super().__init__()
 
-        self.n_channels = n_channels
+        self.n_channels = n_input_channels
         self.bilinear = bilinear
         self.name = name
 
         factor = 2 if bilinear else 1
 
-        self.InConv = DoubleConv(n_channels, 64 - n_channels)
+        self.InConv = DoubleConv(n_input_channels, 64 - n_input_channels)
 
         # '- n_channels' for concatenation later of skip connections
-        self.Down1 = Down(64, 128 - n_channels)
-        self.Down2 = Down(128, 256 - n_channels)
-        self.Down3 = Down(256, 512 - n_channels)
-        self.Down4 = Down(512, 1024 // factor - n_channels)
+        self.Down1 = Down(64, 128 - n_input_channels)
+        self.Down2 = Down(128, 256 - n_input_channels)
+        self.Down3 = Down(256, 512 - n_input_channels)
+        self.Down4 = Down(512, 1024 // factor - n_input_channels)
 
         self.Up1 = Up(1024, 512 // factor, bilinear)
         self.Up2 = Up(512, 256 // factor, bilinear)
         self.Up3 = Up(256, 128 // factor, bilinear)
         self.Up4 = Up(128, 64, bilinear)
 
-        self.OutConv = OutConv(64, n_channels)
+        self.OutConv = OutConv(64, n_output_channels)
 
     def forward(self, inputs):
         AdaptSize = nn.AvgPool2d(2, 2)

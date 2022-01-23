@@ -59,10 +59,14 @@ class BasicDataset(Dataset):
         return img_ndarray
 
     def __getitem__(self, idx):
-        rs_rgb, rs_depth, zv_rgb, zv_depth = self.dataset_interface[idx]
+        rs_rgb, rs_depth, _, zv_depth = self.dataset_interface[idx]
 
-        assert rs_rgb.shape[:2] == zv_rgb.shape[:2], \
-            f'Image and mask {idx} should be the same size, but are {rs_rgb.shape[:2]} and {zv_rgb[:2]}'
+        assert rs_rgb.shape[:2] == zv_depth.shape[:2], \
+            f'Image and mask {idx} should be the same size, but are {rs_rgb.shape[:2]} and {zv_depth[:2]}'
+
+        # map nan to numbers
+        rs_depth = np.nan_to_num(rs_depth)
+        zv_depth = np.nan_to_num(zv_depth)
 
         input = self.preprocess_input(rs_rgb / 255, rs_depth, self.scale)
         label = self.preprocess(zv_depth, self.scale)
