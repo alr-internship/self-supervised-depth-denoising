@@ -88,4 +88,4 @@ target/
 # Mypy cache
 .mypy_cache/
 /resources
-wandb
+**/wandb

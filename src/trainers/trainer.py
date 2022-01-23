@@ -24,9 +24,9 @@ class Args:
     validation = 10.0
     p = 1/3                     # length of each P for OOF training
     amp = False                 # Use mixed precision
-    wandb = False               # toggle the usage of wandb for logging purposes
+    wandb = True                # toggle the usage of wandb for logging purposes
     save = False                # save trained model
-    n_channels = 1              # only depth information
+    n_channels = 4              # rgbd as input
     bilinear = True             # unet using bilinear
     dataset_path = Path(__file__).parent / "../../resources/images/calibrated"
     dir_checkpoint = Path(__file__).parent / "../../resources/networks"
@@ -72,12 +72,14 @@ class OutOfFoldTrainer:
     # TODO: implement train, evaluate, update_dataset
 
     def evaluate(
+        self,
         net: nn.Module,
         dataloader: DataLoader,
         device: torch.device
     ):
         net.eval()
         num_val_batches = len(dataloader)
+        criterion = nn.L1Loss()
         loss = 0
 
         # iterate over the validation set
@@ -85,13 +87,12 @@ class OutOfFoldTrainer:
             image, mask_true = batch['image'], batch['mask']
             # move images and labels to correct device and type
             image = image.to(device=device, dtype=torch.float32)
-            mask_true = mask_true.to(
-                device=device, dtype=torch.float32)            # NxWxH
+            mask_true = mask_true.to(device=device, dtype=torch.float32)            
 
             with torch.no_grad():
                 # predict the mask
                 mask_pred = net(image)
-                loss += torch.abs(mask_pred - mask_true).sum()
+                loss += criterion(mask_pred, mask_true)
 
         net.train()
 
@@ -187,21 +188,11 @@ class OutOfFoldTrainer:
                         'the images are loaded correctly.'
 
                     images = images.to(device=device, dtype=torch.float32)
-                    true_masks = true_masks.to(
-                        device=device,
-                        dtype=torch.float32
-                    )
+                    true_masks = true_masks.to( device=device, dtype=torch.float32)
 
                     with torch.cuda.amp.autocast(enabled=amp):
                         masks_pred = net(images)
                         loss = criterion(masks_pred, true_masks)
-                        """
-                        loss = criterion(masks_pred, true_masks) \
-                            + dice_loss(F.softmax(masks_pred, dim=1).float(),
-                                        F.one_hot(true_masks, net.n_classes).permute(
-                                            0, 3, 1, 2).float(),
-                                        multiclass=True)
-                        """
 
                     optimizer.zero_grad(set_to_none=True)
                     grad_scaler.scale(loss).backward()
@@ -241,7 +232,10 @@ class OutOfFoldTrainer:
                             experiment.log({
                                 'learning rate': optimizer.param_groups[0]['lr'],
                                 'validation loss': val_loss,
-                                'images': wandb.Image(images[0].cpu()),
+                                'input': {
+                                    'rgb': wandb.Image(images[0, :3].cpu()),
+                                    'depth': wandb.Image(images[0, 3].cpu())
+                                },
                                 'masks': {
                                     'true': wandb.Image(true_masks[0].float().cpu()),
                                     'pred': wandb.Image(masks_pred[0].float().cpu()),

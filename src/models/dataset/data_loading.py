@@ -2,6 +2,7 @@
 Reference: https://github.com/milesial/Pytorch-UNet
 """
 
+import imghdr
 import logging
 from os import listdir
 from os.path import splitext
@@ -9,7 +10,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from PIL import Image
+import cv2
 from torch.utils import data
 from torch.utils.data import Dataset 
 
@@ -32,34 +33,41 @@ class BasicDataset(Dataset):
         return len(self.dataset_interface)
 
     @classmethod
-    def preprocess(cls, pil_img, scale: float):
+    def preprocess_input(cls, rgb: np.array, depth: np.array, scale: float):
+        processed_rgb = cls.preprocess(rgb, scale)
+        processed_depth = cls.preprocess(depth, scale)
+
+        img_ndarray = np.concatenate((processed_rgb, processed_depth), axis=0)
+        return img_ndarray
+
+    @classmethod
+    def preprocess(cls, img: np.array, scale: float):
         # scale images 
-        w, h = pil_img.size
+        h, w = img.shape[:2]
         newW, newH = int(scale * w), int(scale * h)
+
         assert newW > 0 and newH > 0, 'Scale is too small, resized images would have no pixel'
-        pil_img = pil_img.resize((newW, newH), resample=Image.NEAREST)
+        img_ndarray= cv2.resize(img, (newW, newH), cv2.INTER_LINEAR)
         # pil_img = pil_img.resize((newW, newH), resample=Image.BICUBIC)
 
         # normalize images
-        img_ndarray = np.asarray(pil_img, dtype=np.float32)
-        img_ndarray = np.expand_dims(img_ndarray, axis=2)
-        img_ndarray = img_ndarray.transpose((2, 0, 1))  # move WxHxD -> DxWxH
-        img_ndarray = img_ndarray / 255                 # [0, 255] -> [0, 1]
+        if len(img_ndarray.shape) == 2:
+            img_ndarray = np.expand_dims(img_ndarray, axis=2)
+
+        img_ndarray = img_ndarray.transpose((2, 0, 1))  # move WxHxC -> CxWxH
+        # img_ndarray = img_ndarray / 255                 # [0, 255] -> [0, 1]
         return img_ndarray
 
     def __getitem__(self, idx):
-        _ , img, _, mask = self.dataset_interface[idx]
+        rs_rgb, rs_depth, zv_rgb, zv_depth = self.dataset_interface[idx]
 
-        img = Image.fromarray(img)
-        mask = Image.fromarray(mask)
+        assert rs_rgb.shape[:2] == zv_rgb.shape[:2], \
+            f'Image and mask {idx} should be the same size, but are {rs_rgb.shape[:2]} and {zv_rgb[:2]}'
 
-        assert img.size == mask.size, \
-            'Image and mask {name} should be the same size, but are {img.size} and {mask.size}'
-
-        img = self.preprocess(img, self.scale)
-        mask = self.preprocess(mask, self.scale)
+        input = self.preprocess_input(rs_rgb / 255, rs_depth, self.scale)
+        label = self.preprocess(zv_depth, self.scale)
 
         return {
-            'image': torch.as_tensor(img.copy()).float().contiguous(),
-            'mask': torch.as_tensor(mask.copy()).float().contiguous()
+            'image': torch.as_tensor(input.copy()).float().contiguous(),
+            'mask': torch.as_tensor(label.copy()).float().contiguous()
         }
