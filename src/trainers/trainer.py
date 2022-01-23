@@ -117,6 +117,9 @@ class OutOfFoldTrainer:
         amp: bool = False,
         activate_wandb: bool = False,
     ):
+
+        net.to(device)
+
         n_train = len(train_set)
         n_val = len(val_set)
 
