@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from colorsys import rgb_to_yiq
 from distutils.util import strtobool
 import logging
 import os
@@ -119,8 +120,8 @@ class OutOfFoldTrainer:
 
         net.to(device)
 
-        n_train=len(train_set)
-        n_val=len(val_set)
+        n_train = len(train_set)
+        n_val = len(val_set)
 
         logging.info(f'''Starting training:
             Epochs:          {epochs}
@@ -134,17 +135,17 @@ class OutOfFoldTrainer:
             Mixed Precision: {amp}
             ''')
 
-        loader_args=dict(
+        loader_args = dict(
             batch_size=batch_size,
             num_workers=4,
             pin_memory=True
         )
-        train_loader=DataLoader(
+        train_loader = DataLoader(
             train_set,
             shuffle=True,
             **loader_args
         )
-        val_loader=DataLoader(
+        val_loader = DataLoader(
             val_set,
             shuffle=False,
             drop_last=True,
@@ -152,41 +153,41 @@ class OutOfFoldTrainer:
         )
 
         # Set up the optimizer, the loss, the learning rate scheduler and the loss scaling for AMP
-        optimizer=optim.RMSprop(
+        optimizer = optim.RMSprop(
             net.parameters(),
             lr=learning_rate,
             weight_decay=1e-8,
             momentum=0.9
         )
-        scheduler=optim.lr_scheduler.ReduceLROnPlateau(
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
             'max',
             patience=2
         )
-        grad_scaler=torch.cuda.amp.GradScaler(enabled=amp)
-        criterion=nn.L1Loss()
-        global_step=0
+        grad_scaler = torch.cuda.amp.GradScaler(enabled=amp)
+        criterion = nn.L1Loss()
+        global_step = 0
 
         # Begin training
         for epoch in range(epochs):
             net.train()
-            epoch_loss=0
+            epoch_loss = 0
             with tqdm(total=n_train, desc=f'Epoch {epoch + 1}/{epochs}', unit='img') as pbar:
                 for batch in train_loader:
-                    images=batch['image']
-                    true_masks=batch['mask']
+                    images = batch['image']
+                    true_masks = batch['mask']
 
                     assert images.shape[1] == net.n_channels, \
                         f'Network has been defined with {net.n_channels} input channels, ' \
                         f'but loaded images have {images.shape[1]} channels. Please check that ' \
                         'the images are loaded correctly.'
 
-                    images=images.to(device=device, dtype=torch.float32)
-                    true_masks=true_masks.to(device=device, dtype=torch.float32)
+                    images = images.to(device=device, dtype=torch.float32)
+                    true_masks = true_masks.to(device=device, dtype=torch.float32)
 
                     with torch.cuda.amp.autocast(enabled=amp):
-                        masks_pred=net(images)
-                        loss=criterion(masks_pred, true_masks)
+                        masks_pred = net(images)
+                        loss = criterion(masks_pred, true_masks)
 
                     optimizer.zero_grad(set_to_none=True)
                     grad_scaler.scale(loss).backward()
@@ -207,27 +208,27 @@ class OutOfFoldTrainer:
                     pbar.set_postfix(**{'loss (batch)': loss.item()})
 
                     # Evaluation round
-                    division_step=(n_train // (10 * batch_size))
+                    division_step = (n_train // (10 * batch_size))
                     if division_step > 0 and global_step % division_step == 0:
-                        val_loss=self.evaluate(net, val_loader, device)
+                        val_loss = self.evaluate(net, val_loader, device)
                         scheduler.step(val_loss)
 
                         logging.info('Validation Loss: {}'.format(val_loss))
 
                         if activate_wandb:
-                            histograms={}
+                            histograms = {}
                             for tag, value in net.named_parameters():
-                                tag=tag.replace('/', '.')
+                                tag = tag.replace('/', '.')
                                 histograms['Weights/' +
-                                           tag]=wandb.Histogram(value.data.cpu())
+                                           tag] = wandb.Histogram(value.data.cpu())
                                 histograms['Gradients/' +
-                                           tag]=wandb.Histogram(value.grad.data.cpu())
+                                           tag] = wandb.Histogram(value.grad.data.cpu())
 
                             experiment.log({
                                 'learning rate': optimizer.param_groups[0]['lr'],
                                 'validation loss': val_loss,
                                 'input': {
-                                    'rgb': wandb.Image(images[0, :3].cpu()),
+                                    'rgb': wandb.Image(np.transpose(np.asarray(images[0, :3].cpu()), axes=(1, 2, 0))),
                                     'depth': wandb.Image(images[0, 3].cpu())
                                 },
                                 'masks': {
@@ -240,9 +241,8 @@ class OutOfFoldTrainer:
                             })
 
             if save_checkpoint:
-                Path(dir_checkpoint).mkdir(parents=True, exist_ok=True)
-                torch.save(net.state_dict(), str(dir_checkpoint /
-                           'checkpoint_epoch{}.pth'.format(epoch + 1)))
+                dir_checkpoint.mkdir(parents=True, exist_ok=True)
+                torch.save(net.state_dict(), str(dir_checkpoint / f'{net.name}_e{epoch+1}.pth'))
                 logging.info(f'Checkpoint {epoch + 1} saved!')
 
         if activate_wandb:
@@ -250,8 +250,8 @@ class OutOfFoldTrainer:
 
 
 def main(args):
-    device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    oof=OutOfFoldTrainer(
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    oof = OutOfFoldTrainer(
         device=device,
         dataset_path=args.dataset_path,
         scale=args.scale_images,
@@ -261,7 +261,7 @@ def main(args):
         bilinear=args.bilinear
     )
 
-    params=dict(
+    params = dict(
         device=device,
         epochs=args.epochs,
         batch_size=args.batch_size,
@@ -298,9 +298,9 @@ def main(args):
 
 
 if __name__ == '__main__':
-    file_dir=Path(__file__).parent
+    file_dir = Path(__file__).parent
 
-    parser=ArgumentParser()
+    parser = ArgumentParser()
     parser.add_argument("--epochs", type=int, default=5)  # Number of epochs
     parser.add_argument("--batch_size", type=int, default=1)  # Batch size
     parser.add_argument("--learning_rate", type=float, default=0.00001)  # Learning rate
