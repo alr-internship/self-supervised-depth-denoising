@@ -1,0 +1,2 @@
+[submodule "3rdparty/mask_rcnn"]
+	branch = v2.1
