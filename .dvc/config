@@ -1,4 +1,6 @@
 [core]
     remote = server
+[cache]
+    type = "hardlink,symlink"
 ['remote "server"']
     url = ssh://claudiuskienle@gitlab.vincentcui.de:9022/var/opt/dvc/

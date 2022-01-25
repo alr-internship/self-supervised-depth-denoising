@@ -13,6 +13,7 @@ class DatasetInterface:
         self.dir_path = dir_path
 
         self.data_file_paths = list(dir_path.glob("**/*.npz"))
+        self.data_file_paths = sorted(self.data_file_paths)
 
     def __getitem__(self, arg):
         with np.load(self.data_file_paths[arg]) as data:

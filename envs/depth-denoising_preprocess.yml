@@ -48,7 +48,6 @@ dependencies:
   - decorator=5.1.1=pyhd8ed1ab_0
   - entrypoints=0.3=py36h9f0ad1d_1002
   - expat=2.4.3=h9c3ff4c_0
-  - ffmpeg=4.4.1=h6987444_0
   - font-ttf-dejavu-sans-mono=2.37=hab24e00_0
   - font-ttf-inconsolata=3.000=h77eed37_0
   - font-ttf-source-code-pro=2.038=h77eed37_0
