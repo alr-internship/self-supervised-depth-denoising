@@ -5,30 +5,48 @@ import time
 
 class DatasetInterface:
 
-    def __init__(self, dir_path: Path):
+    def __init__(self, dir_path: Path, recursive: bool = True):
         if not dir_path.exists():
-            dir_path.mkdir()
+            dir_path.mkdir(parents=True)
 
         assert dir_path.is_dir()
         self.dir_path = dir_path
 
-        self.data_file_paths = list(dir_path.glob("**/*.npz"))
+        if recursive:
+            self.data_file_paths = list(dir_path.glob("**/*.npz"))
+        else:
+            self.data_file_paths = list(dir_path.glob("*.npz"))
+
         self.data_file_paths = sorted(self.data_file_paths)
 
     def __getitem__(self, arg):
-        with np.load(self.data_file_paths[arg]) as data:
-            rs_rgb = data['rs_rgb']
-            rs_depth = data['rs_depth']
-            zv_rgb = data['zv_rgb']
-            zv_depth = data['zv_depth']
+        items_to_get = self.data_file_paths[arg]
+        if isinstance(items_to_get, list):
+            process_list = True
+        else:
+            items_to_get = [items_to_get]
+            process_list = False
 
-        return rs_rgb, rs_depth, zv_rgb, zv_depth
+        files = []
+        for item in items_to_get:
+            with np.load(item) as data:
+                rs_rgb = data['rs_rgb']
+                rs_depth = data['rs_depth']
+                zv_rgb = data['zv_rgb']
+                zv_depth = data['zv_depth']
+                files.append(((rs_rgb, rs_depth, zv_rgb, zv_depth)))
+
+        if not process_list:
+            files = files[0]
+           
+        return files
 
     def __len__(self):
         return len(self.data_file_paths)
 
-    def append_and_save(self, rs_rgb, rs_depth, zv_rgb, zv_depth):
-        file_name = Path(str(time.time()))
+    def append_and_save(self, rs_rgb, rs_depth, zv_rgb, zv_depth, file_name: str = None):
+        if file_name == None:
+            file_name = str(time.time())
 
         np.savez_compressed(
             self.dir_path / file_name,
