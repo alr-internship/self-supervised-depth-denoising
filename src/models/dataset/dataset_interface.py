@@ -38,7 +38,7 @@ class DatasetInterface:
 
         if not process_list:
             files = files[0]
-           
+
         return files
 
     def __len__(self):
