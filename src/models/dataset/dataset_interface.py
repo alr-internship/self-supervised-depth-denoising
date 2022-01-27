@@ -44,12 +44,17 @@ class DatasetInterface:
     def __len__(self):
         return len(self.data_file_paths)
 
-    def append_and_save(self, rs_rgb, rs_depth, zv_rgb, zv_depth, file_name: str = None):
+    def append_and_save(self, rs_rgb, rs_depth, zv_rgb, zv_depth, file_name: Path = None):
         if file_name == None:
             file_name = str(time.time())
 
+        save_path = self.dir_path / file_name
+    
+        if not save_path.parent.exists():
+            save_path.parent.mkdir(parents=True)
+
         np.savez_compressed(
-            self.dir_path / file_name,
+            save_path,
             rs_rgb=rs_rgb,
             rs_depth=rs_depth,
             zv_rgb=zv_rgb,

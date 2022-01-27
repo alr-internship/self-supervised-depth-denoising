@@ -1,13 +1,17 @@
 import pickletools
 import time
 from unittest import result
+
+from tqdm import tqdm
 from models.dataset.dataset_interface import DatasetInterface
 from pathlib import Path
 import open3d as o3d
 import numpy as np
 import cv2
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt, transforms
 import copy
+
+from utils.visualization_utils import to_bgr, to_rgb
 
 zv_ci = o3d.camera.PinholeCameraIntrinsic(
     width=1920, height=1200,
@@ -21,72 +25,60 @@ rs_ci = o3d.camera.PinholeCameraIntrinsic(
     cx=936.4846801757812, cy=537.48779296875,
 )
 
+threshold = 1
+trans_init = np.array(
+    [[0.99807603, -0.01957923, -0.05882929,  0.17911331],
+        [0.0212527, 0.99938319, 0.02795643, -0.01932425],
+        [0.05824564, -0.02915292, 0.99787652, -0.03608739],
+        [0., 0., 0., 1.]]
+)
+
 
 def imgs_to_pcd(bgr, depth, ci):
-    rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+    rgb = to_rgb(bgr)
     rgb = o3d.geometry.Image(rgb)
     depth = o3d.geometry.Image(depth)
 
     rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(
         rgb, depth, convert_rgb_to_intensity=False)
 
-    pcd = o3d.geometry.PointCloud.create_from_rgbd_image(
-        rgbd_image,
-        ci
-    )
+    pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_image, ci)
     return pcd
 
-def pcd_to_imgs(pcd, ci, filename: str):
+
+def pcd_to_imgs(pcd, ci):
     points = np.asarray(pcd.points)
     colors = np.asarray(pcd.colors)
+
+    # camera parameters
     fx, fy = ci.get_focal_length()
     cx, cy = ci.get_principal_point()
-    w_h = np.asarray([ci.width - 1, ci.height - 1])
+    f = np.array([fx, fy])
+    c = np.array([cx, cy])
 
-    pixels = []
-    depths = []
-    for point in points:
-        x = point[0]
-        y = point[1]
-        z = point[2]
+    # convert to 3d to 2d space
+    depths = points[:, 2]
+    pixels = points[:, :2] * f / np.expand_dims(depths, axis=1) + c
+    pixels = pixels.astype(np.uint16)
 
-        u = x * fx / z + cx
-        v = y * fy / z + cy
-        d = z
+    # create empty frames for final rgb and depth images
+    ul_corner = np.min(pixels, axis=0)
+    lr_corner = np.max(pixels, axis=0)
+    picture_size = np.round_(lr_corner).astype(np.uint16).T
+    rgb_frame = np.zeros((picture_size[1] + 1, picture_size[0] + 1, 3), dtype=np.uint8)
+    # depth frame filled with NaNs
+    depth_frame = np.empty((picture_size[1] + 1, picture_size[0] + 1), dtype=np.float32)
+    depth_frame[:] = np.nan
 
-        pixels.append([u, v])
-        depths.append([d])
-    
-    pixels = np.asarray(pixels)
-    depths = np.asarray(depths)
+    # fill respective pixels with depth and rgb info
+    pixels = pixels.T
+    pixels = (pixels[1], pixels[0])
+    rgb_frame[pixels] = colors * 255
+    depth_frame[pixels] = depths
 
-    min = np.min(pixels, axis=0)
-    max = np.max(pixels, axis=0)
-    print("before", min, max)
+    bgr_frame = to_bgr(rgb_frame)
 
-    # mapped_pixels = (pixels - min) * w_h / (max - min)
-    # mapped_pixels = pixels - min
-    mapped_pixels = pixels
-
-    min = np.min(mapped_pixels, axis=0)
-    max = np.max(mapped_pixels, axis=0)
-    print("after", min, max)
-
-    mapped_pixels = mapped_pixels.astype(np.uint16)
-
-    # picture_size = np.round_(max - min).astype(np.uint16).T
-    picture_size = np.round_(max).astype(np.uint16).T
-    print(picture_size)
-    rgb = np.zeros((picture_size[1] + 1, picture_size[0] + 1, 3))
-    for idx, mapped_pixel in enumerate(mapped_pixels):
-       rgb[mapped_pixel[1], mapped_pixel[0]] = colors[idx]
-
-    print(np.min(rgb, axis=(0, 1)))
-
-    rgb = rgb * 255
-    rgb = rgb.astype(np.uint8)
-
-    return rgb
+    return bgr_frame, depth_frame, ul_corner, lr_corner
 
 
 def __ask_to_annotate_points(
@@ -155,64 +147,68 @@ def __compute_transform_matrix(A, B):
     return R, t
 
 
-def main():
-    dataset_interface = DatasetInterface(Path("resources/images/uncalibrated/dataset_4"))
+def refine_transformation_matrix(trans_init, rs_pcd, zv_pcd):
+    zv_pcd.transform(trans_init)
+    evaluation = o3d.pipelines.registration.evaluate_registration(
+        zv_pcd, rs_pcd, threshold, trans_init)
+    print("Initial Alignment", evaluation)
 
-    rs_rgb, rs_depth, zv_rgb, zv_depth = dataset_interface[43]
+    reg_p2p = o3d.pipelines.registration.registration_icp(
+        zv_pcd, rs_pcd, threshold, trans_init,
+        o3d.pipelines.registration.TransformationEstimationPointToPoint())
 
-    rs_pcd = imgs_to_pcd(rs_rgb, rs_depth, rs_ci)
-    zv_pcd = imgs_to_pcd(zv_rgb, zv_depth, zv_ci)
+    trans_final = reg_p2p.transformation
+    evaluation = o3d.pipelines.registration.evaluate_registration(
+        zv_pcd, rs_pcd, threshold, trans_final)
+    print("Final Alignment", evaluation)
+    print(trans_final)
+    return trans_final
 
-    source_ci = zv_ci
-    target_ci = rs_ci
-    source_pcd = zv_pcd
-    target_pcd = rs_pcd
 
-    # source_pts, target_pts = __ask_to_annotate_points(zv_pcd, rs_pcd)
-    # print(source_pts)
-    # print(target_pts)
-
-    source_pts = np.array([[-0.09624184, -0.14684464,  0.73445874],
-                  [0.04727544, -0.11387316,  0.68202949],
-                  [-0.08901674,  0.01387794,  0.86610579],
-                  [0.0559292,  0.04645218,  0.81539875],
-                  [-0.25726869, -0.2150067,   1.18018293]])
-    target_pts = np.array([[0.03753771, -0.14300872, 0.69400001],
-                  [0.18737095, -0.11891152, 0.66100001],
-                  [0.04112452, 0.0180759, 0.815],
-                  [0.18834673, 0.05571066, 0.778],
-                  [-0.14103209, -0.21123472, 1.13300002]])
-
+def compute_initial_transformation_matrix(zv_pcd, rs_pcd):
+    source_pts, target_pts = __ask_to_annotate_points(zv_pcd, rs_pcd)
+    print(source_pts)
+    print(target_pts)
     R, t = __compute_transform_matrix(source_pts.T, target_pts.T)
-
     trans = np.identity(4)
     trans[:3, :3] = R
     trans[:3, 3] = t[:, 0]
-
-    # o3d...
-    source_pcd.transform(trans)
-
-    dists = target_pcd.compute_point_cloud_distance(source_pcd)
-    ind = np.where(np.asarray(dists) <= 0.1)[0]
-    target_pcd = target_pcd.select_by_index(ind)
-    o3d.visualization.draw_geometries([source_pcd, target_pcd])
+    print(trans)
+    return trans
 
 
-    # pcd_to_imgs(source_pcd, source_ci)
-    source_rgb = pcd_to_imgs(source_pcd, target_ci, "proj_source")
-    # pcd_to_imgs(target_pcd, source_ci)
-    target_rgb = pcd_to_imgs(target_pcd, target_ci, "proj_target")
+def align(rs_rgb, rs_depth, zv_rgb, zv_depth):
+    rs_pcd = imgs_to_pcd(rs_rgb, rs_depth, rs_ci)
+    zv_pcd = imgs_to_pcd(zv_rgb, zv_depth, zv_ci)
 
-    source_rgb_large = np.zeros(target_rgb.shape, dtype=np.uint8)
-    source_rgb_large[0:source_rgb.shape[0], 0:source_rgb.shape[1]] = source_rgb
+    zv_pcd.transform(trans_init)
 
-    cv2.imwrite("source.png", zv_rgb)
-    cv2.imwrite("target.png", rs_rgb)
-    cv2.imwrite("proj_source.png", source_rgb_large)
-    cv2.imwrite("proj_target.png", target_rgb)
+    # o3d.visualization.draw_geometries([zv_pcd, rs_pcd])
 
-    img_both = cv2.addWeighted(source_rgb_large, 0.5, target_rgb, 0.5, 0)
-    cv2.imwrite("both.png", cv2.cvtColor(img_both, cv2.COLOR_BGR2RGB))
+    zv_rgb, zv_depth, zv_ul_corner, zv_lr_corner = pcd_to_imgs(zv_pcd, rs_ci)
+    rs_rgb, rs_depth, rs_ul_corner, rs_lr_corner = pcd_to_imgs(rs_pcd, rs_ci)
+
+    ul_corner = np.max([zv_ul_corner, rs_ul_corner], axis=0)
+    lr_corner = np.min([zv_lr_corner, rs_lr_corner], axis=0)
+
+    zv_rgb = zv_rgb[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
+    rs_rgb = rs_rgb[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
+    zv_depth = zv_depth[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
+    rs_depth = rs_depth[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
+
+    return  rs_rgb, rs_depth, zv_rgb, zv_depth
+
+
+def main():
+    uncal_dir = Path("resources/images/uncalibrated")
+    dataset_interface = DatasetInterface(uncal_dir)
+    cal_dir = Path("resources/images/calibrated/3d_aligned")
+    aligned_dataset_interface = DatasetInterface(cal_dir)
+
+    for idx, image_tuple in tqdm(enumerate(dataset_interface)):
+        aligned_image_tuple = align(*image_tuple)
+        rel_dir_path = dataset_interface.data_file_paths[idx].relative_to(uncal_dir)
+        aligned_dataset_interface.append_and_save(*aligned_image_tuple, rel_dir_path)
 
 
 if __name__ == "__main__":
