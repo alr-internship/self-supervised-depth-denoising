@@ -53,6 +53,7 @@ def pcd_to_imgs(pcd, ci, filename: str):
         u = x * fx / z + cx
         v = y * fy / z + cy
         d = z
+
         pixels.append([u, v])
         depths.append([d])
     
@@ -64,7 +65,8 @@ def pcd_to_imgs(pcd, ci, filename: str):
     print("before", min, max)
 
     # mapped_pixels = (pixels - min) * w_h / (max - min)
-    mapped_pixels = pixels - min
+    # mapped_pixels = pixels - min
+    mapped_pixels = pixels
 
     min = np.min(mapped_pixels, axis=0)
     max = np.max(mapped_pixels, axis=0)
@@ -72,7 +74,8 @@ def pcd_to_imgs(pcd, ci, filename: str):
 
     mapped_pixels = mapped_pixels.astype(np.uint16)
 
-    picture_size = np.round_(max - min).astype(np.uint16).T
+    # picture_size = np.round_(max - min).astype(np.uint16).T
+    picture_size = np.round_(max).astype(np.uint16).T
     print(picture_size)
     rgb = np.zeros((picture_size[1] + 1, picture_size[0] + 1, 3))
     for idx, mapped_pixel in enumerate(mapped_pixels):
@@ -83,7 +86,7 @@ def pcd_to_imgs(pcd, ci, filename: str):
     rgb = rgb * 255
     rgb = rgb.astype(np.uint8)
 
-    cv2.imwrite(f"{filename}.png", cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB))
+    return rgb
 
 
 def __ask_to_annotate_points(
@@ -155,7 +158,7 @@ def __compute_transform_matrix(A, B):
 def main():
     dataset_interface = DatasetInterface(Path("resources/images/uncalibrated/dataset_4"))
 
-    rs_rgb, rs_depth, zv_rgb, zv_depth = dataset_interface[20]
+    rs_rgb, rs_depth, zv_rgb, zv_depth = dataset_interface[43]
 
     rs_pcd = imgs_to_pcd(rs_rgb, rs_depth, rs_ci)
     zv_pcd = imgs_to_pcd(zv_rgb, zv_depth, zv_ci)
@@ -196,12 +199,20 @@ def main():
 
 
     # pcd_to_imgs(source_pcd, source_ci)
-    pcd_to_imgs(source_pcd, target_ci, "proj_source")
+    source_rgb = pcd_to_imgs(source_pcd, target_ci, "proj_source")
     # pcd_to_imgs(target_pcd, source_ci)
-    pcd_to_imgs(target_pcd, target_ci, "proj_target")
+    target_rgb = pcd_to_imgs(target_pcd, target_ci, "proj_target")
+
+    source_rgb_large = np.zeros(target_rgb.shape, dtype=np.uint8)
+    source_rgb_large[0:source_rgb.shape[0], 0:source_rgb.shape[1]] = source_rgb
 
     cv2.imwrite("source.png", zv_rgb)
     cv2.imwrite("target.png", rs_rgb)
+    cv2.imwrite("proj_source.png", source_rgb_large)
+    cv2.imwrite("proj_target.png", target_rgb)
+
+    img_both = cv2.addWeighted(source_rgb_large, 0.5, target_rgb, 0.5, 0)
+    cv2.imwrite("both.png", cv2.cvtColor(img_both, cv2.COLOR_BGR2RGB))
 
 
 if __name__ == "__main__":
