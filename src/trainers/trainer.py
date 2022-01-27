@@ -11,6 +11,7 @@ from torch import not_equal, optim
 from torch.utils.data import DataLoader, random_split
 import wandb
 from models.networks.LSTMUNet.lstm_unet_model import LSTMUNet
+from utils.visualization_utils import to_rgb, visualize_depth
 
 from tqdm import tqdm
 from models.dataset.data_loading import BasicDataset
@@ -228,12 +229,12 @@ class OutOfFoldTrainer:
                                 'learning rate': optimizer.param_groups[0]['lr'],
                                 'validation loss': val_loss,
                                 'input': {
-                                    'rgb': wandb.Image(np.transpose(np.asarray(images[0, :3].cpu()), axes=(1, 2, 0))),
-                                    'depth': wandb.Image(images[0, 3].cpu())
+                                    'rgb': wandb.Image(to_rgb(np.transpose(np.asarray(images[0, :3].cpu()), axes=(1, 2, 0)))),
+                                    'depth': wandb.Image(visualize_depth(images[0, 3].cpu()))
                                 },
                                 'masks': {
-                                    'true': wandb.Image(true_masks[0].float().cpu()),
-                                    'pred': wandb.Image(masks_pred[0].float().cpu()),
+                                    'true': wandb.Image(visualize_depth(true_masks[0].float().cpu())),
+                                    'pred': wandb.Image(visualize_depth(masks_pred[0].float().cpu())),
                                 },
                                 'step': global_step,
                                 'epoch': epoch,
