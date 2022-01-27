@@ -121,7 +121,7 @@ class BasicDataset(Dataset):
         rs_depth = np.nan_to_num(rs_depth)
         zv_depth = np.nan_to_num(zv_depth)
 
-        rs_rgb, rs_depth, zv_depth = self.augment(rs_rgb, rs_depth, zv_depth)
+        # rs_rgb, rs_depth, zv_depth = self.augment(rs_rgb, rs_depth, zv_depth)
 
         input = self.preprocess_input(rs_rgb / 255, rs_depth, self.scale)
         label = self.preprocess(zv_depth, self.scale)

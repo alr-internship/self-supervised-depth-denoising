@@ -313,7 +313,7 @@ if __name__ == '__main__':
                         default=True)  # toggle the usage of wandb for logging purposes
     parser.add_argument("--save", type=lambda x: bool(strtobool(x)), nargs='?',
                         const=True, default=True)   # save trained model
-    parser.add_argument("--dataset_path", type=Path, default=file_dir / "../../resources/images/calibrated")
+    parser.add_argument("--dataset_path", type=Path, default=file_dir / "../../resources/images/calibrated/3d_aligned")
     parser.add_argument("--dir_checkpoint", type=Path, default=file_dir / "../../resources/networks")
     parser.add_argument("--bilinear", type=lambda x: bool(strtobool(x)), nargs='?',
                         const=True, default=True)      # unet using bilinear

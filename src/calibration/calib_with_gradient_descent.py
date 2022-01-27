@@ -1,4 +1,5 @@
 import pickletools
+from re import A
 import time
 from unittest import result
 
@@ -32,7 +33,7 @@ trans_init = np.array(
         [0.05824564, -0.02915292, 0.99787652, -0.03608739],
         [0., 0., 0., 1.]]
 )
-
+final_size = (1920, 1080)
 
 def imgs_to_pcd(bgr, depth, ci):
     rgb = to_rgb(bgr)
@@ -195,6 +196,13 @@ def align(rs_rgb, rs_depth, zv_rgb, zv_depth):
     rs_rgb = rs_rgb[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
     zv_depth = zv_depth[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
     rs_depth = rs_depth[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
+
+    zv_rgb = cv2.resize(zv_rgb, final_size)
+    zv_depth = cv2.resize(zv_depth, final_size)
+    rs_rgb = cv2.resize(rs_rgb, final_size)
+    rs_depth = cv2.resize(rs_depth, final_size)
+
+    print(zv_rgb.shape)
 
     return  rs_rgb, rs_depth, zv_rgb, zv_depth
 
