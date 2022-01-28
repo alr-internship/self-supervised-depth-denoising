@@ -18,7 +18,7 @@ import cv2
 from torch.utils import data
 from torch.utils.data import Dataset
 
-from models.dataset.dataset_interface import DatasetInterface
+from dataset.dataset_interface import DatasetInterface
 
 
 class BasicDataset(Dataset):

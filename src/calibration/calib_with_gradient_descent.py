@@ -4,7 +4,7 @@ import time
 from unittest import result
 
 from tqdm import tqdm
-from models.dataset.dataset_interface import DatasetInterface
+from dataset.dataset_interface import DatasetInterface
 from pathlib import Path
 import open3d as o3d
 import numpy as np

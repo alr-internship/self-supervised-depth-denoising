@@ -2,7 +2,6 @@ from argparse import ArgumentParser
 from colorsys import rgb_to_yiq
 from distutils.util import strtobool
 import logging
-import os
 from pathlib import Path
 import numpy as np
 import torch
@@ -10,12 +9,12 @@ import torch.nn as nn
 from torch import not_equal, optim
 from torch.utils.data import DataLoader, random_split
 import wandb
-from models.networks.LSTMUNet.lstm_unet_model import LSTMUNet
+from networks.LSTMUNet.lstm_unet_model import LSTMUNet
 from utils.visualization_utils import to_rgb, visualize_depth
 
 from tqdm import tqdm
-from models.dataset.data_loading import BasicDataset
-from models.networks.UNet.unet_model import UNet
+from dataset.data_loading import BasicDataset
+from networks.UNet.unet_model import UNet
 
 
 class OutOfFoldTrainer:

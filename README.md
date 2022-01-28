@@ -145,3 +145,13 @@ To test the training, one can execute following command to queue the training on
 The process will be logged into `train_models.out`
 
 For further information, visit [https://wiki.bwhpc.de/e/BwUniCluster_2.0_Slurm_common_Features](https://wiki.bwhpc.de/e/BwUniCluster_2.0_Slurm_common_Features)
+
+
+TODOs
+
+=====
+
+- [X] dataset calibration
+- [] remove NaNs from RGB and depth images
+- [] normalize dataset
+- [] apply augmentation to dataset

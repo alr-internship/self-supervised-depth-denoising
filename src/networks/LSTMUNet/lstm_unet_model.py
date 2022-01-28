@@ -4,8 +4,8 @@ import torch.nn as nn
 import numpy as np
 import torch.nn.functional as F
 
-from models.networks.UNet.unet_parts import DoubleConv, Down, Up, OutConv
-from models.networks.LSTMUNet.lstm_unet_parts import ConvLSTMCell
+from networks.UNet.unet_parts import DoubleConv, Down, Up, OutConv
+from networks.LSTMUNet.lstm_unet_parts import ConvLSTMCell
 
 # TODO: Check ConvLSTM cell insertions for correctness
 
