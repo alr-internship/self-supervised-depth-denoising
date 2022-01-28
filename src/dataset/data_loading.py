@@ -68,24 +68,6 @@ class BasicDataset(Dataset):
     def __len__(self):
         return len(self.dataset_interface)
 
-    @classmethod
-    def preprocess(cls, img: np.array, scale: float):
-        # scale images
-        h, w = img.shape[:2]
-        newW, newH = int(scale * w), int(scale * h)
-
-        assert newW > 0 and newH > 0, 'Scale is too small, resized images would have no pixel'
-        img_ndarray = cv2.resize(img, (newW, newH), cv2.INTER_LINEAR)
-        # pil_img = pil_img.resize((newW, newH), resample=Image.BICUBIC)
-
-        # normalize images
-        if len(img_ndarray.shape) == 2:
-            img_ndarray = np.expand_dims(img_ndarray, axis=2)
-
-        img_ndarray = img_ndarray.transpose((2, 0, 1))  # move WxHxC -> CxWxH
-        # img_ndarray = img_ndarray / 255                 # [0, 255] -> [0, 1]
-        return img_ndarray
-
     def augment(self, rs_rgb, rs_depth, zv_depth):
         depths = np.concatenate((rs_depth, zv_depth), axis=2)
 
@@ -102,28 +84,55 @@ class BasicDataset(Dataset):
 
         return aug_rs_rgb, aug_rs_depth, aug_zv_depth
 
-    def __getitem__(self, idx):
-        rs_rgb, rs_depth, _, zv_depth = self.dataset_interface[idx]
+    @classmethod
+    def resize(cls, img: np.array, scale: float):
+        h, w = img.shape[:2]
+        newW, newH = int(scale * w), int(scale * h)
+
+        assert newW > 0 and newH > 0, 'Scale is too small, resized images would have no pixel'
+        return cv2.resize(img, (newW, newH), cv2.INTER_LINEAR)
+
+    @classmethod
+    def preprocess(cls, img: np.array, scale: float):
+        # scale images
+        # pil_img = pil_img.resize((newW, newH), resample=Image.BICUBIC)
+        img_ndarray = cls.resize(img, scale)
+
+        # normalize images
+        if len(img_ndarray.shape) == 2:
+            img_ndarray = np.expand_dims(img_ndarray, axis=2)
+
+        img_ndarray = img_ndarray.transpose((2, 0, 1))  # move WxHxC -> CxWxH
+        # img_ndarray = img_ndarray / 255                 # [0, 255] -> [0, 1]
+        return img_ndarray
+
+    @classmethod
+    def preprocess_set(cls, rs_rgb, rs_depth, zv_depth, scale):
         rs_depth = np.expand_dims(rs_depth.astype(np.float32), axis=2)
         zv_depth = np.expand_dims(zv_depth, axis=2)
 
         assert rs_rgb.shape[:2] == zv_depth.shape[:2], \
-            f'Image and mask {idx} should be the same size, but are {rs_rgb.shape[:2]} and {zv_depth[:2]}'
+            f'Image and mask should be the same size, but are {rs_rgb.shape[:2]} and {zv_depth[:2]}'
 
         # map nan to numbers
         rs_depth = np.nan_to_num(rs_depth)
         zv_depth = np.nan_to_num(zv_depth)
 
-        if self.enable_augmentation:
-            rs_rgb, rs_depth, zv_depth = self.augment(rs_rgb, rs_depth, zv_depth)
+        processed_rs_rgb = cls.preprocess(rs_rgb, scale)
+        processed_rs_depth = cls.preprocess(rs_depth, scale)
 
-        processed_rs_rgb = self.preprocess(rs_rgb, self.scale)
-        processed_rs_depth = self.preprocess(rs_depth, self.scale)
-
-        input = np.concatenate((processed_rs_rgb, processed_rs_depth), axis=0)
-        label = self.preprocess(zv_depth, self.scale)
+        input = np.concatenate((processed_rs_rgb / 255, processed_rs_depth), axis=0)
+        label = cls.preprocess(zv_depth, scale)
 
         return {
             'image': torch.as_tensor(input.copy()).float().contiguous(),
             'mask': torch.as_tensor(label.copy()).float().contiguous()
         }
+
+    def __getitem__(self, idx):
+        rs_rgb, rs_depth, _, zv_depth = self.dataset_interface[idx]
+
+        if self.enable_augmentation:
+            rs_rgb, rs_depth, zv_depth = self.augment(rs_rgb, rs_depth, zv_depth)
+
+        return self.preprocess_set(rs_rgb, rs_depth, zv_depth, self.scale)

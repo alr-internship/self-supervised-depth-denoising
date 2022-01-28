@@ -17,4 +17,5 @@ def visualize_depth(depth):
     # map from [min, max] to [0, 255] linearly
     depth = ((depth - min) / max - min) * 255
     depth = depth.astype(np.uint8)
+    depth = cv2.applyColorMap(depth, cv2.COLORMAP_JET)
     return depth
