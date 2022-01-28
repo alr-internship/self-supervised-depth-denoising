@@ -316,11 +316,11 @@ def main(args):
         activate_wandb=args.wandb
     )
 
-    # Training M_12
+    # Training M_11
     oof.train(
-        net=oof.M_12,
-        train_set=oof.P_2,
-        val_set=get_validation_subset(oof.P_1_val),
+        net=oof.M_11,
+        train_set=oof.P_1,
+        val_set=get_validation_subset(oof.P_2_val),
         **params
     )
     # Training M_1
@@ -330,11 +330,11 @@ def main(args):
         val_set=get_validation_subset(oof.P_test_val),
         **params
     )
-    # Training M_11
+    # Training M_12
     oof.train(
-        net=oof.M_11,
-        train_set=oof.P_1,
-        val_set=get_validation_subset(oof.P_2_val),
+        net=oof.M_12,
+        train_set=oof.P_2,
+        val_set=get_validation_subset(oof.P_1_val),
         **params
     )
 
