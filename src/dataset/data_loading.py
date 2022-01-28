@@ -12,6 +12,7 @@ from pathlib import Path
 
 from imgaug import augmenters as iaa
 from imgaug import HeatmapsOnImage
+from imgaug.augmentables.segmaps import SegmentationMapsOnImage
 
 import numpy as np
 import torch
@@ -64,7 +65,7 @@ class BasicDataset(Dataset):
                 scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},
                 translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)},
                 rotate=(-25, 25),
-                shear=(-8, 8)
+                shear=(-8, 8),
             )
         ], random_order=True)  # apply augmenters in random order
 
@@ -78,12 +79,20 @@ class BasicDataset(Dataset):
                                    max_value=np.nanmax(depths),
                                    shape=rs_rgb.shape)
 
-        augmented = self.seq(image=rs_rgb, heatmaps=heatmaps)
+        # augmentation adds some random padding to depth maps
+        # this segmap sets this padding to NaN again
+        segmaps = np.ones((rs_rgb.shape[:2]))
+        segmaps = SegmentationMapsOnImage(segmaps, shape=rs_rgb.shape[:2])
+
+        augmented = self.seq(image=rs_rgb, heatmaps=heatmaps,
+                             segmentation_maps=segmaps)
         aug_rs_rgb = augmented[0]
         aug_heatmaps = augmented[1].get_arr()
+        aug_segmaps = augmented[2].get_arr()
+        aug_segmaps = np.logical_not(aug_segmaps)
 
-        aug_rs_depth = aug_heatmaps[..., 0]
-        aug_zv_depth = aug_heatmaps[..., 1]
+        aug_rs_depth = np.where(aug_segmaps, np.nan, aug_heatmaps[..., 0])
+        aug_zv_depth = np.where(aug_segmaps, np.nan, aug_heatmaps[..., 1])
 
         aug_rs_depth = np.expand_dims(aug_rs_depth, axis=2)
         aug_zv_depth = np.expand_dims(aug_zv_depth, axis=2)
@@ -122,7 +131,7 @@ class BasicDataset(Dataset):
 
         # normalize
         processed_rs_rgb = processed_rs_rgb.astype(np.float32) / 255
-        
+
         # map nan to 0 and add mask to inform net about
         processed_rs_depth = np.nan_to_num(processed_rs_depth)
         processed_zv_depth = np.nan_to_num(processed_zv_depth)
