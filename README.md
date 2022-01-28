@@ -151,7 +151,9 @@ TODOs
 =====
 
 - [X] dataset calibration
+- [X] notebook to visualize inference of trained models
 - [ ] remove NaNs from RGB and depth images
+- [ ] check if augmented frames are valid (NaNs)
 - [ ] normalize dataset
 - [ ] mask data
-- [ ] apply augmentation to dataset
+- [X] apply augmentation to dataset
