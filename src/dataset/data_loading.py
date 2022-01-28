@@ -72,7 +72,7 @@ class BasicDataset(Dataset):
     def __len__(self):
         return len(self.dataset_interface)
 
-    def augment(self, rs_rgb, rs_depth, zv_depth):
+    def augment(self, rs_rgb, rs_depth, zv_depth, crop_region_mask):
         depths = np.concatenate((rs_depth[..., None], zv_depth[..., None]), axis=2)
 
         heatmaps = HeatmapsOnImage(depths, min_value=np.nanmin(depths),
@@ -81,18 +81,19 @@ class BasicDataset(Dataset):
 
         # augmentation adds some random padding to depth maps
         # this segmap sets this padding to NaN again
-        segmaps = np.ones((rs_rgb.shape[:2]), dtype=np.uint8)
-        segmaps = SegmentationMapsOnImage(segmaps, shape=rs_rgb.shape[:2])
+        nan_segmap = crop_region_mask
+        segmaps = SegmentationMapsOnImage(nan_segmap, shape=rs_rgb.shape[:2])
 
         augmented = self.seq(image=rs_rgb, heatmaps=heatmaps,
                              segmentation_maps=segmaps)
+
         aug_rs_rgb = augmented[0]
         aug_heatmaps = augmented[1].get_arr()
-        aug_segmaps = augmented[2].get_arr()
-        aug_segmaps = np.logical_not(aug_segmaps)
+        aug_nan_segmap = augmented[2].get_arr()
 
-        aug_rs_depth = np.where(aug_segmaps, np.nan, aug_heatmaps[..., 0])
-        aug_zv_depth = np.where(aug_segmaps, np.nan, aug_heatmaps[..., 1])
+        aug_rs_rgb = aug_rs_rgb * aug_nan_segmap[..., None]
+        aug_rs_depth = np.where(aug_nan_segmap, aug_heatmaps[..., 0], np.nan)
+        aug_zv_depth = np.where(aug_nan_segmap, aug_heatmaps[..., 1], np.nan)
 
         return aug_rs_rgb, aug_rs_depth, aug_zv_depth
 
@@ -149,24 +150,15 @@ class BasicDataset(Dataset):
             'nan-mask': torch.as_tensor(nan_mask.copy())
         }
 
-    @classmethod
-    def crop_region(cls, rs_rgb, rs_depth, zv_depth):
-        mask = np.zeros((rs_rgb.shape[:2]), dtype=np.uint8)
-        mask[:, 500:1600] = 1
-
-        rs_rgb = rs_rgb * mask[..., None]
-        rs_depth = np.where(mask, rs_depth, np.nan)
-        zv_depth = np.where(mask, zv_depth, np.nan)
-
-        return rs_rgb, rs_depth, zv_depth
-
     def __getitem__(self, idx):
         rs_rgb, rs_depth, _, zv_depth = self.dataset_interface[idx]
 
-        rs_rgb, rs_depth, zv_depth = self.crop_region(rs_rgb, rs_depth, zv_depth)
+        # crop region mask
+        crop_region_mask = np.zeros((rs_rgb.shape[:2]), dtype=np.uint8)
+        crop_region_mask[:, 500:1600] = 1
 
         if self.enable_augmentation:
-            rs_rgb, rs_depth, zv_depth = self.augment(rs_rgb, rs_depth, zv_depth)
+            rs_rgb, rs_depth, zv_depth = self.augment(rs_rgb, rs_depth, zv_depth, crop_region_mask)
 
         return self.preprocess_set(rs_rgb, rs_depth, zv_depth,
                                    self.scale, self.add_mask_for_nans)

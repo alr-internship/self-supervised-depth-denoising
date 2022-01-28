@@ -14,7 +14,6 @@ def visualize_depth(depth):
     # ignore nans for max,min
     max = np.nanmax(depth)
     min = np.nanmin(depth)
-    mean = max - min
     # set nan to mean, +inf to max, -inf to min
     # map from [min, max] to [0, 255] linearly
     depth = ((depth - min) / max - min) * 255

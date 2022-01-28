@@ -254,9 +254,12 @@ class OutOfFoldTrainer:
                                 histograms['Gradients/' +
                                            tag] = wandb.Histogram(value.grad.data.cpu())
 
+                            # visualization images
+                            # multiply prediction mask with nan mask to remove pixels where nans are 
+                            # in the input or target
                             vis_image = images[0].cpu().detach().numpy().transpose((1, 2, 0))
                             vis_true_mask = label[0, 0].float().cpu().detach().numpy()
-                            vis_pred_mask = prediction[0, 0].float().cpu().detach().numpy()
+                            vis_pred_mask = (prediction * nan_mask)[0, 0].float().cpu().detach().numpy()
 
                             experiment_log = {
                                 'learning rate': optimizer.param_groups[0]['lr'],
