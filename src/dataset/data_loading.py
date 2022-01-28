@@ -129,22 +129,24 @@ class BasicDataset(Dataset):
         # normalize
         processed_rs_rgb = processed_rs_rgb.astype(np.float32) / 255
 
-        # map nan to 0 and add mask to inform net about
+        # map nan to 0 and add mask to inform net about them
+        rs_nan_mask = np.logical_not(np.isnan(processed_rs_depth))
+        zv_nan_mask = np.logical_not(np.isnan(processed_zv_depth))
+        nan_mask = np.logical_or(rs_nan_mask, zv_nan_mask)
+        processed_rs_depth = np.nan_to_num(processed_rs_depth)
+        processed_zv_depth = np.nan_to_num(processed_zv_depth)
+
         if add_mask_for_nans:
-            nan_mask = np.logical_not(np.isnan(processed_rs_depth))
-            processed_rs_depth = np.nan_to_num(processed_rs_depth)
-            processed_zv_depth = np.nan_to_num(processed_zv_depth)
-            input = np.concatenate((processed_rs_rgb, processed_rs_depth, nan_mask), axis=0)
+            input = np.concatenate((processed_rs_rgb, processed_rs_depth, rs_nan_mask), axis=0)
         else:
-            processed_rs_depth = np.nan_to_num(processed_rs_depth)
-            processed_zv_depth = np.nan_to_num(processed_zv_depth)
             input = np.concatenate((processed_rs_rgb, processed_rs_depth), axis=0)
 
         label = processed_zv_depth
 
         return {
             'image': torch.as_tensor(input.copy()).float().contiguous(),
-            'mask': torch.as_tensor(label.copy()).float().contiguous()
+            'label': torch.as_tensor(label.copy()).float().contiguous(),
+            'nan-mask': torch.as_tensor(nan_mask.copy())
         }
 
     @classmethod

@@ -198,7 +198,8 @@ class OutOfFoldTrainer:
             with tqdm(total=n_train, desc=f'Epoch {epoch + 1}/{epochs}', unit='img') as pbar:
                 for batch in train_loader:
                     images = batch['image']
-                    true_masks = batch['mask']
+                    label = batch['label']
+                    nan_mask = batch['nan-mask']
 
                     assert images.shape[1] == net.n_channels, \
                         f'Network has been defined with {net.n_channels} input channels, ' \
@@ -206,11 +207,14 @@ class OutOfFoldTrainer:
                         'the images are loaded correctly.'
 
                     images = images.to(device=self.device, dtype=torch.float32)
-                    true_masks = true_masks.to(device=self.device, dtype=torch.float32)
+                    label = label.to(device=self.device, dtype=torch.float32)
+                    nan_mask = nan_mask.to(device=self.device)
 
                     with torch.cuda.amp.autocast(enabled=amp):
-                        pred_masks = net(images)
-                        loss = criterion(pred_masks, true_masks)
+                        prediction = net(images)
+                        # sum loss only where no nan is present
+                        loss = torch.mean(torch.abs(prediction - label) * nan_mask)
+                        # loss = criterion(prediction, label)
 
                     optimizer.zero_grad(set_to_none=True)
                     grad_scaler.scale(loss).backward()
@@ -248,8 +252,8 @@ class OutOfFoldTrainer:
                                            tag] = wandb.Histogram(value.grad.data.cpu())
 
                             vis_image = images[0].cpu().detach().numpy().transpose((1, 2, 0))
-                            vis_true_mask = true_masks[0, 0].float().cpu().detach().numpy()
-                            vis_pred_mask = pred_masks[0, 0].float().cpu().detach().numpy()
+                            vis_true_mask = label[0, 0].float().cpu().detach().numpy()
+                            vis_pred_mask = prediction[0, 0].float().cpu().detach().numpy()
 
                             experiment_log = {
                                 'learning rate': optimizer.param_groups[0]['lr'],

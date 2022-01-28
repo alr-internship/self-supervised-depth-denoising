@@ -163,6 +163,8 @@ TODOs
     All NaN values get replaced with 0
     Idea: Add mask to tell net where mask values are located
     Problem: Mask only for rs nans or also for zv nans?
+    Loss: The networks loss function sums up pixel loss, counting only the ones
+    where no NaN is present in the data
 
 - [ ] normalize dataset
 - [ ] mask data
