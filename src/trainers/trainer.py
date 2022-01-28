@@ -88,15 +88,18 @@ class OutOfFoldTrainer:
 
         # iterate over the validation set
         for batch in tqdm(dataloader, desc='Validation round', unit='batch', leave=False):
-            image, mask_true = batch['image'], batch['mask']
+            images = batch['image']
+            labels = batch['label']
+            nan_mask = batch['nan-mask']
+
             # move images and labels to correct device and type
-            image = image.to(device=device, dtype=torch.float32)
-            mask_true = mask_true.to(device=device, dtype=torch.float32)
+            images = images.to(device=device, dtype=torch.float32)
+            labels = labels.to(device=device, dtype=torch.float32)
+            nan_mask = nan_mask.to(device=self.device)
 
             with torch.no_grad():
-                # predict the mask
-                mask_pred = net(image)
-                loss += criterion(mask_pred, mask_true)
+                predictions = net(images)
+                loss += torch.mean(torch.abs(predictions - labels) * nan_mask)
 
         net.train()
 
