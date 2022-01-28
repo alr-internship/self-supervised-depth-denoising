@@ -162,6 +162,7 @@ TODOs
 - [ ] remove NaNs from RGB and depth images
     All NaN values get replaced with 0
     Idea: Add mask to tell net where mask values are located
+    Problem: Mask only for rs nans or also for zv nans?
 
 - [ ] normalize dataset
 - [ ] mask data

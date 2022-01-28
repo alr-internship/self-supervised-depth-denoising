@@ -11,7 +11,7 @@ from torch import not_equal, optim
 from torch.utils.data import DataLoader, random_split
 import wandb
 from networks.LSTMUNet.lstm_unet_model import LSTMUNet
-from utils.visualization_utils import to_rgb, visualize_depth
+from utils.visualization_utils import to_rgb, visualize_depth, visualize_mask
 
 from tqdm import tqdm
 from dataset.data_loading import BasicDataset
@@ -44,7 +44,8 @@ class OutOfFoldTrainer:
         self.add_mask_for_nans = add_mask_for_nans
 
         dataset_params = dict(dataset_path=dataset_path, oof_p=oof_p, scale=scale, add_mask_for_nans=add_mask_for_nans)
-        self.P_1, self.P_2, self.P_test = self.get_oof_dataset(enable_augmentation=enable_augmentation, **dataset_params)
+        self.P_1, self.P_2, self.P_test = self.get_oof_dataset(
+            enable_augmentation=enable_augmentation, **dataset_params)
         self.P_1_and_P_2 = torch.utils.data.ConcatDataset([self.P_1, self.P_2])
         self.P_1_val, self.P_2_val, self.P_test_val = self.get_oof_dataset(enable_augmentation=False, **dataset_params)
 
@@ -250,12 +251,12 @@ class OutOfFoldTrainer:
                             vis_true_mask = true_masks[0, 0].float().cpu().detach().numpy()
                             vis_pred_mask = pred_masks[0, 0].float().cpu().detach().numpy()
 
-                            experiment.log({
+                            experiment_log = {
                                 'learning rate': optimizer.param_groups[0]['lr'],
                                 'validation loss': val_loss,
                                 'input': {
                                     'rgb': wandb.Image(to_rgb(vis_image[..., :3])),
-                                    'depth': wandb.Image(visualize_depth(vis_image[..., 3]))
+                                    'depth': wandb.Image(visualize_depth(vis_image[..., 3])),
                                 },
                                 'masks': {
                                     'true': wandb.Image(visualize_depth(vis_true_mask)),
@@ -264,7 +265,12 @@ class OutOfFoldTrainer:
                                 'step': global_step,
                                 'epoch': epoch,
                                 **histograms
-                            })
+                            }
+
+                            if self.add_mask_for_nans:
+                                experiment_log['input']['mask'] = wandb.Image(visualize_mask(vis_image[..., 4]))
+
+                            experiment.log(experiment_log)
 
             if save_checkpoint:
                 dir_checkpoint.mkdir(parents=True, exist_ok=True)

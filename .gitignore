@@ -68,6 +68,7 @@ target/
 
 # VS Code
 .vscode/
+.history/
 
 # Spyder
 .spyproject/

@@ -1,1062 +1,0 @@
-Executable ./train_models.sh running on 40 cores with 20 threads
-./train_models.sh
-wandb: Currently logged in as: claudik (use `wandb login --relogin` to force relogin)
-wandb: wandb version 0.12.9 is available!  To upgrade, please run:
-wandb:  $ pip install wandb --upgrade
-wandb: Tracking run with wandb version 0.12.7
-wandb: Syncing run colorful-shadow-13
-wandb:  View project at https://wandb.ai/depth-denoising/M_11
-wandb:  View run at https://wandb.ai/depth-denoising/M_11/runs/16zyeren
-wandb: Run data is saved locally in /pfs/data5/home/kit/anthropomatik/ng3916/self-supervised-depth-denoising/wandb/run-20220123_130604-16zyeren
-wandb: Run `wandb offline` to turn off syncing.
-
-Epoch 1/5:   0% 0/33 [00:00<?, ?img/s]/home/kit/anthropomatik/ng3916/.conda/envs/depth-denoising_training/lib/python3.8/site-packages/torch/nn/modules/loss.py:94: UserWarning: Using a target size (torch.Size([1, 1, 600, 960])) that is different to the input size (torch.Size([1, 4, 600, 960])). This will likely lead to incorrect results due to broadcasting. Please ensure they have the same size.
-  return F.l1_loss(input, target, reduction=self.reduction)
-Epoch 1/5:   3% 1/33 [00:11<06:06, 11.45s/img]Epoch 1/5:   3% 1/33 [00:11<06:06, 11.45s/img, loss (batch)=nan]Epoch 1/5:   6% 2/33 [00:11<05:54, 11.45s/img, loss (batch)=nan]Epoch 1/5:   9% 3/33 [00:11<01:31,  3.04s/img, loss (batch)=nan]Epoch 1/5:   9% 3/33 [00:11<01:31,  3.04s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:40,  1.27s/batch][A
-Validation round:  12% 4/33 [00:01<00:08,  3.56batch/s][A
-Validation round:  18% 6/33 [00:01<00:07,  3.83batch/s][A
-Validation round:  21% 7/33 [00:02<00:06,  4.19batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  5.78batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  5.94batch/s][A
-Validation round:  39% 13/33 [00:02<00:03,  6.09batch/s][A
-Validation round:  45% 15/33 [00:03<00:02,  7.06batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  5.92batch/s][A
-Validation round:  58% 19/33 [00:03<00:02,  6.60batch/s][A
-Validation round:  64% 21/33 [00:04<00:01,  6.54batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  6.92batch/s][A
-Validation round:  70% 23/33 [00:04<00:01,  6.85batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  7.48batch/s][A
-Validation round:  79% 26/33 [00:04<00:01,  5.56batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  7.62batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  6.05batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  8.96batch/s][A
-                                                        [AEpoch 1/5:  12% 4/33 [00:21<01:28,  3.04s/img, loss (batch)=nan]Epoch 1/5:  15% 5/33 [00:21<01:50,  3.96s/img, loss (batch)=nan]Epoch 1/5:  15% 5/33 [00:21<01:50,  3.96s/img, loss (batch)=nan]Epoch 1/5:  18% 6/33 [00:21<01:19,  2.94s/img, loss (batch)=nan]Epoch 1/5:  18% 6/33 [00:21<01:19,  2.94s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:32,  1.00s/batch][A
-Validation round:   6% 2/33 [00:01<00:16,  1.90batch/s][A
-Validation round:   9% 3/33 [00:01<00:12,  2.46batch/s][A
-Validation round:  15% 5/33 [00:01<00:06,  4.57batch/s][A
-Validation round:  18% 6/33 [00:01<00:06,  4.26batch/s][A
-Validation round:  24% 8/33 [00:02<00:03,  6.38batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  5.36batch/s][A
-Validation round:  30% 10/33 [00:02<00:04,  5.59batch/s][A
-Validation round:  39% 13/33 [00:02<00:03,  6.66batch/s][A
-Validation round:  42% 14/33 [00:03<00:03,  5.44batch/s][A
-Validation round:  48% 16/33 [00:03<00:02,  7.38batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  6.13batch/s][A
-Validation round:  64% 21/33 [00:04<00:02,  5.79batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  6.21batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  7.80batch/s][A
-Validation round:  79% 26/33 [00:04<00:01,  5.78batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  6.32batch/s][A
-Validation round:  94% 31/33 [00:05<00:00,  7.73batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  9.25batch/s][A
-                                                        [AEpoch 1/5:  21% 7/33 [00:28<01:43,  3.98s/img, loss (batch)=nan]Epoch 1/5:  21% 7/33 [00:28<01:43,  3.98s/img, loss (batch)=nan]Epoch 1/5:  24% 8/33 [00:28<01:12,  2.90s/img, loss (batch)=nan]Epoch 1/5:  24% 8/33 [00:28<01:12,  2.90s/img, loss (batch)=nan]Epoch 1/5:  27% 9/33 [00:28<00:50,  2.12s/img, loss (batch)=nan]Epoch 1/5:  27% 9/33 [00:28<00:50,  2.12s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:47,  1.48s/batch][A
-Validation round:   9% 3/33 [00:01<00:12,  2.35batch/s][A
-Validation round:  15% 5/33 [00:01<00:07,  3.55batch/s][A
-Validation round:  24% 8/33 [00:02<00:04,  5.87batch/s][A
-Validation round:  30% 10/33 [00:02<00:04,  5.28batch/s][A
-Validation round:  36% 12/33 [00:02<00:03,  6.13batch/s][A
-Validation round:  39% 13/33 [00:03<00:03,  5.56batch/s][A
-Validation round:  48% 16/33 [00:03<00:02,  7.00batch/s][A
-Validation round:  52% 17/33 [00:03<00:03,  5.12batch/s][A
-Validation round:  58% 19/33 [00:03<00:02,  6.76batch/s][A
-Validation round:  64% 21/33 [00:04<00:02,  5.63batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  8.07batch/s][A
-Validation round:  79% 26/33 [00:05<00:01,  5.89batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  6.22batch/s][A
-Validation round:  97% 32/33 [00:05<00:00,  8.33batch/s][A
-                                                        [AEpoch 1/5:  30% 10/33 [00:35<01:20,  3.48s/img, loss (batch)=nan]Epoch 1/5:  30% 10/33 [00:35<01:20,  3.48s/img, loss (batch)=nan]Epoch 1/5:  33% 11/33 [00:35<00:55,  2.51s/img, loss (batch)=nan]Epoch 1/5:  33% 11/33 [00:35<00:55,  2.51s/img, loss (batch)=nan]Epoch 1/5:  36% 12/33 [00:35<00:38,  1.82s/img, loss (batch)=nan]Epoch 1/5:  36% 12/33 [00:35<00:38,  1.82s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:39,  1.25s/batch][A
-Validation round:   9% 3/33 [00:01<00:10,  2.75batch/s][A
-Validation round:  15% 5/33 [00:01<00:09,  2.95batch/s][A
-Validation round:  18% 6/33 [00:02<00:07,  3.64batch/s][A
-Validation round:  24% 8/33 [00:02<00:04,  5.51batch/s][A
-Validation round:  30% 10/33 [00:02<00:04,  5.38batch/s][A
-Validation round:  39% 13/33 [00:03<00:03,  5.51batch/s][A
-Validation round:  45% 15/33 [00:03<00:02,  6.93batch/s][A
-Validation round:  52% 17/33 [00:03<00:03,  4.69batch/s][A
-Validation round:  61% 20/33 [00:04<00:01,  6.76batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  5.61batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  6.90batch/s][A
-Validation round:  79% 26/33 [00:05<00:01,  6.38batch/s][A
-Validation round:  85% 28/33 [00:05<00:00,  7.85batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  7.74batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  9.03batch/s][A
-                                                        [AEpoch 1/5:  39% 13/33 [00:42<01:06,  3.31s/img, loss (batch)=nan]Epoch 1/5:  39% 13/33 [00:42<01:06,  3.31s/img, loss (batch)=nan]Epoch 1/5:  42% 14/33 [00:42<00:45,  2.37s/img, loss (batch)=nan]Epoch 1/5:  42% 14/33 [00:42<00:45,  2.37s/img, loss (batch)=nan]Epoch 1/5:  45% 15/33 [00:42<00:30,  1.72s/img, loss (batch)=nan]Epoch 1/5:  45% 15/33 [00:42<00:30,  1.72s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:50,  1.58s/batch][A
-Validation round:   9% 3/33 [00:01<00:13,  2.24batch/s][A
-Validation round:  15% 5/33 [00:01<00:07,  3.51batch/s][A
-Validation round:  21% 7/33 [00:02<00:05,  5.17batch/s][A
-Validation round:  27% 9/33 [00:02<00:05,  4.67batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  6.22batch/s][A
-Validation round:  39% 13/33 [00:03<00:03,  6.13batch/s][A
-Validation round:  45% 15/33 [00:03<00:02,  6.01batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  6.18batch/s][A
-Validation round:  58% 19/33 [00:04<00:02,  5.97batch/s][A
-Validation round:  64% 21/33 [00:04<00:01,  6.47batch/s][A
-Validation round:  70% 23/33 [00:04<00:01,  6.26batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  6.38batch/s][A
-Validation round:  82% 27/33 [00:05<00:00,  6.75batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  6.28batch/s][A
-Validation round:  97% 32/33 [00:05<00:00,  8.77batch/s][A
-                                                        [AEpoch 1/5:  48% 16/33 [00:49<00:55,  3.27s/img, loss (batch)=nan]Epoch 1/5:  48% 16/33 [00:49<00:55,  3.27s/img, loss (batch)=nan]Epoch 1/5:  52% 17/33 [00:49<00:37,  2.34s/img, loss (batch)=nan]Epoch 1/5:  52% 17/33 [00:50<00:37,  2.34s/img, loss (batch)=nan]Epoch 1/5:  55% 18/33 [00:50<00:25,  1.69s/img, loss (batch)=nan]Epoch 1/5:  55% 18/33 [00:50<00:25,  1.69s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:44,  1.40s/batch][A
-Validation round:   9% 3/33 [00:01<00:12,  2.45batch/s][A
-Validation round:  15% 5/33 [00:01<00:08,  3.23batch/s][A
-Validation round:  21% 7/33 [00:02<00:05,  4.96batch/s][A
-Validation round:  27% 9/33 [00:02<00:05,  4.38batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  6.02batch/s][A
-Validation round:  39% 13/33 [00:03<00:03,  5.64batch/s][A
-Validation round:  45% 15/33 [00:03<00:02,  7.29batch/s][A
-Validation round:  52% 17/33 [00:03<00:03,  5.30batch/s][A
-Validation round:  61% 20/33 [00:03<00:01,  7.56batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  6.49batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  8.00batch/s][A
-Validation round:  79% 26/33 [00:05<00:01,  5.70batch/s][A
-Validation round:  85% 28/33 [00:05<00:00,  7.16batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  6.29batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  8.03batch/s][A
-                                                        [AEpoch 1/5:  58% 19/33 [00:57<00:45,  3.27s/img, loss (batch)=nan]Epoch 1/5:  58% 19/33 [00:57<00:45,  3.27s/img, loss (batch)=nan]Epoch 1/5:  61% 20/33 [00:57<00:30,  2.34s/img, loss (batch)=nan]Epoch 1/5:  61% 20/33 [00:57<00:30,  2.34s/img, loss (batch)=nan]Epoch 1/5:  64% 21/33 [00:57<00:20,  1.69s/img, loss (batch)=nan]Epoch 1/5:  64% 21/33 [00:57<00:20,  1.69s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:35,  1.10s/batch][A
-Validation round:   6% 2/33 [00:01<00:16,  1.83batch/s][A
-Validation round:  12% 4/33 [00:01<00:06,  4.22batch/s][A
-Validation round:  18% 6/33 [00:01<00:06,  4.36batch/s][A
-Validation round:  21% 7/33 [00:01<00:05,  4.64batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  4.83batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  6.28batch/s][A
-Validation round:  39% 13/33 [00:02<00:03,  5.51batch/s][A
-Validation round:  45% 15/33 [00:03<00:02,  6.95batch/s][A
-Validation round:  52% 17/33 [00:03<00:03,  4.85batch/s][A
-Validation round:  58% 19/33 [00:03<00:02,  6.33batch/s][A
-Validation round:  64% 21/33 [00:04<00:02,  5.70batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  8.02batch/s][A
-Validation round:  79% 26/33 [00:05<00:01,  6.05batch/s][A
-Validation round:  85% 28/33 [00:05<00:00,  7.48batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  6.07batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  7.85batch/s][A
-                                                        [AEpoch 1/5:  67% 22/33 [01:04<00:35,  3.23s/img, loss (batch)=nan]Epoch 1/5:  67% 22/33 [01:04<00:35,  3.23s/img, loss (batch)=nan]Epoch 1/5:  70% 23/33 [01:04<00:23,  2.32s/img, loss (batch)=nan]Epoch 1/5:  70% 23/33 [01:04<00:23,  2.32s/img, loss (batch)=nan]Epoch 1/5:  73% 24/33 [01:04<00:15,  1.67s/img, loss (batch)=nan]Epoch 1/5:  73% 24/33 [01:04<00:15,  1.67s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:33,  1.05s/batch][A
-Validation round:   9% 3/33 [00:01<00:14,  2.13batch/s][A
-Validation round:  12% 4/33 [00:01<00:10,  2.88batch/s][A
-Validation round:  18% 6/33 [00:01<00:05,  4.92batch/s][A
-Validation round:  24% 8/33 [00:02<00:04,  5.03batch/s][A
-Validation round:  30% 10/33 [00:02<00:03,  6.88batch/s][A
-Validation round:  36% 12/33 [00:02<00:03,  5.87batch/s][A
-Validation round:  42% 14/33 [00:02<00:02,  7.57batch/s][A
-Validation round:  48% 16/33 [00:03<00:02,  5.73batch/s][A
-Validation round:  58% 19/33 [00:03<00:02,  6.70batch/s][A
-Validation round:  61% 20/33 [00:04<00:02,  5.22batch/s][A
-Validation round:  70% 23/33 [00:04<00:01,  7.01batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  5.95batch/s][A
-Validation round:  79% 26/33 [00:04<00:00,  7.53batch/s][A
-Validation round:  85% 28/33 [00:05<00:00,  5.48batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  7.05batch/s][A
-Validation round:  97% 32/33 [00:05<00:00,  8.25batch/s][A
-                                                        [AEpoch 1/5:  76% 25/33 [01:11<00:25,  3.21s/img, loss (batch)=nan]Epoch 1/5:  76% 25/33 [01:11<00:25,  3.21s/img, loss (batch)=nan]Epoch 1/5:  79% 26/33 [01:11<00:16,  2.30s/img, loss (batch)=nan]Epoch 1/5:  79% 26/33 [01:11<00:16,  2.30s/img, loss (batch)=nan]Epoch 1/5:  82% 27/33 [01:11<00:09,  1.66s/img, loss (batch)=nan]Epoch 1/5:  82% 27/33 [01:11<00:09,  1.66s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:34,  1.07s/batch][A
-Validation round:   6% 2/33 [00:01<00:15,  2.00batch/s][A
-Validation round:  15% 5/33 [00:01<00:06,  4.30batch/s][A
-Validation round:  18% 6/33 [00:01<00:06,  4.26batch/s][A
-Validation round:  27% 9/33 [00:02<00:05,  4.79batch/s][A
-Validation round:  30% 10/33 [00:02<00:04,  5.15batch/s][A
-Validation round:  39% 13/33 [00:02<00:03,  5.62batch/s][A
-Validation round:  42% 14/33 [00:03<00:03,  5.71batch/s][A
-Validation round:  52% 17/33 [00:03<00:03,  5.25batch/s][A
-Validation round:  61% 20/33 [00:03<00:01,  7.37batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  6.18batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  7.50batch/s][A
-Validation round:  79% 26/33 [00:05<00:01,  5.19batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  7.17batch/s][A
-Validation round:  94% 31/33 [00:05<00:00,  8.43batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  9.55batch/s][A
-                                                        [AEpoch 1/5:  85% 28/33 [01:18<00:15,  3.15s/img, loss (batch)=nan]Epoch 1/5:  85% 28/33 [01:18<00:15,  3.15s/img, loss (batch)=nan]Epoch 1/5:  88% 29/33 [01:18<00:09,  2.26s/img, loss (batch)=nan]Epoch 1/5:  88% 29/33 [01:18<00:09,  2.26s/img, loss (batch)=nan]Epoch 1/5:  91% 30/33 [01:18<00:04,  1.63s/img, loss (batch)=nan]Epoch 1/5:  91% 30/33 [01:18<00:04,  1.63s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:38,  1.21s/batch][A
-Validation round:   9% 3/33 [00:01<00:10,  2.84batch/s][A
-Validation round:  15% 5/33 [00:01<00:07,  3.53batch/s][A
-Validation round:  24% 8/33 [00:01<00:04,  6.21batch/s][A
-Validation round:  30% 10/33 [00:02<00:04,  5.62batch/s][A
-Validation round:  36% 12/33 [00:02<00:02,  7.08batch/s][A
-Validation round:  42% 14/33 [00:02<00:03,  5.51batch/s][A
-Validation round:  52% 17/33 [00:03<00:03,  4.90batch/s][A
-Validation round:  61% 20/33 [00:03<00:01,  6.68batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  5.72batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  5.33batch/s][A
-Validation round:  82% 27/33 [00:05<00:00,  6.49batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  6.78batch/s][A
-Validation round:  97% 32/33 [00:05<00:00,  9.11batch/s][A
-                                                        [AEpoch 1/5:  94% 31/33 [01:25<00:06,  3.16s/img, loss (batch)=nan]Epoch 1/5:  94% 31/33 [01:25<00:06,  3.16s/img, loss (batch)=nan]Epoch 1/5:  97% 32/33 [01:25<00:02,  2.26s/img, loss (batch)=nan]Epoch 1/5:  97% 32/33 [01:25<00:02,  2.26s/img, loss (batch)=nan]Epoch 1/5: 100% 33/33 [01:25<00:00,  1.63s/img, loss (batch)=nan]Epoch 1/5: 100% 33/33 [01:25<00:00,  1.63s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:48,  1.51s/batch][A
-Validation round:  12% 4/33 [00:01<00:09,  2.99batch/s][A
-Validation round:  18% 6/33 [00:01<00:05,  4.71batch/s][A
-Validation round:  24% 8/33 [00:01<00:03,  6.66batch/s][A
-Validation round:  30% 10/33 [00:02<00:04,  4.76batch/s][A
-Validation round:  39% 13/33 [00:02<00:03,  5.49batch/s][A
-Validation round:  48% 16/33 [00:03<00:02,  7.62batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  5.57batch/s][A
-Validation round:  64% 21/33 [00:04<00:02,  5.26batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  7.03batch/s][A
-Validation round:  79% 26/33 [00:05<00:01,  5.62batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  6.58batch/s][A
-Validation round:  97% 32/33 [00:05<00:00,  8.60batch/s][A
-                                                        [AEpoch 1/5: 100% 33/33 [01:32<00:00,  2.81s/img, loss (batch)=nan]
-Epoch 2/5:   0% 0/33 [00:00<?, ?img/s]Epoch 2/5:   3% 1/33 [00:01<00:32,  1.02s/img]Epoch 2/5:   3% 1/33 [00:01<00:32,  1.02s/img, loss (batch)=nan]Epoch 2/5:   6% 2/33 [00:01<00:17,  1.77img/s, loss (batch)=nan]Epoch 2/5:   6% 2/33 [00:01<00:17,  1.77img/s, loss (batch)=nan]Epoch 2/5:   9% 3/33 [00:01<00:11,  2.72img/s, loss (batch)=nan]Epoch 2/5:   9% 3/33 [00:01<00:11,  2.72img/s, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:45,  1.42s/batch][A
-Validation round:   9% 3/33 [00:01<00:14,  2.11batch/s][A
-Validation round:  15% 5/33 [00:01<00:07,  3.62batch/s][A
-Validation round:  21% 7/33 [00:02<00:06,  4.28batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  5.55batch/s][A
-Validation round:  33% 11/33 [00:02<00:04,  4.87batch/s][A
-Validation round:  39% 13/33 [00:03<00:03,  6.34batch/s][A
-Validation round:  45% 15/33 [00:03<00:02,  6.73batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  7.41batch/s][A
-Validation round:  58% 19/33 [00:03<00:02,  6.85batch/s][A
-Validation round:  64% 21/33 [00:03<00:01,  8.59batch/s][A
-Validation round:  70% 23/33 [00:04<00:01,  7.20batch/s][A
-Validation round:  76% 25/33 [00:04<00:00,  8.92batch/s][A
-Validation round:  82% 27/33 [00:04<00:00,  6.35batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  7.85batch/s][A
-Validation round:  97% 32/33 [00:05<00:00, 10.57batch/s][A
-                                                        [AEpoch 2/5:  12% 4/33 [00:07<01:18,  2.72s/img, loss (batch)=nan]Epoch 2/5:  12% 4/33 [00:07<01:18,  2.72s/img, loss (batch)=nan]Epoch 2/5:  15% 5/33 [00:07<00:50,  1.80s/img, loss (batch)=nan]Epoch 2/5:  15% 5/33 [00:08<00:50,  1.80s/img, loss (batch)=nan]Epoch 2/5:  18% 6/33 [00:08<00:33,  1.26s/img, loss (batch)=nan]Epoch 2/5:  18% 6/33 [00:08<00:33,  1.26s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:38,  1.22s/batch][A
-Validation round:   9% 3/33 [00:01<00:10,  2.82batch/s][A
-Validation round:  15% 5/33 [00:01<00:07,  3.67batch/s][A
-Validation round:  21% 7/33 [00:01<00:04,  5.58batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  5.17batch/s][A
-Validation round:  36% 12/33 [00:02<00:02,  7.75batch/s][A
-Validation round:  42% 14/33 [00:02<00:02,  7.07batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  6.91batch/s][A
-Validation round:  58% 19/33 [00:03<00:01,  8.14batch/s][A
-Validation round:  64% 21/33 [00:03<00:01,  7.51batch/s][A
-Validation round:  70% 23/33 [00:03<00:01,  9.02batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  6.43batch/s][A
-Validation round:  82% 27/33 [00:04<00:00,  7.90batch/s][A
-Validation round:  88% 29/33 [00:04<00:00,  8.65batch/s][A
-Validation round:  94% 31/33 [00:04<00:00, 10.15batch/s][A
-Validation round: 100% 33/33 [00:04<00:00, 10.43batch/s][A
-                                                        [AEpoch 2/5:  21% 7/33 [00:14<01:12,  2.80s/img, loss (batch)=nan]Epoch 2/5:  21% 7/33 [00:14<01:12,  2.80s/img, loss (batch)=nan]Epoch 2/5:  24% 8/33 [00:14<00:49,  1.97s/img, loss (batch)=nan]Epoch 2/5:  24% 8/33 [00:14<00:49,  1.97s/img, loss (batch)=nan]Epoch 2/5:  27% 9/33 [00:14<00:33,  1.41s/img, loss (batch)=nan]Epoch 2/5:  27% 9/33 [00:14<00:33,  1.41s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:32,  1.03s/batch][A
-Validation round:   6% 2/33 [00:01<00:19,  1.62batch/s][A
-Validation round:  15% 5/33 [00:01<00:06,  4.56batch/s][A
-Validation round:  18% 6/33 [00:01<00:05,  4.96batch/s][A
-Validation round:  21% 7/33 [00:01<00:04,  5.43batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  5.56batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  7.13batch/s][A
-Validation round:  39% 13/33 [00:02<00:02,  7.99batch/s][A
-Validation round:  42% 14/33 [00:02<00:02,  7.51batch/s][A
-Validation round:  45% 15/33 [00:02<00:02,  6.18batch/s][A
-Validation round:  55% 18/33 [00:03<00:01,  8.78batch/s][A
-Validation round:  61% 20/33 [00:03<00:01, 10.68batch/s][A
-Validation round:  67% 22/33 [00:03<00:01,  7.44batch/s][A
-Validation round:  73% 24/33 [00:03<00:01,  8.98batch/s][A
-Validation round:  79% 26/33 [00:04<00:01,  6.76batch/s][A
-Validation round:  85% 28/33 [00:04<00:00,  8.29batch/s][A
-Validation round:  91% 30/33 [00:04<00:00,  7.51batch/s][A
-Validation round: 100% 33/33 [00:04<00:00,  9.94batch/s][A
-                                                        [AEpoch 2/5:  30% 10/33 [00:20<01:04,  2.80s/img, loss (batch)=nan]Epoch 2/5:  30% 10/33 [00:20<01:04,  2.80s/img, loss (batch)=nan]Epoch 2/5:  33% 11/33 [00:20<00:44,  2.00s/img, loss (batch)=nan]Epoch 2/5:  33% 11/33 [00:20<00:44,  2.00s/img, loss (batch)=nan]Epoch 2/5:  36% 12/33 [00:20<00:30,  1.45s/img, loss (batch)=nan]Epoch 2/5:  36% 12/33 [00:20<00:30,  1.45s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:35,  1.12s/batch][A
-Validation round:   9% 3/33 [00:01<00:09,  3.01batch/s][A
-Validation round:  15% 5/33 [00:01<00:07,  3.72batch/s][A
-Validation round:  21% 7/33 [00:01<00:04,  5.62batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  5.54batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  7.28batch/s][A
-Validation round:  39% 13/33 [00:02<00:02,  6.79batch/s][A
-Validation round:  45% 15/33 [00:02<00:02,  7.41batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  6.58batch/s][A
-Validation round:  58% 19/33 [00:03<00:01,  7.95batch/s][A
-Validation round:  64% 21/33 [00:03<00:01,  7.68batch/s][A
-Validation round:  67% 22/33 [00:03<00:01,  7.08batch/s][A
-Validation round:  76% 25/33 [00:04<00:00,  8.80batch/s][A
-Validation round:  79% 26/33 [00:04<00:00,  7.24batch/s][A
-Validation round:  85% 28/33 [00:04<00:00,  9.12batch/s][A
-Validation round:  91% 30/33 [00:04<00:00,  7.93batch/s][A
-Validation round: 100% 33/33 [00:04<00:00, 10.81batch/s][A
-                                                        [AEpoch 2/5:  39% 13/33 [00:26<00:56,  2.81s/img, loss (batch)=nan]Epoch 2/5:  39% 13/33 [00:26<00:56,  2.81s/img, loss (batch)=nan]Epoch 2/5:  42% 14/33 [00:26<00:38,  2.02s/img, loss (batch)=nan]Epoch 2/5:  42% 14/33 [00:27<00:38,  2.02s/img, loss (batch)=nan]Epoch 2/5:  45% 15/33 [00:27<00:26,  1.46s/img, loss (batch)=nan]Epoch 2/5:  45% 15/33 [00:27<00:26,  1.46s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:41,  1.30s/batch][A
-Validation round:  12% 4/33 [00:01<00:08,  3.42batch/s][A
-Validation round:  18% 6/33 [00:01<00:06,  4.25batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  4.83batch/s][A
-Validation round:  36% 12/33 [00:02<00:02,  7.08batch/s][A
-Validation round:  42% 14/33 [00:02<00:02,  6.68batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  5.70batch/s][A
-Validation round:  61% 20/33 [00:03<00:01,  7.52batch/s][A
-Validation round:  67% 22/33 [00:03<00:01,  7.30batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  7.34batch/s][A
-Validation round:  82% 27/33 [00:04<00:00,  8.49batch/s][A
-Validation round:  88% 29/33 [00:04<00:00,  7.36batch/s][A
-Validation round:  97% 32/33 [00:04<00:00,  9.75batch/s][A
-                                                        [AEpoch 2/5:  48% 16/33 [00:33<00:48,  2.87s/img, loss (batch)=nan]Epoch 2/5:  48% 16/33 [00:33<00:48,  2.87s/img, loss (batch)=nan]Epoch 2/5:  52% 17/33 [00:33<00:33,  2.06s/img, loss (batch)=nan]Epoch 2/5:  52% 17/33 [00:33<00:33,  2.06s/img, loss (batch)=nan]Epoch 2/5:  55% 18/33 [00:33<00:22,  1.49s/img, loss (batch)=nan]Epoch 2/5:  55% 18/33 [00:33<00:22,  1.49s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:35,  1.12s/batch][A
-Validation round:   6% 2/33 [00:01<00:16,  1.86batch/s][A
-Validation round:  12% 4/33 [00:01<00:07,  4.11batch/s][A
-Validation round:  15% 5/33 [00:01<00:06,  4.04batch/s][A
-Validation round:  18% 6/33 [00:01<00:05,  4.76batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  5.79batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  7.25batch/s][A
-Validation round:  39% 13/33 [00:02<00:03,  6.23batch/s][A
-Validation round:  45% 15/33 [00:02<00:02,  7.81batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  6.00batch/s][A
-Validation round:  61% 20/33 [00:03<00:01,  8.25batch/s][A
-Validation round:  67% 22/33 [00:03<00:01,  7.55batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  7.93batch/s][A
-Validation round:  79% 26/33 [00:04<00:00,  7.23batch/s][A
-Validation round:  85% 28/33 [00:04<00:00,  8.88batch/s][A
-Validation round:  91% 30/33 [00:04<00:00,  7.91batch/s][A
-Validation round: 100% 33/33 [00:04<00:00, 10.48batch/s][A
-                                                        [AEpoch 2/5:  58% 19/33 [00:39<00:40,  2.89s/img, loss (batch)=nan]Epoch 2/5:  58% 19/33 [00:39<00:40,  2.89s/img, loss (batch)=nan]Epoch 2/5:  61% 20/33 [00:39<00:26,  2.08s/img, loss (batch)=nan]Epoch 2/5:  61% 20/33 [00:39<00:26,  2.08s/img, loss (batch)=nan]Epoch 2/5:  64% 21/33 [00:40<00:18,  1.50s/img, loss (batch)=nan]Epoch 2/5:  64% 21/33 [00:40<00:18,  1.50s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:00<00:30,  1.04batch/s][A
-Validation round:   9% 3/33 [00:01<00:11,  2.55batch/s][A
-Validation round:  15% 5/33 [00:01<00:06,  4.48batch/s][A
-Validation round:  21% 7/33 [00:01<00:05,  4.52batch/s][A
-Validation round:  30% 10/33 [00:02<00:03,  7.05batch/s][A
-Validation round:  36% 12/33 [00:02<00:03,  6.21batch/s][A
-Validation round:  42% 14/33 [00:02<00:02,  7.79batch/s][A
-Validation round:  48% 16/33 [00:02<00:02,  7.13batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  7.26batch/s][A
-Validation round:  58% 19/33 [00:03<00:02,  5.61batch/s][A
-Validation round:  64% 21/33 [00:03<00:01,  6.97batch/s][A
-Validation round:  70% 23/33 [00:04<00:01,  5.91batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  7.60batch/s][A
-Validation round:  82% 27/33 [00:04<00:00,  7.38batch/s][A
-Validation round:  91% 30/33 [00:04<00:00,  8.99batch/s][A
-Validation round:  97% 32/33 [00:04<00:00, 10.12batch/s][A
-                                                        [AEpoch 2/5:  67% 22/33 [00:46<00:31,  2.86s/img, loss (batch)=nan]Epoch 2/5:  67% 22/33 [00:46<00:31,  2.86s/img, loss (batch)=nan]Epoch 2/5:  70% 23/33 [00:46<00:20,  2.06s/img, loss (batch)=nan]Epoch 2/5:  70% 23/33 [00:46<00:20,  2.06s/img, loss (batch)=nan]Epoch 2/5:  73% 24/33 [00:46<00:13,  1.49s/img, loss (batch)=nan]Epoch 2/5:  73% 24/33 [00:46<00:13,  1.49s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:33,  1.05s/batch][A
-Validation round:   9% 3/33 [00:01<00:10,  2.84batch/s][A
-Validation round:  15% 5/33 [00:01<00:06,  4.31batch/s][A
-Validation round:  18% 6/33 [00:01<00:06,  3.94batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  5.83batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  7.29batch/s][A
-Validation round:  39% 13/33 [00:02<00:02,  7.06batch/s][A
-Validation round:  42% 14/33 [00:02<00:02,  7.47batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  7.02batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  7.38batch/s][A
-Validation round:  61% 20/33 [00:03<00:01,  9.09batch/s][A
-Validation round:  67% 22/33 [00:03<00:01,  7.16batch/s][A
-Validation round:  73% 24/33 [00:03<00:01,  8.90batch/s][A
-Validation round:  79% 26/33 [00:04<00:01,  5.60batch/s][A
-Validation round:  88% 29/33 [00:04<00:00,  7.77batch/s][A
-Validation round:  94% 31/33 [00:04<00:00,  7.76batch/s][A
-                                                        [AEpoch 2/5:  76% 25/33 [00:52<00:22,  2.86s/img, loss (batch)=nan]Epoch 2/5:  76% 25/33 [00:52<00:22,  2.86s/img, loss (batch)=nan]Epoch 2/5:  79% 26/33 [00:52<00:14,  2.06s/img, loss (batch)=nan]Epoch 2/5:  79% 26/33 [00:52<00:14,  2.06s/img, loss (batch)=nan]Epoch 2/5:  82% 27/33 [00:52<00:08,  1.49s/img, loss (batch)=nan]Epoch 2/5:  82% 27/33 [00:52<00:08,  1.49s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:00<00:30,  1.04batch/s][A
-Validation round:   6% 2/33 [00:01<00:15,  2.06batch/s][A
-Validation round:   9% 3/33 [00:01<00:10,  2.86batch/s][A
-Validation round:  18% 6/33 [00:01<00:04,  6.35batch/s][A
-Validation round:  21% 7/33 [00:01<00:04,  5.61batch/s][A
-Validation round:  27% 9/33 [00:01<00:03,  6.98batch/s][A
-Validation round:  30% 10/33 [00:02<00:03,  7.40batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  6.65batch/s][A
-Validation round:  39% 13/33 [00:02<00:02,  7.55batch/s][A
-Validation round:  42% 14/33 [00:02<00:02,  7.82batch/s][A
-Validation round:  45% 15/33 [00:02<00:02,  7.35batch/s][A
-Validation round:  52% 17/33 [00:02<00:02,  7.49batch/s][A
-Validation round:  58% 19/33 [00:03<00:01,  7.04batch/s][A
-Validation round:  64% 21/33 [00:03<00:01,  7.38batch/s][A
-Validation round:  70% 23/33 [00:03<00:01,  9.28batch/s][A
-Validation round:  76% 25/33 [00:03<00:00,  8.00batch/s][A
-Validation round:  79% 26/33 [00:04<00:01,  6.87batch/s][A
-Validation round:  85% 28/33 [00:04<00:00,  7.82batch/s][A
-Validation round:  91% 30/33 [00:04<00:00,  8.08batch/s][A
-Validation round: 100% 33/33 [00:04<00:00, 10.12batch/s][A
-                                                        [AEpoch 2/5:  85% 28/33 [00:58<00:14,  2.80s/img, loss (batch)=nan]Epoch 2/5:  85% 28/33 [00:58<00:14,  2.80s/img, loss (batch)=nan]Epoch 2/5:  88% 29/33 [00:58<00:08,  2.01s/img, loss (batch)=nan]Epoch 2/5:  88% 29/33 [00:58<00:08,  2.01s/img, loss (batch)=nan]Epoch 2/5:  91% 30/33 [00:59<00:04,  1.46s/img, loss (batch)=nan]Epoch 2/5:  91% 30/33 [00:59<00:04,  1.46s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:41,  1.29s/batch][A
-Validation round:   9% 3/33 [00:01<00:11,  2.68batch/s][A
-Validation round:  15% 5/33 [00:01<00:06,  4.08batch/s][A
-Validation round:  21% 7/33 [00:01<00:04,  6.16batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  5.20batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  6.90batch/s][A
-Validation round:  39% 13/33 [00:02<00:03,  6.56batch/s][A
-Validation round:  45% 15/33 [00:02<00:02,  8.38batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  6.47batch/s][A
-Validation round:  61% 20/33 [00:03<00:01,  8.93batch/s][A
-Validation round:  67% 22/33 [00:03<00:01,  6.95batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  6.42batch/s][A
-Validation round:  85% 28/33 [00:04<00:00,  8.48batch/s][A
-Validation round:  91% 30/33 [00:04<00:00,  8.10batch/s][A
-Validation round: 100% 33/33 [00:04<00:00,  9.54batch/s][A
-                                                        [AEpoch 2/5:  94% 31/33 [01:05<00:05,  2.84s/img, loss (batch)=nan]Epoch 2/5:  94% 31/33 [01:05<00:05,  2.84s/img, loss (batch)=nan]Epoch 2/5:  97% 32/33 [01:05<00:02,  2.04s/img, loss (batch)=nan]Epoch 2/5:  97% 32/33 [01:05<00:02,  2.04s/img, loss (batch)=nan]Epoch 2/5: 100% 33/33 [01:05<00:00,  1.48s/img, loss (batch)=nan]Epoch 2/5: 100% 33/33 [01:05<00:00,  1.48s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:41,  1.29s/batch][A
-Validation round:   9% 3/33 [00:01<00:11,  2.59batch/s][A
-Validation round:  15% 5/33 [00:01<00:07,  3.88batch/s][A
-Validation round:  21% 7/33 [00:01<00:04,  5.86batch/s][A
-Validation round:  27% 9/33 [00:02<00:03,  6.05batch/s][A
-Validation round:  36% 12/33 [00:02<00:02,  8.97batch/s][A
-Validation round:  42% 14/33 [00:02<00:02,  7.09batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  7.77batch/s][A
-Validation round:  58% 19/33 [00:03<00:01,  8.79batch/s][A
-Validation round:  64% 21/33 [00:03<00:01,  8.02batch/s][A
-Validation round:  70% 23/33 [00:03<00:01,  8.01batch/s][A
-Validation round:  76% 25/33 [00:03<00:00,  8.02batch/s][A
-Validation round:  79% 26/33 [00:04<00:00,  7.05batch/s][A
-Validation round:  85% 28/33 [00:04<00:00,  8.56batch/s][A
-Validation round:  88% 29/33 [00:04<00:00,  8.55batch/s][A
-Validation round:  91% 30/33 [00:04<00:00,  6.28batch/s][A
-Validation round: 100% 33/33 [00:04<00:00,  9.64batch/s][A
-                                                        [AEpoch 2/5: 100% 33/33 [01:11<00:00,  2.17s/img, loss (batch)=nan]
-Epoch 3/5:   0% 0/33 [00:00<?, ?img/s]Epoch 3/5:   3% 1/33 [00:01<00:37,  1.19s/img]Epoch 3/5:   3% 1/33 [00:01<00:37,  1.19s/img, loss (batch)=nan]Epoch 3/5:   6% 2/33 [00:01<00:18,  1.69img/s, loss (batch)=nan]Epoch 3/5:   6% 2/33 [00:01<00:18,  1.69img/s, loss (batch)=nan]Epoch 3/5:   9% 3/33 [00:01<00:12,  2.40img/s, loss (batch)=nan]Epoch 3/5:   9% 3/33 [00:01<00:12,  2.40img/s, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:46,  1.44s/batch][A
-Validation round:   9% 3/33 [00:01<00:12,  2.42batch/s][A
-Validation round:  15% 5/33 [00:02<00:09,  3.11batch/s][A
-Validation round:  24% 8/33 [00:02<00:04,  5.59batch/s][A
-Validation round:  30% 10/33 [00:02<00:04,  4.72batch/s][A
-Validation round:  39% 13/33 [00:03<00:03,  5.39batch/s][A
-Validation round:  45% 15/33 [00:03<00:02,  6.68batch/s][A
-Validation round:  52% 17/33 [00:03<00:03,  5.14batch/s][A
-Validation round:  58% 19/33 [00:04<00:02,  6.50batch/s][A
-Validation round:  64% 21/33 [00:04<00:02,  5.84batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  8.05batch/s][A
-Validation round:  79% 26/33 [00:05<00:01,  6.71batch/s][A
-Validation round:  85% 28/33 [00:05<00:00,  8.22batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  6.39batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  7.81batch/s][A
-                                                        [AEpoch 3/5:  12% 4/33 [00:08<01:26,  2.98s/img, loss (batch)=nan]Epoch 3/5:  12% 4/33 [00:08<01:26,  2.98s/img, loss (batch)=nan]Epoch 3/5:  15% 5/33 [00:08<00:55,  1.97s/img, loss (batch)=nan]Epoch 3/5:  15% 5/33 [00:08<00:55,  1.97s/img, loss (batch)=nan]Epoch 3/5:  18% 6/33 [00:08<00:36,  1.36s/img, loss (batch)=nan]Epoch 3/5:  18% 6/33 [00:08<00:36,  1.36s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:36,  1.15s/batch][A
-Validation round:   9% 3/33 [00:01<00:12,  2.47batch/s][A
-Validation round:  15% 5/33 [00:01<00:08,  3.47batch/s][A
-Validation round:  21% 7/33 [00:01<00:04,  5.23batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  4.91batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  5.98batch/s][A
-Validation round:  39% 13/33 [00:02<00:03,  5.44batch/s][A
-Validation round:  48% 16/33 [00:03<00:02,  7.87batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  6.19batch/s][A
-Validation round:  58% 19/33 [00:03<00:02,  5.91batch/s][A
-Validation round:  64% 21/33 [00:04<00:02,  5.57batch/s][A
-Validation round:  70% 23/33 [00:04<00:01,  6.60batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  6.57batch/s][A
-Validation round:  82% 27/33 [00:04<00:00,  7.29batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  6.21batch/s][A
-Validation round:  97% 32/33 [00:05<00:00,  8.72batch/s][A
-                                                        [AEpoch 3/5:  21% 7/33 [00:15<01:20,  3.11s/img, loss (batch)=nan]Epoch 3/5:  21% 7/33 [00:15<01:20,  3.11s/img, loss (batch)=nan]Epoch 3/5:  24% 8/33 [00:15<00:54,  2.18s/img, loss (batch)=nan]Epoch 3/5:  24% 8/33 [00:15<00:54,  2.18s/img, loss (batch)=nan]Epoch 3/5:  27% 9/33 [00:15<00:37,  1.56s/img, loss (batch)=nan]Epoch 3/5:  27% 9/33 [00:16<00:37,  1.56s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:33,  1.05s/batch][A
-Validation round:   6% 2/33 [00:01<00:16,  1.88batch/s][A
-Validation round:  15% 5/33 [00:01<00:06,  4.40batch/s][A
-Validation round:  18% 6/33 [00:01<00:06,  4.36batch/s][A
-Validation round:  21% 7/33 [00:01<00:05,  5.09batch/s][A
-Validation round:  27% 9/33 [00:02<00:03,  6.03batch/s][A
-Validation round:  30% 10/33 [00:02<00:04,  5.49batch/s][A
-Validation round:  36% 12/33 [00:02<00:02,  7.74batch/s][A
-Validation round:  42% 14/33 [00:03<00:03,  5.25batch/s][A
-Validation round:  48% 16/33 [00:03<00:02,  6.96batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  5.58batch/s][A
-Validation round:  64% 21/33 [00:04<00:01,  6.11batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  5.86batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  6.55batch/s][A
-Validation round:  79% 26/33 [00:04<00:01,  5.83batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  6.63batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  6.78batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  9.14batch/s][A
-                                                        [AEpoch 3/5:  30% 10/33 [00:22<01:12,  3.16s/img, loss (batch)=nan]Epoch 3/5:  30% 10/33 [00:22<01:12,  3.16s/img, loss (batch)=nan]Epoch 3/5:  33% 11/33 [00:22<00:49,  2.25s/img, loss (batch)=nan]Epoch 3/5:  33% 11/33 [00:22<00:49,  2.25s/img, loss (batch)=nan]Epoch 3/5:  36% 12/33 [00:23<00:34,  1.62s/img, loss (batch)=nan]Epoch 3/5:  36% 12/33 [00:23<00:34,  1.62s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:38,  1.21s/batch][A
-Validation round:   9% 3/33 [00:01<00:10,  2.79batch/s][A
-Validation round:  15% 5/33 [00:01<00:07,  3.64batch/s][A
-Validation round:  21% 7/33 [00:01<00:04,  5.35batch/s][A
-Validation round:  27% 9/33 [00:02<00:05,  4.69batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  6.23batch/s][A
-Validation round:  39% 13/33 [00:02<00:03,  6.59batch/s][A
-Validation round:  45% 15/33 [00:03<00:02,  6.58batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  6.95batch/s][A
-Validation round:  58% 19/33 [00:03<00:02,  5.42batch/s][A
-Validation round:  64% 21/33 [00:04<00:01,  6.41batch/s][A
-Validation round:  70% 23/33 [00:04<00:01,  6.49batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  6.93batch/s][A
-Validation round:  82% 27/33 [00:04<00:00,  6.25batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  6.58batch/s][A
-Validation round:  94% 31/33 [00:05<00:00,  7.68batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  8.53batch/s][A
-                                                        [AEpoch 3/5:  39% 13/33 [00:29<01:02,  3.15s/img, loss (batch)=nan]Epoch 3/5:  39% 13/33 [00:29<01:02,  3.15s/img, loss (batch)=nan]Epoch 3/5:  42% 14/33 [00:29<00:42,  2.25s/img, loss (batch)=nan]Epoch 3/5:  42% 14/33 [00:30<00:42,  2.25s/img, loss (batch)=nan]Epoch 3/5:  45% 15/33 [00:30<00:29,  1.63s/img, loss (batch)=nan]Epoch 3/5:  45% 15/33 [00:30<00:29,  1.63s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:40,  1.27s/batch][A
-Validation round:  12% 4/33 [00:01<00:08,  3.54batch/s][A
-Validation round:  18% 6/33 [00:01<00:06,  3.99batch/s][A
-Validation round:  27% 9/33 [00:02<00:05,  4.53batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  5.96batch/s][A
-Validation round:  39% 13/33 [00:02<00:03,  5.66batch/s][A
-Validation round:  45% 15/33 [00:03<00:02,  6.59batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  5.41batch/s][A
-Validation round:  61% 20/33 [00:03<00:01,  7.66batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  5.71batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  5.34batch/s][A
-Validation round:  82% 27/33 [00:05<00:00,  6.53batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  6.48batch/s][A
-Validation round:  97% 32/33 [00:05<00:00,  8.80batch/s][A
-                                                        [AEpoch 3/5:  48% 16/33 [00:36<00:54,  3.20s/img, loss (batch)=nan]Epoch 3/5:  48% 16/33 [00:37<00:54,  3.20s/img, loss (batch)=nan]Epoch 3/5:  52% 17/33 [00:37<00:36,  2.29s/img, loss (batch)=nan]Epoch 3/5:  52% 17/33 [00:37<00:36,  2.29s/img, loss (batch)=nan]Epoch 3/5:  55% 18/33 [00:37<00:24,  1.65s/img, loss (batch)=nan]Epoch 3/5:  55% 18/33 [00:37<00:24,  1.65s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:32,  1.02s/batch][A
-Validation round:   6% 2/33 [00:01<00:16,  1.89batch/s][A
-Validation round:  15% 5/33 [00:01<00:06,  4.59batch/s][A
-Validation round:  18% 6/33 [00:01<00:06,  4.29batch/s][A
-Validation round:  24% 8/33 [00:01<00:04,  6.18batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  5.52batch/s][A
-Validation round:  30% 10/33 [00:02<00:03,  5.78batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  5.89batch/s][A
-Validation round:  39% 13/33 [00:02<00:03,  6.63batch/s][A
-Validation round:  42% 14/33 [00:02<00:03,  5.75batch/s][A
-Validation round:  45% 15/33 [00:03<00:02,  6.14batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  6.44batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  5.86batch/s][A
-Validation round:  58% 19/33 [00:03<00:02,  5.49batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  6.69batch/s][A
-Validation round:  70% 23/33 [00:04<00:01,  6.79batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  7.39batch/s][A
-Validation round:  79% 26/33 [00:04<00:01,  6.11batch/s][A
-Validation round:  82% 27/33 [00:04<00:00,  6.43batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  7.93batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  6.11batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  9.49batch/s][A
-                                                        [AEpoch 3/5:  58% 19/33 [00:43<00:43,  3.13s/img, loss (batch)=nan]Epoch 3/5:  58% 19/33 [00:43<00:43,  3.13s/img, loss (batch)=nan]Epoch 3/5:  61% 20/33 [00:44<00:29,  2.25s/img, loss (batch)=nan]Epoch 3/5:  61% 20/33 [00:44<00:29,  2.25s/img, loss (batch)=nan]Epoch 3/5:  64% 21/33 [00:44<00:19,  1.63s/img, loss (batch)=nan]Epoch 3/5:  64% 21/33 [00:44<00:19,  1.63s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:48,  1.52s/batch][A
-Validation round:  12% 4/33 [00:01<00:09,  3.09batch/s][A
-Validation round:  18% 6/33 [00:02<00:07,  3.77batch/s][A
-Validation round:  27% 9/33 [00:02<00:05,  4.58batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  6.03batch/s][A
-Validation round:  39% 13/33 [00:03<00:03,  5.34batch/s][A
-Validation round:  48% 16/33 [00:03<00:02,  7.60batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  5.62batch/s][A
-Validation round:  61% 20/33 [00:03<00:01,  7.00batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  6.53batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  8.11batch/s][A
-Validation round:  79% 26/33 [00:04<00:01,  6.62batch/s][A
-Validation round:  85% 28/33 [00:05<00:00,  7.20batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  6.28batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  8.10batch/s][A
-                                                        [AEpoch 3/5:  67% 22/33 [00:50<00:34,  3.17s/img, loss (batch)=nan]Epoch 3/5:  67% 22/33 [00:51<00:34,  3.17s/img, loss (batch)=nan]Epoch 3/5:  70% 23/33 [00:51<00:22,  2.27s/img, loss (batch)=nan]Epoch 3/5:  70% 23/33 [00:51<00:22,  2.27s/img, loss (batch)=nan]Epoch 3/5:  73% 24/33 [00:51<00:14,  1.64s/img, loss (batch)=nan]Epoch 3/5:  73% 24/33 [00:51<00:14,  1.64s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:53,  1.68s/batch][A
-Validation round:   9% 3/33 [00:01<00:14,  2.07batch/s][A
-Validation round:  15% 5/33 [00:02<00:08,  3.29batch/s][A
-Validation round:  21% 7/33 [00:02<00:05,  4.98batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  4.85batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  6.55batch/s][A
-Validation round:  39% 13/33 [00:03<00:03,  5.26batch/s][A
-Validation round:  48% 16/33 [00:03<00:02,  7.66batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  5.82batch/s][A
-Validation round:  64% 21/33 [00:04<00:02,  5.65batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  7.57batch/s][A
-Validation round:  79% 26/33 [00:05<00:01,  6.26batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  6.08batch/s][A
-Validation round:  97% 32/33 [00:05<00:00,  8.05batch/s][A
-                                                        [AEpoch 3/5:  76% 25/33 [00:58<00:26,  3.26s/img, loss (batch)=nan]Epoch 3/5:  76% 25/33 [00:58<00:26,  3.26s/img, loss (batch)=nan]Epoch 3/5:  79% 26/33 [00:58<00:16,  2.33s/img, loss (batch)=nan]Epoch 3/5:  79% 26/33 [00:58<00:16,  2.33s/img, loss (batch)=nan]Epoch 3/5:  82% 27/33 [00:58<00:10,  1.68s/img, loss (batch)=nan]Epoch 3/5:  82% 27/33 [00:58<00:10,  1.68s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:41,  1.31s/batch][A
-Validation round:   9% 3/33 [00:01<00:11,  2.63batch/s][A
-Validation round:  15% 5/33 [00:01<00:08,  3.49batch/s][A
-Validation round:  21% 7/33 [00:01<00:04,  5.22batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  5.51batch/s][A
-Validation round:  30% 10/33 [00:02<00:04,  5.29batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  5.64batch/s][A
-Validation round:  39% 13/33 [00:02<00:02,  7.47batch/s][A
-Validation round:  42% 14/33 [00:03<00:03,  5.39batch/s][A
-Validation round:  45% 15/33 [00:03<00:03,  5.99batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  7.75batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  5.99batch/s][A
-Validation round:  58% 19/33 [00:03<00:02,  6.46batch/s][A
-Validation round:  64% 21/33 [00:03<00:01,  8.93batch/s][A
-Validation round:  70% 23/33 [00:04<00:01,  6.06batch/s][A
-Validation round:  79% 26/33 [00:04<00:01,  6.25batch/s][A
-Validation round:  82% 27/33 [00:05<00:00,  6.07batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  7.84batch/s][A
-Validation round:  94% 31/33 [00:05<00:00,  6.20batch/s][A
-                                                        [AEpoch 3/5:  85% 28/33 [01:05<00:15,  3.19s/img, loss (batch)=nan]Epoch 3/5:  85% 28/33 [01:05<00:15,  3.19s/img, loss (batch)=nan]Epoch 3/5:  88% 29/33 [01:05<00:09,  2.29s/img, loss (batch)=nan]Epoch 3/5:  88% 29/33 [01:05<00:09,  2.29s/img, loss (batch)=nan]Epoch 3/5:  91% 30/33 [01:05<00:04,  1.65s/img, loss (batch)=nan]Epoch 3/5:  91% 30/33 [01:05<00:04,  1.65s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:37,  1.16s/batch][A
-Validation round:   6% 2/33 [00:01<00:23,  1.32batch/s][A
-Validation round:  12% 4/33 [00:01<00:09,  3.14batch/s][A
-Validation round:  18% 6/33 [00:02<00:07,  3.69batch/s][A
-Validation round:  24% 8/33 [00:02<00:04,  5.48batch/s][A
-Validation round:  30% 10/33 [00:02<00:04,  4.65batch/s][A
-Validation round:  39% 13/33 [00:02<00:02,  7.03batch/s][A
-Validation round:  45% 15/33 [00:03<00:03,  5.38batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  6.25batch/s][A
-Validation round:  61% 20/33 [00:04<00:01,  7.40batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  6.77batch/s][A
-Validation round:  70% 23/33 [00:04<00:01,  6.14batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  7.61batch/s][A
-Validation round:  82% 27/33 [00:05<00:00,  6.51batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  8.11batch/s][A
-Validation round:  94% 31/33 [00:05<00:00,  6.26batch/s][A
-                                                        [AEpoch 3/5:  94% 31/33 [01:12<00:06,  3.24s/img, loss (batch)=nan]Epoch 3/5:  94% 31/33 [01:12<00:06,  3.24s/img, loss (batch)=nan]Epoch 3/5:  97% 32/33 [01:12<00:02,  2.32s/img, loss (batch)=nan]Epoch 3/5:  97% 32/33 [01:13<00:02,  2.32s/img, loss (batch)=nan]Epoch 3/5: 100% 33/33 [01:13<00:00,  1.67s/img, loss (batch)=nan]Epoch 3/5: 100% 33/33 [01:13<00:00,  1.67s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:33,  1.06s/batch][A
-Validation round:   6% 2/33 [00:01<00:16,  1.87batch/s][A
-Validation round:  12% 4/33 [00:01<00:06,  4.30batch/s][A
-Validation round:  18% 6/33 [00:01<00:06,  4.15batch/s][A
-Validation round:  24% 8/33 [00:01<00:04,  6.03batch/s][A
-Validation round:  30% 10/33 [00:02<00:04,  5.07batch/s][A
-Validation round:  39% 13/33 [00:02<00:02,  6.98batch/s][A
-Validation round:  45% 15/33 [00:03<00:02,  6.61batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  6.02batch/s][A
-Validation round:  58% 19/33 [00:03<00:01,  7.18batch/s][A
-Validation round:  64% 21/33 [00:03<00:01,  6.83batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  5.87batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  6.76batch/s][A
-Validation round:  79% 26/33 [00:04<00:01,  6.43batch/s][A
-Validation round:  85% 28/33 [00:04<00:00,  7.08batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  6.77batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  5.93batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  8.77batch/s][A
-                                                        [AEpoch 3/5: 100% 33/33 [01:19<00:00,  2.42s/img, loss (batch)=nan]
-Epoch 4/5:   0% 0/33 [00:00<?, ?img/s]Epoch 4/5:   3% 1/33 [00:01<00:33,  1.05s/img]Epoch 4/5:   3% 1/33 [00:01<00:33,  1.05s/img, loss (batch)=nan]Epoch 4/5:   6% 2/33 [00:01<00:16,  1.85img/s, loss (batch)=nan]Epoch 4/5:   6% 2/33 [00:01<00:16,  1.85img/s, loss (batch)=nan]Epoch 4/5:   9% 3/33 [00:01<00:11,  2.66img/s, loss (batch)=nan]Epoch 4/5:   9% 3/33 [00:01<00:11,  2.66img/s, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:52,  1.64s/batch][A
-Validation round:  12% 4/33 [00:01<00:10,  2.85batch/s][A
-Validation round:  18% 6/33 [00:02<00:07,  3.47batch/s][A
-Validation round:  27% 9/33 [00:02<00:05,  4.30batch/s][A
-Validation round:  36% 12/33 [00:02<00:03,  6.30batch/s][A
-Validation round:  42% 14/33 [00:03<00:03,  5.15batch/s][A
-Validation round:  52% 17/33 [00:04<00:03,  5.06batch/s][A
-Validation round:  58% 19/33 [00:04<00:02,  6.22batch/s][A
-Validation round:  64% 21/33 [00:04<00:02,  5.59batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  7.51batch/s][A
-Validation round:  79% 26/33 [00:05<00:01,  6.17batch/s][A
-Validation round:  85% 28/33 [00:05<00:00,  7.50batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  6.25batch/s][A
-Validation round: 100% 33/33 [00:06<00:00,  8.38batch/s][A
-                                                        [AEpoch 4/5:  12% 4/33 [00:08<01:27,  3.03s/img, loss (batch)=nan]Epoch 4/5:  12% 4/33 [00:08<01:27,  3.03s/img, loss (batch)=nan]Epoch 4/5:  15% 5/33 [00:08<00:56,  2.00s/img, loss (batch)=nan]Epoch 4/5:  15% 5/33 [00:08<00:56,  2.00s/img, loss (batch)=nan]Epoch 4/5:  18% 6/33 [00:08<00:37,  1.38s/img, loss (batch)=nan]Epoch 4/5:  18% 6/33 [00:08<00:37,  1.38s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:32,  1.02s/batch][A
-Validation round:   6% 2/33 [00:01<00:17,  1.78batch/s][A
-Validation round:  12% 4/33 [00:01<00:07,  4.09batch/s][A
-Validation round:  18% 6/33 [00:01<00:06,  4.24batch/s][A
-Validation round:  24% 8/33 [00:01<00:04,  5.95batch/s][A
-Validation round:  30% 10/33 [00:02<00:04,  5.27batch/s][A
-Validation round:  39% 13/33 [00:02<00:02,  7.64batch/s][A
-Validation round:  45% 15/33 [00:03<00:02,  6.15batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  6.99batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  5.33batch/s][A
-Validation round:  58% 19/33 [00:03<00:02,  5.76batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  6.01batch/s][A
-Validation round:  70% 23/33 [00:04<00:01,  5.93batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  7.74batch/s][A
-Validation round:  82% 27/33 [00:05<00:01,  5.82batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  7.48batch/s][A
-Validation round:  94% 31/33 [00:05<00:00,  6.84batch/s][A
-                                                        [AEpoch 4/5:  21% 7/33 [00:15<01:20,  3.11s/img, loss (batch)=nan]Epoch 4/5:  21% 7/33 [00:15<01:20,  3.11s/img, loss (batch)=nan]Epoch 4/5:  24% 8/33 [00:15<00:54,  2.18s/img, loss (batch)=nan]Epoch 4/5:  24% 8/33 [00:15<00:54,  2.18s/img, loss (batch)=nan]Epoch 4/5:  27% 9/33 [00:15<00:37,  1.55s/img, loss (batch)=nan]Epoch 4/5:  27% 9/33 [00:16<00:37,  1.55s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:00<00:31,  1.02batch/s][A
-Validation round:   6% 2/33 [00:01<00:21,  1.42batch/s][A
-Validation round:   9% 3/33 [00:01<00:13,  2.25batch/s][A
-Validation round:  15% 5/33 [00:01<00:06,  4.47batch/s][A
-Validation round:  18% 6/33 [00:01<00:05,  5.20batch/s][A
-Validation round:  21% 7/33 [00:02<00:05,  4.53batch/s][A
-Validation round:  30% 10/33 [00:02<00:03,  6.38batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  5.64batch/s][A
-Validation round:  42% 14/33 [00:03<00:03,  6.25batch/s][A
-Validation round:  52% 17/33 [00:03<00:01,  8.80batch/s][A
-Validation round:  58% 19/33 [00:03<00:02,  6.25batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  6.24batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  7.39batch/s][A
-Validation round:  79% 26/33 [00:05<00:01,  5.71batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  7.81batch/s][A
-Validation round:  94% 31/33 [00:05<00:00,  6.21batch/s][A
-                                                        [AEpoch 4/5:  30% 10/33 [00:22<01:12,  3.17s/img, loss (batch)=nan]Epoch 4/5:  30% 10/33 [00:22<01:12,  3.17s/img, loss (batch)=nan]Epoch 4/5:  33% 11/33 [00:22<00:49,  2.26s/img, loss (batch)=nan]Epoch 4/5:  33% 11/33 [00:23<00:49,  2.26s/img, loss (batch)=nan]Epoch 4/5:  36% 12/33 [00:23<00:34,  1.62s/img, loss (batch)=nan]Epoch 4/5:  36% 12/33 [00:23<00:34,  1.62s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:38,  1.21s/batch][A
-Validation round:   9% 3/33 [00:01<00:10,  2.84batch/s][A
-Validation round:  15% 5/33 [00:01<00:07,  3.71batch/s][A
-Validation round:  18% 6/33 [00:01<00:06,  4.07batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  5.14batch/s][A
-Validation round:  36% 12/33 [00:02<00:02,  7.71batch/s][A
-Validation round:  42% 14/33 [00:03<00:03,  5.08batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  5.47batch/s][A
-Validation round:  58% 19/33 [00:03<00:02,  6.77batch/s][A
-Validation round:  64% 21/33 [00:04<00:02,  5.72batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  7.92batch/s][A
-Validation round:  79% 26/33 [00:04<00:01,  5.88batch/s][A
-Validation round:  85% 28/33 [00:05<00:00,  7.17batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  6.38batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  8.11batch/s][A
-                                                        [AEpoch 4/5:  39% 13/33 [00:29<01:03,  3.18s/img, loss (batch)=nan]Epoch 4/5:  39% 13/33 [00:29<01:03,  3.18s/img, loss (batch)=nan]Epoch 4/5:  42% 14/33 [00:29<00:43,  2.27s/img, loss (batch)=nan]Epoch 4/5:  42% 14/33 [00:30<00:43,  2.27s/img, loss (batch)=nan]Epoch 4/5:  45% 15/33 [00:30<00:29,  1.64s/img, loss (batch)=nan]Epoch 4/5:  45% 15/33 [00:30<00:29,  1.64s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:46,  1.45s/batch][A
-Validation round:   9% 3/33 [00:01<00:12,  2.40batch/s][A
-Validation round:  15% 5/33 [00:02<00:09,  2.89batch/s][A
-Validation round:  21% 7/33 [00:02<00:05,  4.51batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  4.90batch/s][A
-Validation round:  36% 12/33 [00:02<00:02,  7.43batch/s][A
-Validation round:  42% 14/33 [00:03<00:03,  5.84batch/s][A
-Validation round:  48% 16/33 [00:03<00:02,  7.31batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  5.61batch/s][A
-Validation round:  64% 21/33 [00:04<00:02,  5.54batch/s][A
-Validation round:  70% 23/33 [00:04<00:01,  6.79batch/s][A
-Validation round:  76% 25/33 [00:05<00:01,  5.74batch/s][A
-Validation round:  82% 27/33 [00:05<00:00,  7.17batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  6.55batch/s][A
-Validation round:  97% 32/33 [00:05<00:00,  9.01batch/s][A
-                                                        [AEpoch 4/5:  48% 16/33 [00:37<00:54,  3.23s/img, loss (batch)=nan]Epoch 4/5:  48% 16/33 [00:37<00:54,  3.23s/img, loss (batch)=nan]Epoch 4/5:  52% 17/33 [00:37<00:37,  2.32s/img, loss (batch)=nan]Epoch 4/5:  52% 17/33 [00:37<00:37,  2.32s/img, loss (batch)=nan]Epoch 4/5:  55% 18/33 [00:37<00:25,  1.67s/img, loss (batch)=nan]Epoch 4/5:  55% 18/33 [00:37<00:25,  1.67s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:42,  1.33s/batch][A
-Validation round:   6% 2/33 [00:01<00:19,  1.62batch/s][A
-Validation round:  12% 4/33 [00:01<00:07,  3.81batch/s][A
-Validation round:  18% 6/33 [00:01<00:05,  4.58batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  4.85batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  6.37batch/s][A
-Validation round:  39% 13/33 [00:03<00:03,  5.15batch/s][A
-Validation round:  45% 15/33 [00:03<00:02,  6.64batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  6.01batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  5.87batch/s][A
-Validation round:  61% 20/33 [00:03<00:01,  7.64batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  5.58batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  6.55batch/s][A
-Validation round:  79% 26/33 [00:05<00:01,  6.46batch/s][A
-Validation round:  85% 28/33 [00:05<00:00,  8.10batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  7.34batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  9.48batch/s][A
-                                                        [AEpoch 4/5:  58% 19/33 [00:44<00:44,  3.18s/img, loss (batch)=nan]Epoch 4/5:  58% 19/33 [00:44<00:44,  3.18s/img, loss (batch)=nan]Epoch 4/5:  61% 20/33 [00:44<00:29,  2.28s/img, loss (batch)=nan]Epoch 4/5:  61% 20/33 [00:44<00:29,  2.28s/img, loss (batch)=nan]Epoch 4/5:  64% 21/33 [00:44<00:19,  1.64s/img, loss (batch)=nan]Epoch 4/5:  64% 21/33 [00:44<00:19,  1.64s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:33,  1.06s/batch][A
-Validation round:   9% 3/33 [00:01<00:10,  2.91batch/s][A
-Validation round:  15% 5/33 [00:01<00:07,  3.64batch/s][A
-Validation round:  21% 7/33 [00:01<00:04,  5.30batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  4.87batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  6.62batch/s][A
-Validation round:  39% 13/33 [00:02<00:03,  5.74batch/s][A
-Validation round:  45% 15/33 [00:03<00:02,  6.76batch/s][A
-Validation round:  48% 16/33 [00:03<00:02,  6.86batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  5.34batch/s][A
-Validation round:  58% 19/33 [00:03<00:01,  7.01batch/s][A
-Validation round:  61% 20/33 [00:03<00:01,  7.42batch/s][A
-Validation round:  64% 21/33 [00:04<00:02,  5.11batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  7.33batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  5.44batch/s][A
-Validation round:  85% 28/33 [00:05<00:00,  6.81batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  5.57batch/s][A
-Validation round:  97% 32/33 [00:05<00:00,  8.26batch/s][A
-                                                        [AEpoch 4/5:  67% 22/33 [00:51<00:34,  3.13s/img, loss (batch)=nan]Epoch 4/5:  67% 22/33 [00:51<00:34,  3.13s/img, loss (batch)=nan]Epoch 4/5:  70% 23/33 [00:51<00:22,  2.25s/img, loss (batch)=nan]Epoch 4/5:  70% 23/33 [00:51<00:22,  2.25s/img, loss (batch)=nan]Epoch 4/5:  73% 24/33 [00:51<00:14,  1.62s/img, loss (batch)=nan]Epoch 4/5:  73% 24/33 [00:51<00:14,  1.62s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:36,  1.13s/batch][A
-Validation round:   9% 3/33 [00:01<00:10,  2.77batch/s][A
-Validation round:  15% 5/33 [00:01<00:07,  3.64batch/s][A
-Validation round:  21% 7/33 [00:01<00:05,  4.81batch/s][A
-Validation round:  27% 9/33 [00:02<00:05,  4.72batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  6.09batch/s][A
-Validation round:  39% 13/33 [00:02<00:03,  5.40batch/s][A
-Validation round:  45% 15/33 [00:03<00:02,  6.63batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  5.56batch/s][A
-Validation round:  58% 19/33 [00:03<00:01,  7.03batch/s][A
-Validation round:  64% 21/33 [00:04<00:02,  5.78batch/s][A
-Validation round:  70% 23/33 [00:04<00:01,  7.23batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  6.44batch/s][A
-Validation round:  79% 26/33 [00:04<00:01,  6.13batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  6.28batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  6.67batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  8.90batch/s][A
-                                                        [AEpoch 4/5:  76% 25/33 [00:58<00:25,  3.15s/img, loss (batch)=nan]Epoch 4/5:  76% 25/33 [00:58<00:25,  3.15s/img, loss (batch)=nan]Epoch 4/5:  79% 26/33 [00:58<00:15,  2.26s/img, loss (batch)=nan]Epoch 4/5:  79% 26/33 [00:58<00:15,  2.26s/img, loss (batch)=nan]Epoch 4/5:  82% 27/33 [00:58<00:09,  1.63s/img, loss (batch)=nan]Epoch 4/5:  82% 27/33 [00:58<00:09,  1.63s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:38,  1.20s/batch][A
-Validation round:   9% 3/33 [00:01<00:11,  2.71batch/s][A
-Validation round:  15% 5/33 [00:01<00:07,  3.67batch/s][A
-Validation round:  21% 7/33 [00:01<00:04,  5.43batch/s][A
-Validation round:  27% 9/33 [00:02<00:05,  4.61batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  6.24batch/s][A
-Validation round:  39% 13/33 [00:03<00:03,  5.25batch/s][A
-Validation round:  45% 15/33 [00:03<00:02,  6.82batch/s][A
-Validation round:  52% 17/33 [00:03<00:03,  5.17batch/s][A
-Validation round:  58% 19/33 [00:03<00:02,  6.56batch/s][A
-Validation round:  64% 21/33 [00:04<00:02,  5.76batch/s][A
-Validation round:  70% 23/33 [00:04<00:01,  7.24batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  6.76batch/s][A
-Validation round:  79% 26/33 [00:04<00:01,  6.52batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  6.39batch/s][A
-Validation round:  97% 32/33 [00:05<00:00,  8.83batch/s][A
-                                                        [AEpoch 4/5:  85% 28/33 [01:05<00:15,  3.15s/img, loss (batch)=nan]Epoch 4/5:  85% 28/33 [01:05<00:15,  3.15s/img, loss (batch)=nan]Epoch 4/5:  88% 29/33 [01:05<00:09,  2.25s/img, loss (batch)=nan]Epoch 4/5:  88% 29/33 [01:05<00:09,  2.25s/img, loss (batch)=nan]Epoch 4/5:  91% 30/33 [01:05<00:04,  1.63s/img, loss (batch)=nan]Epoch 4/5:  91% 30/33 [01:05<00:04,  1.63s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:00<00:31,  1.01batch/s][A
-Validation round:   6% 2/33 [00:01<00:15,  2.01batch/s][A
-Validation round:  12% 4/33 [00:01<00:06,  4.51batch/s][A
-Validation round:  18% 6/33 [00:01<00:06,  4.25batch/s][A
-Validation round:  24% 8/33 [00:01<00:04,  6.19batch/s][A
-Validation round:  30% 10/33 [00:02<00:04,  5.54batch/s][A
-Validation round:  36% 12/33 [00:02<00:02,  7.37batch/s][A
-Validation round:  42% 14/33 [00:02<00:03,  5.39batch/s][A
-Validation round:  48% 16/33 [00:03<00:02,  6.99batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  5.46batch/s][A
-Validation round:  61% 20/33 [00:03<00:01,  6.85batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  5.58batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  7.11batch/s][A
-Validation round:  79% 26/33 [00:04<00:01,  5.59batch/s][A
-Validation round:  85% 28/33 [00:04<00:00,  7.13batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  6.09batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  7.79batch/s][A
-                                                        [AEpoch 4/5:  94% 31/33 [01:12<00:06,  3.17s/img, loss (batch)=nan]Epoch 4/5:  94% 31/33 [01:12<00:06,  3.17s/img, loss (batch)=nan]Epoch 4/5:  97% 32/33 [01:12<00:02,  2.27s/img, loss (batch)=nan]Epoch 4/5:  97% 32/33 [01:12<00:02,  2.27s/img, loss (batch)=nan]Epoch 4/5: 100% 33/33 [01:12<00:00,  1.64s/img, loss (batch)=nan]Epoch 4/5: 100% 33/33 [01:12<00:00,  1.64s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:45,  1.43s/batch][A
-Validation round:   9% 3/33 [00:01<00:12,  2.40batch/s][A
-Validation round:  15% 5/33 [00:02<00:09,  3.11batch/s][A
-Validation round:  24% 8/33 [00:02<00:04,  5.69batch/s][A
-Validation round:  30% 10/33 [00:02<00:04,  5.05batch/s][A
-Validation round:  36% 12/33 [00:02<00:03,  6.62batch/s][A
-Validation round:  42% 14/33 [00:03<00:03,  5.74batch/s][A
-Validation round:  48% 16/33 [00:03<00:02,  7.05batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  5.09batch/s][A
-Validation round:  64% 21/33 [00:04<00:02,  5.88batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  7.85batch/s][A
-Validation round:  79% 26/33 [00:05<00:01,  5.89batch/s][A
-Validation round:  85% 28/33 [00:05<00:00,  7.22batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  7.40batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  8.71batch/s][A
-                                                        [AEpoch 4/5: 100% 33/33 [01:19<00:00,  2.41s/img, loss (batch)=nan]
-Epoch 5/5:   0% 0/33 [00:00<?, ?img/s]Epoch 5/5:   3% 1/33 [00:01<00:46,  1.46s/img]Epoch 5/5:   3% 1/33 [00:01<00:46,  1.46s/img, loss (batch)=nan]Epoch 5/5:   6% 2/33 [00:01<00:21,  1.41img/s, loss (batch)=nan]Epoch 5/5:   6% 2/33 [00:01<00:21,  1.41img/s, loss (batch)=nan]Epoch 5/5:   9% 3/33 [00:01<00:13,  2.18img/s, loss (batch)=nan]Epoch 5/5:   9% 3/33 [00:01<00:13,  2.18img/s, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:46,  1.45s/batch][A
-Validation round:   9% 3/33 [00:01<00:12,  2.40batch/s][A
-Validation round:  15% 5/33 [00:02<00:09,  3.11batch/s][A
-Validation round:  21% 7/33 [00:02<00:05,  4.79batch/s][A
-Validation round:  27% 9/33 [00:02<00:05,  4.54batch/s][A
-Validation round:  36% 12/33 [00:02<00:03,  6.97batch/s][A
-Validation round:  42% 14/33 [00:03<00:03,  5.51batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  5.36batch/s][A
-Validation round:  58% 19/33 [00:03<00:02,  6.65batch/s][A
-Validation round:  64% 21/33 [00:04<00:02,  5.75batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  7.84batch/s][A
-Validation round:  79% 26/33 [00:05<00:01,  6.00batch/s][A
-Validation round:  85% 28/33 [00:05<00:00,  7.35batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  6.59batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  7.94batch/s][A
-                                                        [AEpoch 5/5:  12% 4/33 [00:08<01:27,  3.03s/img, loss (batch)=nan]Epoch 5/5:  12% 4/33 [00:08<01:27,  3.03s/img, loss (batch)=nan]Epoch 5/5:  15% 5/33 [00:08<00:56,  2.00s/img, loss (batch)=nan]Epoch 5/5:  15% 5/33 [00:09<00:56,  2.00s/img, loss (batch)=nan]Epoch 5/5:  18% 6/33 [00:09<00:37,  1.39s/img, loss (batch)=nan]Epoch 5/5:  18% 6/33 [00:09<00:37,  1.39s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:35,  1.12s/batch][A
-Validation round:   6% 2/33 [00:01<00:17,  1.77batch/s][A
-Validation round:  12% 4/33 [00:01<00:07,  4.02batch/s][A
-Validation round:  15% 5/33 [00:01<00:07,  3.52batch/s][A
-Validation round:  21% 7/33 [00:02<00:05,  4.87batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  4.98batch/s][A
-Validation round:  33% 11/33 [00:02<00:04,  5.31batch/s][A
-Validation round:  39% 13/33 [00:02<00:03,  6.19batch/s][A
-Validation round:  45% 15/33 [00:03<00:02,  6.44batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  5.58batch/s][A
-Validation round:  58% 19/33 [00:03<00:02,  6.14batch/s][A
-Validation round:  64% 21/33 [00:04<00:01,  6.25batch/s][A
-Validation round:  70% 23/33 [00:04<00:01,  6.53batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  6.83batch/s][A
-Validation round:  82% 27/33 [00:05<00:00,  6.93batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  6.24batch/s][A
-Validation round:  97% 32/33 [00:05<00:00,  8.74batch/s][A
-                                                        [AEpoch 5/5:  21% 7/33 [00:15<01:21,  3.15s/img, loss (batch)=nan]Epoch 5/5:  21% 7/33 [00:16<01:21,  3.15s/img, loss (batch)=nan]Epoch 5/5:  24% 8/33 [00:16<00:55,  2.20s/img, loss (batch)=nan]Epoch 5/5:  24% 8/33 [00:16<00:55,  2.20s/img, loss (batch)=nan]Epoch 5/5:  27% 9/33 [00:16<00:37,  1.57s/img, loss (batch)=nan]Epoch 5/5:  27% 9/33 [00:16<00:37,  1.57s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:36,  1.13s/batch][A
-Validation round:   6% 2/33 [00:01<00:18,  1.67batch/s][A
-Validation round:  15% 5/33 [00:01<00:07,  3.99batch/s][A
-Validation round:  21% 7/33 [00:01<00:05,  5.03batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  4.80batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  6.19batch/s][A
-Validation round:  39% 13/33 [00:02<00:03,  5.72batch/s][A
-Validation round:  42% 14/33 [00:03<00:03,  6.19batch/s][A
-Validation round:  48% 16/33 [00:03<00:02,  8.01batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  5.97batch/s][A
-Validation round:  64% 21/33 [00:04<00:02,  5.55batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  7.61batch/s][A
-Validation round:  79% 26/33 [00:05<00:01,  5.32batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  5.79batch/s][A
-Validation round:  97% 32/33 [00:05<00:00,  7.76batch/s][A
-                                                        [AEpoch 5/5:  30% 10/33 [00:23<01:13,  3.21s/img, loss (batch)=nan]Epoch 5/5:  30% 10/33 [00:23<01:13,  3.21s/img, loss (batch)=nan]Epoch 5/5:  33% 11/33 [00:23<00:50,  2.28s/img, loss (batch)=nan]Epoch 5/5:  33% 11/33 [00:23<00:50,  2.28s/img, loss (batch)=nan]Epoch 5/5:  36% 12/33 [00:23<00:34,  1.64s/img, loss (batch)=nan]Epoch 5/5:  36% 12/33 [00:23<00:34,  1.64s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:33,  1.04s/batch][A
-Validation round:   9% 3/33 [00:01<00:15,  1.99batch/s][A
-Validation round:  18% 6/33 [00:01<00:05,  4.50batch/s][A
-Validation round:  24% 8/33 [00:02<00:05,  4.21batch/s][A
-Validation round:  33% 11/33 [00:02<00:04,  4.74batch/s][A
-Validation round:  42% 14/33 [00:03<00:02,  6.66batch/s][A
-Validation round:  48% 16/33 [00:03<00:03,  5.28batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  6.56batch/s][A
-Validation round:  61% 20/33 [00:04<00:02,  5.38batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  6.79batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  5.63batch/s][A
-Validation round:  79% 26/33 [00:05<00:01,  6.94batch/s][A
-Validation round:  85% 28/33 [00:05<00:00,  5.43batch/s][A
-Validation round:  94% 31/33 [00:05<00:00,  7.22batch/s][A
-                                                        [AEpoch 5/5:  39% 13/33 [00:30<01:04,  3.23s/img, loss (batch)=nan]Epoch 5/5:  39% 13/33 [00:30<01:04,  3.23s/img, loss (batch)=nan]Epoch 5/5:  42% 14/33 [00:30<00:43,  2.31s/img, loss (batch)=nan]Epoch 5/5:  42% 14/33 [00:30<00:43,  2.31s/img, loss (batch)=nan]Epoch 5/5:  45% 15/33 [00:30<00:29,  1.66s/img, loss (batch)=nan]Epoch 5/5:  45% 15/33 [00:30<00:29,  1.66s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:37,  1.18s/batch][A
-Validation round:   9% 3/33 [00:01<00:10,  2.80batch/s][A
-Validation round:  15% 5/33 [00:01<00:08,  3.39batch/s][A
-Validation round:  21% 7/33 [00:02<00:05,  4.52batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  5.50batch/s][A
-Validation round:  30% 10/33 [00:02<00:03,  5.94batch/s][A
-Validation round:  33% 11/33 [00:02<00:04,  5.36batch/s][A
-Validation round:  39% 13/33 [00:02<00:03,  6.44batch/s][A
-Validation round:  45% 15/33 [00:03<00:03,  5.69batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  5.75batch/s][A
-Validation round:  58% 19/33 [00:03<00:02,  6.27batch/s][A
-Validation round:  64% 21/33 [00:04<00:02,  5.77batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  8.19batch/s][A
-Validation round:  79% 26/33 [00:04<00:01,  6.19batch/s][A
-Validation round:  85% 28/33 [00:05<00:00,  7.56batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  6.48batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  8.02batch/s][A
-                                                        [AEpoch 5/5:  48% 16/33 [00:37<00:54,  3.18s/img, loss (batch)=nan]Epoch 5/5:  48% 16/33 [00:37<00:54,  3.18s/img, loss (batch)=nan]Epoch 5/5:  52% 17/33 [00:37<00:36,  2.28s/img, loss (batch)=nan]Epoch 5/5:  52% 17/33 [00:37<00:36,  2.28s/img, loss (batch)=nan]Epoch 5/5:  55% 18/33 [00:37<00:24,  1.64s/img, loss (batch)=nan]Epoch 5/5:  55% 18/33 [00:37<00:24,  1.64s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:39,  1.23s/batch][A
-Validation round:  12% 4/33 [00:01<00:07,  3.64batch/s][A
-Validation round:  18% 6/33 [00:01<00:07,  3.68batch/s][A
-Validation round:  27% 9/33 [00:02<00:05,  4.34batch/s][A
-Validation round:  36% 12/33 [00:02<00:03,  6.48batch/s][A
-Validation round:  42% 14/33 [00:03<00:03,  5.29batch/s][A
-Validation round:  48% 16/33 [00:03<00:02,  6.65batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  5.38batch/s][A
-Validation round:  64% 21/33 [00:04<00:02,  5.83batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  5.81batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  7.36batch/s][A
-Validation round:  79% 26/33 [00:04<00:01,  6.19batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  6.66batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  6.39batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  8.51batch/s][A
-                                                        [AEpoch 5/5:  58% 19/33 [00:44<00:45,  3.22s/img, loss (batch)=nan]Epoch 5/5:  58% 19/33 [00:44<00:45,  3.22s/img, loss (batch)=nan]Epoch 5/5:  61% 20/33 [00:44<00:29,  2.31s/img, loss (batch)=nan]Epoch 5/5:  61% 20/33 [00:45<00:29,  2.31s/img, loss (batch)=nan]Epoch 5/5:  64% 21/33 [00:45<00:20,  1.67s/img, loss (batch)=nan]Epoch 5/5:  64% 21/33 [00:45<00:20,  1.67s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:44,  1.40s/batch][A
-Validation round:  12% 4/33 [00:01<00:08,  3.28batch/s][A
-Validation round:  18% 6/33 [00:02<00:07,  3.59batch/s][A
-Validation round:  27% 9/33 [00:02<00:05,  4.21batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  5.57batch/s][A
-Validation round:  39% 13/33 [00:03<00:03,  5.03batch/s][A
-Validation round:  48% 16/33 [00:03<00:02,  7.19batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  5.68batch/s][A
-Validation round:  61% 20/33 [00:04<00:01,  6.81batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  5.66batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  7.11batch/s][A
-Validation round:  79% 26/33 [00:05<00:01,  5.54batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  6.65batch/s][A
-Validation round:  97% 32/33 [00:05<00:00,  8.91batch/s][A
-                                                        [AEpoch 5/5:  67% 22/33 [00:51<00:35,  3.23s/img, loss (batch)=nan]Epoch 5/5:  67% 22/33 [00:52<00:35,  3.23s/img, loss (batch)=nan]Epoch 5/5:  70% 23/33 [00:52<00:23,  2.31s/img, loss (batch)=nan]Epoch 5/5:  70% 23/33 [00:52<00:23,  2.31s/img, loss (batch)=nan]Epoch 5/5:  73% 24/33 [00:52<00:15,  1.67s/img, loss (batch)=nan]Epoch 5/5:  73% 24/33 [00:52<00:15,  1.67s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:46,  1.45s/batch][A
-Validation round:   9% 3/33 [00:01<00:12,  2.36batch/s][A
-Validation round:  15% 5/33 [00:01<00:08,  3.30batch/s][A
-Validation round:  24% 8/33 [00:02<00:04,  5.87batch/s][A
-Validation round:  30% 10/33 [00:02<00:04,  4.92batch/s][A
-Validation round:  39% 13/33 [00:03<00:04,  4.99batch/s][A
-Validation round:  45% 15/33 [00:03<00:02,  6.19batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  5.53batch/s][A
-Validation round:  61% 20/33 [00:03<00:01,  7.60batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  6.60batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  7.75batch/s][A
-Validation round:  79% 26/33 [00:04<00:00,  7.19batch/s][A
-Validation round:  82% 27/33 [00:04<00:00,  7.27batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  6.06batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  6.27batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  8.40batch/s][A
-                                                        [AEpoch 5/5:  76% 25/33 [00:59<00:25,  3.23s/img, loss (batch)=nan]Epoch 5/5:  76% 25/33 [00:59<00:25,  3.23s/img, loss (batch)=nan]Epoch 5/5:  79% 26/33 [00:59<00:16,  2.31s/img, loss (batch)=nan]Epoch 5/5:  79% 26/33 [00:59<00:16,  2.31s/img, loss (batch)=nan]Epoch 5/5:  82% 27/33 [00:59<00:10,  1.67s/img, loss (batch)=nan]Epoch 5/5:  82% 27/33 [00:59<00:10,  1.67s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:35,  1.10s/batch][A
-Validation round:   6% 2/33 [00:01<00:16,  1.82batch/s][A
-Validation round:  12% 4/33 [00:01<00:07,  4.11batch/s][A
-Validation round:  15% 5/33 [00:01<00:06,  4.54batch/s][A
-Validation round:  18% 6/33 [00:01<00:05,  4.88batch/s][A
-Validation round:  27% 9/33 [00:02<00:04,  5.05batch/s][A
-Validation round:  30% 10/33 [00:02<00:04,  5.30batch/s][A
-Validation round:  36% 12/33 [00:02<00:02,  7.20batch/s][A
-Validation round:  42% 14/33 [00:03<00:03,  5.32batch/s][A
-Validation round:  48% 16/33 [00:03<00:02,  6.98batch/s][A
-Validation round:  55% 18/33 [00:03<00:02,  5.46batch/s][A
-Validation round:  61% 20/33 [00:03<00:01,  6.85batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  5.85batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  6.19batch/s][A
-Validation round:  79% 26/33 [00:04<00:01,  6.34batch/s][A
-Validation round:  85% 28/33 [00:05<00:00,  8.05batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  7.18batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  9.38batch/s][A
-                                                        [AEpoch 5/5:  85% 28/33 [01:06<00:15,  3.15s/img, loss (batch)=nan]Epoch 5/5:  85% 28/33 [01:06<00:15,  3.15s/img, loss (batch)=nan]Epoch 5/5:  88% 29/33 [01:06<00:09,  2.26s/img, loss (batch)=nan]Epoch 5/5:  88% 29/33 [01:06<00:09,  2.26s/img, loss (batch)=nan]Epoch 5/5:  91% 30/33 [01:06<00:04,  1.63s/img, loss (batch)=nan]Epoch 5/5:  91% 30/33 [01:06<00:04,  1.63s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:37,  1.17s/batch][A
-Validation round:  12% 4/33 [00:01<00:07,  3.91batch/s][A
-Validation round:  18% 6/33 [00:01<00:06,  4.16batch/s][A
-Validation round:  24% 8/33 [00:01<00:04,  5.78batch/s][A
-Validation round:  30% 10/33 [00:02<00:04,  5.15batch/s][A
-Validation round:  39% 13/33 [00:02<00:03,  5.23batch/s][A
-Validation round:  48% 16/33 [00:03<00:02,  6.84batch/s][A
-Validation round:  52% 17/33 [00:03<00:03,  4.55batch/s][A
-Validation round:  61% 20/33 [00:03<00:01,  6.67batch/s][A
-Validation round:  67% 22/33 [00:04<00:01,  5.76batch/s][A
-Validation round:  73% 24/33 [00:04<00:01,  7.16batch/s][A
-Validation round:  79% 26/33 [00:04<00:01,  6.10batch/s][A
-Validation round:  85% 28/33 [00:05<00:00,  7.60batch/s][A
-Validation round:  91% 30/33 [00:05<00:00,  6.16batch/s][A
-Validation round: 100% 33/33 [00:05<00:00,  7.66batch/s][A
-                                                        [AEpoch 5/5:  94% 31/33 [01:13<00:06,  3.21s/img, loss (batch)=nan]Epoch 5/5:  94% 31/33 [01:13<00:06,  3.21s/img, loss (batch)=nan]Epoch 5/5:  97% 32/33 [01:13<00:02,  2.29s/img, loss (batch)=nan]Epoch 5/5:  97% 32/33 [01:13<00:02,  2.29s/img, loss (batch)=nan]Epoch 5/5: 100% 33/33 [01:13<00:00,  1.66s/img, loss (batch)=nan]Epoch 5/5: 100% 33/33 [01:13<00:00,  1.66s/img, loss (batch)=nan]
-Validation round:   0% 0/33 [00:00<?, ?batch/s][A
-Validation round:   3% 1/33 [00:01<00:36,  1.14s/batch][A
-Validation round:   9% 3/33 [00:01<00:10,  2.95batch/s][A
-Validation round:  15% 5/33 [00:01<00:07,  3.61batch/s][A
-Validation round:  21% 7/33 [00:01<00:04,  5.50batch/s][A
-Validation round:  27% 9/33 [00:02<00:05,  4.69batch/s][A
-Validation round:  33% 11/33 [00:02<00:03,  6.33batch/s][A
-Validation round:  39% 13/33 [00:02<00:03,  5.86batch/s][A
-Validation round:  42% 14/33 [00:02<00:03,  6.27batch/s][A
-Validation round:  52% 17/33 [00:03<00:02,  5.59batch/s][A
-Validation round:  58% 19/33 [00:03<00:02,  6.91batch/s][A
-Validation round:  64% 21/33 [00:04<00:01,  6.12batch/s][A
-Validation round:  70% 23/33 [00:04<00:01,  7.25batch/s][A
-Validation round:  76% 25/33 [00:04<00:01,  5.08batch/s][A
-Validation round:  82% 27/33 [00:05<00:00,  6.17batch/s][A
-Validation round:  88% 29/33 [00:05<00:00,  6.21batch/s][A
-Validation round:  97% 32/33 [00:05<00:00,  8.69batch/s][A
-                                                        [AEpoch 5/5: 100% 33/33 [01:20<00:00,  2.44s/img, loss (batch)=nan]
-Traceback (most recent call last):
-  File "./src/trainers/trainer.py", line 303, in <module>
-    main()
-  File "./src/trainers/trainer.py", line 289, in main
-    val_set=oof.P_1
-TypeError: unsupported operand type(s) for ** or pow(): 'Subset' and 'dict'
-wandb: Waiting for W&B process to finish, PID 4054174... (failed 1). Press ctrl-c to abort syncing.
-wandb: - 53.90MB of 53.90MB uploaded (0.00MB deduped)wandb: \ 53.90MB of 53.90MB uploaded (0.00MB deduped)wandb: | 53.90MB of 54.17MB uploaded (0.00MB deduped)wandb: / 53.90MB of 54.17MB uploaded (0.00MB deduped)wandb: - 53.91MB of 54.17MB uploaded (0.00MB deduped)wandb: \ 54.17MB of 54.17MB uploaded (0.00MB deduped)wandb: | 54.17MB of 54.17MB uploaded (0.00MB deduped)wandb: / 54.17MB of 54.17MB uploaded (0.00MB deduped)wandb: - 54.17MB of 54.17MB uploaded (0.00MB deduped)wandb: \ 54.17MB of 54.17MB uploaded (0.00MB deduped)wandb: | 54.17MB of 54.17MB uploaded (0.00MB deduped)wandb: / 54.17MB of 54.17MB uploaded (0.00MB deduped)wandb: - 54.17MB of 54.17MB uploaded (0.00MB deduped)wandb: \ 54.17MB of 54.17MB uploaded (0.00MB deduped)wandb: | 54.17MB of 54.17MB uploaded (0.00MB deduped)wandb: / 54.17MB of 54.17MB uploaded (0.00MB deduped)wandb:                                                                                
-wandb: Run history:
-wandb:             epoch ▁▁▁▁▁▁▁▁▃▃▃▃▃▃▃▃▅▅▅▅▅▅▅▅▆▆▆▆▆▆▆▆████████
-wandb:     learning rate ██▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:              step ▁▁▁▂▂▂▂▂▂▃▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▇▇▇▇▇▇███
-wandb:        train loss 
-wandb:   validation loss
-wandb: 
-wandb: Run summary:
-wandb:             epoch 4
-wandb:     learning rate 0.0
-wandb:              step 165
-wandb:        train loss nan
-wandb:   validation loss nan
-wandb: 
-wandb: Synced 6 W&B file(s), 220 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Synced colorful-shadow-13: https://wandb.ai/depth-denoising/M_11/runs/16zyeren
-wandb: Find logs at: ./wandb/run-20220123_130604-16zyeren/logs/debug.log
-wandb: 
-
-
-============================= JOB FEEDBACK =============================
-
-NodeName=uc2n520
-Job ID: 20398498
-Cluster: uc2
-User/Group: ng3916/anthropomatik
-State: FAILED (exit code 1)
-Nodes: 1
-Cores per node: 40
-CPU Utilized: 00:12:34
-CPU Efficiency: 4.26% of 04:54:40 core-walltime
-Job Wall-clock time: 00:07:22
-Memory Utilized: 19.75 GB
-Memory Efficiency: 337.11% of 5.86 GB
