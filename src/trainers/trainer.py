@@ -279,13 +279,6 @@ def main(args):
         activate_wandb=args.wandb
     )
 
-    # Training M_1
-    oof.train(
-        net=oof.M_1,
-        train_set=oof.P_1_and_P_2,
-        val_set=oof.P_test,
-        **params
-    )
     # Training M_11
     oof.train(
         net=oof.M_11,
@@ -298,6 +291,13 @@ def main(args):
         net=oof.M_12,
         train_set=oof.P_2,
         val_set=oof.P_1,
+        **params
+    )
+    # Training M_1
+    oof.train(
+        net=oof.M_1,
+        train_set=oof.P_1_and_P_2,
+        val_set=oof.P_test,
         **params
     )
 
