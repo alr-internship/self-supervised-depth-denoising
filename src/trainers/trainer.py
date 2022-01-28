@@ -239,8 +239,8 @@ class OutOfFoldTrainer:
                                            tag] = wandb.Histogram(value.grad.data.cpu())
 
                             vis_image = images[0].cpu().detach().numpy().transpose((1, 2, 0))
-                            vis_true_mask = true_masks[0].float().cpu().detach().numpy()
-                            vis_pred_mask = pred_masks[0].float().cpu().detach().numpy()
+                            vis_true_mask = true_masks[0, 0].float().cpu().detach().numpy()
+                            vis_pred_mask = pred_masks[0, 0].float().cpu().detach().numpy()
 
                             experiment.log({
                                 'learning rate': optimizer.param_groups[0]['lr'],
