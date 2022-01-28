@@ -1,8 +1,10 @@
 #!/bin/bash
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=privat@claudiuskienle.de
 #SBATCH --partition=gpu_4
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=40
-#SBATCH --time=6:00:00
+#SBATCH --time=12:00:00
 #SBATCH --mem=20000mb   
 #SBATCH --gres=gpu:2
 #SBATCH --export=ALL,EXECUTABLE=./train_models.sh

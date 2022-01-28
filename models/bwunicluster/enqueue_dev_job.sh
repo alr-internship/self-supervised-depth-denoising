@@ -1,4 +1,6 @@
 #!/bin/bash
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=privat@claudiuskienle.de
 #SBATCH --partition=dev_gpu_4
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=40
