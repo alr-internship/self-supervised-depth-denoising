@@ -112,7 +112,7 @@ class OutOfFoldTrainer:
     ):
         if save_checkpoint:
             dir_checkpoint = dir_checkpoint\
-                / f"{net.name}" / f"bs{batch_size}_aug{self.enable_augmentation}_sc{self.scale}"
+                / f"{net.name}" / f"bs{batch_size}_aug{self.enable_augmentation}_nanmask{self.add_mask_for_nans}_sc{self.scale}"
 
         # (Initialize logging)
         if activate_wandb:
