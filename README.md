@@ -163,7 +163,6 @@ TODOs
     All NaN values get replaced with 0
     Idea: Add mask to tell net where mask values are located
 
-- [ ] check if augmented frames are valid (NaNs)
 - [ ] normalize dataset
 - [ ] mask data
 - [X] apply augmentation to dataset

@@ -122,7 +122,7 @@ class BasicDataset(Dataset):
 
         # normalize
         processed_rs_rgb = processed_rs_rgb.astype(np.float32) / 255
-
+        
         # map nan to 0 and add mask to inform net about
         processed_rs_depth = np.nan_to_num(processed_rs_depth)
         processed_zv_depth = np.nan_to_num(processed_zv_depth)

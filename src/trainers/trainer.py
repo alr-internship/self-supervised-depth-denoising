@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from cgitb import enable
 from colorsys import rgb_to_yiq
 from distutils.util import strtobool
 import logging
@@ -18,10 +19,19 @@ from networks.UNet.unet_model import UNet
 
 
 class OutOfFoldTrainer:
+
+    @staticmethod
+    def get_oof_dataset(dataset_path: Path, oof_p: float, scale: float, enable_augmentation: bool, add_mask_for_nans: bool):
+        dataset = BasicDataset(Path(dataset_path), scale, enable_augmentation, add_mask_for_nans)
+        lens = np.floor([len(dataset) * oof_p for _ in range(3)]).astype(np.int32)
+        lens[-1] += len(dataset) - lens[-1] // oof_p
+        assert(sum(lens) == len(dataset))
+        return random_split(dataset, lens)
+
     def __init__(
         self,
         device: torch.device,
-        dataset_path: str,
+        dataset_path: Path,
         scale: float,
         enable_augmentation: bool,
         add_mask_for_nans: bool,
@@ -33,15 +43,13 @@ class OutOfFoldTrainer:
         self.enable_augmentation = enable_augmentation
         self.add_mask_for_nans = add_mask_for_nans
 
+        dataset_params = dict(dataset_path=dataset_path, oof_p=oof_p, scale=scale, add_mask_for_nans=add_mask_for_nans)
+        self.P_1, self.P_2, self.P_test = self.get_oof_dataset(enable_augmentation=enable_augmentation, **dataset_params)
+        self.P_1_and_P_2 = torch.utils.data.ConcatDataset([self.P_1, self.P_2])
+        self.P_1_val, self.P_2_val, self.P_test_val = self.get_oof_dataset(enable_augmentation=False, **dataset_params)
+
         n_input_channels = 5 if add_mask_for_nans else 4
         n_output_channels = 1
-
-        dataset = BasicDataset(Path(dataset_path), scale, enable_augmentation, add_mask_for_nans)
-        lens = np.floor([len(dataset) * oof_p for _ in range(3)]).astype(np.int32)
-        lens[-1] += len(dataset) - lens[-1] // oof_p
-        assert(sum(lens) == len(dataset))
-        self.P_1, self.P_2, self.P_test = random_split(dataset, lens)
-        self.P_1_and_P_2 = torch.utils.data.ConcatDataset([self.P_1, self.P_2])
 
         self.M_11 = UNet(
             n_input_channels=n_input_channels,
@@ -267,12 +275,17 @@ class OutOfFoldTrainer:
             wandb.finish()
 
 
+def get_validation_subset(dataset: torch.utils.data.Dataset, percent: float = 0.1):
+    indices = np.random.choice(range(len(dataset)), size=(len(dataset) // int(1 / percent)), replace=False)
+    return torch.utils.data.Subset(dataset, indices)
+
+
 def main(args):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     oof = OutOfFoldTrainer(
         device=device,
-        dataset_path=args.dataset_path,
+        dataset_path=Path(args.dataset_path),
         scale=args.scale_images,
         enable_augmentation=args.enable_augmentation,
         add_mask_for_nans=args.add_mask_for_nans,
@@ -294,21 +307,21 @@ def main(args):
     oof.train(
         net=oof.M_11,
         train_set=oof.P_1,
-        val_set=oof.P_2,
+        val_set=get_validation_subset(oof.P_2_val),
         **params
     )
     # Training M_12
     oof.train(
         net=oof.M_12,
         train_set=oof.P_2,
-        val_set=oof.P_1,
+        val_set=get_validation_subset(oof.P_1_val),
         **params
     )
     # Training M_1
     oof.train(
         net=oof.M_1,
         train_set=oof.P_1_and_P_2,
-        val_set=oof.P_test,
+        val_set=get_validation_subset(oof.P_test_val),
         **params
     )
 
@@ -327,7 +340,7 @@ if __name__ == '__main__':
     parser.add_argument("--enable_augmentation", type=lambda x: bool(strtobool(x)), nargs='?',
                         const=True, default=True)  # enable image augmentation
     parser.add_argument("--add_mask_for_nans", type=lambda x: bool(strtobool(x)), nargs='?',
-                        const=True, default=True) 
+                        const=True, default=True)
     parser.add_argument("--validation_percentage", type=float, default=10.0)
     # Percent of the data that is used as validation (0-100)
     parser.add_argument("--oof_p", type=float, default=1/3)  # length of each P for OOF training)
