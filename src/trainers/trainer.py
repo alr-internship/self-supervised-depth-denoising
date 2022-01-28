@@ -249,7 +249,8 @@ class OutOfFoldTrainer:
 
             if save_checkpoint:
                 dir_checkpoint.mkdir(parents=True, exist_ok=True)
-                torch.save(net.state_dict(), str(dir_checkpoint / f'{net.name}_e{epoch+1}.pth'))
+                torch.save(net.state_dict(), str(dir_checkpoint /
+                           f'{net.name}__bs{batch_size}_aug{self.enable_augmentation}_sc{self.scale}_e{epoch+1}.pth'))
                 logging.info(f'Checkpoint {epoch + 1} saved!')
 
         if activate_wandb:
