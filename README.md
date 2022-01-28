@@ -152,6 +152,6 @@ TODOs
 =====
 
 - [X] dataset calibration
-- [] remove NaNs from RGB and depth images
-- [] normalize dataset
-- [] apply augmentation to dataset
+- [ ] remove NaNs from RGB and depth images
+- [ ] normalize dataset
+- [ ] apply augmentation to dataset
