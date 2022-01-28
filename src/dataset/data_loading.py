@@ -22,8 +22,9 @@ from dataset.dataset_interface import DatasetInterface
 
 
 class BasicDataset(Dataset):
-    def __init__(self, dataset_path: Path, scale: float = 1.0):
+    def __init__(self, dataset_path: Path, scale: float = 1.0, enable_augmentation: bool = True):
         self.dataset_interface = DatasetInterface(dataset_path)
+        self.enable_augmentation = enable_augmentation
 
         assert 0 < scale <= 1, 'Scale must be between 0 and 1'
         self.scale = scale
@@ -66,14 +67,6 @@ class BasicDataset(Dataset):
 
     def __len__(self):
         return len(self.dataset_interface)
-
-    @classmethod
-    def preprocess_input(cls, rgb: np.array, depth: np.array, scale: float):
-        processed_rgb = cls.preprocess(rgb, scale)
-        processed_depth = cls.preprocess(depth, scale)
-
-        img_ndarray = np.concatenate((processed_rgb, processed_depth), axis=0)
-        return img_ndarray
 
     @classmethod
     def preprocess(cls, img: np.array, scale: float):
@@ -121,9 +114,13 @@ class BasicDataset(Dataset):
         rs_depth = np.nan_to_num(rs_depth)
         zv_depth = np.nan_to_num(zv_depth)
 
-        # rs_rgb, rs_depth, zv_depth = self.augment(rs_rgb, rs_depth, zv_depth)
+        if self.enable_augmentation:
+            rs_rgb, rs_depth, zv_depth = self.augment(rs_rgb, rs_depth, zv_depth)
 
-        input = self.preprocess_input(rs_rgb / 255, rs_depth, self.scale)
+        processed_rs_rgb = self.preprocess(rs_rgb, self.scale)
+        processed_rs_depth = self.preprocess(rs_depth, self.scale)
+
+        input = np.concatenate((processed_rs_rgb, processed_rs_depth), axis=0)
         label = self.preprocess(zv_depth, self.scale)
 
         return {

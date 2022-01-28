@@ -23,19 +23,23 @@ class OutOfFoldTrainer:
         device: torch.device,
         dataset_path: str,
         scale: float,
+        enable_augmentation: bool,
         oof_p: float,
         n_input_channels: int,
         n_output_channels: int,
         bilinear: bool,
     ):
         self.device = device
+        self.scale = scale
+        self.enable_augmentation = enable_augmentation
 
         # TODO: split up dataset to the P's randomly
-        dataset = BasicDataset(Path(dataset_path), scale)
+        dataset = BasicDataset(Path(dataset_path), scale, enable_augmentation)
         lens = np.floor([len(dataset) * oof_p for _ in range(3)]).astype(np.int32)
         lens[-1] += len(dataset) - lens[-1] // oof_p
         assert(sum(lens) == len(dataset))
         self.P_1, self.P_2, self.P_test = random_split(dataset, lens)
+        self.P_1_and_P_2 = torch.utils.data.ConcatDataset([self.P_1, self.P_2])
 
         self.M_11 = UNet(
             n_input_channels=n_input_channels,
@@ -60,8 +64,6 @@ class OutOfFoldTrainer:
         #     name='M_2'
         # )
 
-    # TODO: implement train, evaluate, update_dataset
-
     def evaluate(
         self,
         net: nn.Module,
@@ -74,7 +76,7 @@ class OutOfFoldTrainer:
         loss = 0
 
         # iterate over the validation set
-        for batch in tqdm(dataloader, total=num_val_batches, desc='Validation round', unit='batch', leave=False):
+        for batch in tqdm(dataloader, desc='Validation round', unit='batch', leave=False):
             image, mask_true = batch['image'], batch['mask']
             # move images and labels to correct device and type
             image = image.to(device=device, dtype=torch.float32)
@@ -98,27 +100,31 @@ class OutOfFoldTrainer:
         net: nn.Module,
         train_set: list,
         val_set: list,
-        device: torch.device,
         dir_checkpoint: Path,
-        epochs: int = 5,
-        batch_size: int = 1,
-        learning_rate: float = 0.001,
-        save_checkpoint: bool = True,
-        img_scale: float = 0.5,
-        amp: bool = False,
-        activate_wandb: bool = False,
+        epochs: int,
+        batch_size: int,
+        learning_rate: float,
+        save_checkpoint: bool,
+        amp: bool,
+        activate_wandb: bool,
     ):
 
         # (Initialize logging)
         if activate_wandb:
-            experiment = wandb.init(project=net.name, resume='allow', entity="depth-denoising", reinit=True)
+            experiment = wandb.init(project=net.name, resume='allow',
+                                    entity="depth-denoising", reinit=True)
             experiment.config.update(
-                dict(epochs=epochs, batch_size=batch_size,
-                     learning_rate=learning_rate, save_checkpoint=save_checkpoint, img_scale=img_scale,
-                     amp=amp)
+                dict(
+                    epochs=epochs,
+                    batch_size=batch_size,
+                    learning_rate=learning_rate,
+                    save_checkpoint=save_checkpoint,
+                    img_scale=self.scale,
+                    enable_augmentation=self.enable_augmentation,
+                    amp=amp)
             )
 
-        net.to(device)
+        net.to(self.device)
 
         n_train = len(train_set)
         n_val = len(val_set)
@@ -130,8 +136,9 @@ class OutOfFoldTrainer:
             Training size:   {n_train}
             Validation size: {n_val}
             Checkpoints:     {save_checkpoint}
-            Device:          {device.type}
-            Images scaling:  {img_scale}
+            Device:          {self.device.type}
+            Images scaling:  {self.scale}
+            Augmentation:    {self.enable_augmentation}
             Mixed Precision: {amp}
             ''')
 
@@ -182,8 +189,8 @@ class OutOfFoldTrainer:
                         f'but loaded images have {images.shape[1]} channels. Please check that ' \
                         'the images are loaded correctly.'
 
-                    images = images.to(device=device, dtype=torch.float32)
-                    true_masks = true_masks.to(device=device, dtype=torch.float32)
+                    images = images.to(device=self.device, dtype=torch.float32)
+                    true_masks = true_masks.to(device=self.device, dtype=torch.float32)
 
                     with torch.cuda.amp.autocast(enabled=amp):
                         masks_pred = net(images)
@@ -210,7 +217,7 @@ class OutOfFoldTrainer:
                     # Evaluation round
                     division_step = (n_train // (10 * batch_size))
                     if division_step > 0 and global_step % division_step == 0:
-                        val_loss = self.evaluate(net, val_loader, device)
+                        val_loss = self.evaluate(net, val_loader, self.device)
                         scheduler.step(val_loss)
 
                         logging.info('Validation Loss: {}'.format(val_loss))
@@ -255,6 +262,7 @@ def main(args):
         device=device,
         dataset_path=args.dataset_path,
         scale=args.scale_images,
+        enable_augmentation=args.enable_augmentation,
         oof_p=args.oof_p,
         n_input_channels=args.n_input_channels,
         n_output_channels=args.n_output_channels,
@@ -262,17 +270,22 @@ def main(args):
     )
 
     params = dict(
-        device=device,
         epochs=args.epochs,
         batch_size=args.batch_size,
         learning_rate=args.learning_rate,
         save_checkpoint=args.save,
-        img_scale=args.scale_images,
         amp=args.amp,
         dir_checkpoint=Path(args.dir_checkpoint),
         activate_wandb=args.wandb
     )
 
+    # Training M_1
+    oof.train(
+        net=oof.M_1,
+        train_set=oof.P_1_and_P_2,
+        val_set=oof.P_test,
+        **params
+    )
     # Training M_11
     oof.train(
         net=oof.M_11,
@@ -287,14 +300,6 @@ def main(args):
         val_set=oof.P_1,
         **params
     )
-    # Training M_1
-    # oof.train(
-    #     net=oof.M_1,
-    #     train_set=None,  # TODO
-    #     val_set=None,  # TODO
-    # )
-    # TODO: function to create M_x(P_x)
-    # TODO: save net weights
 
 
 if __name__ == '__main__':
@@ -306,6 +311,8 @@ if __name__ == '__main__':
     parser.add_argument("--learning_rate", type=float, default=0.00001)  # Learning rate
     parser.add_argument("--load_from_model", type=str, default=None)  # Load model from a .pth file (path)
     parser.add_argument("--scale_images", type=float, default=0.5)  # Downscaling factor of the images
+    parser.add_argument("--enable_augmentation", type=lambda x: bool(strtobool(x)), nargs='?',
+                        const=True, default=True)  # enable image augmentation
     parser.add_argument("--validation_percentage", type=float, default=10.0)
     # Percent of the data that is used as validation (0-100)
     parser.add_argument("--oof_p", type=float, default=1/3)  # length of each P for OOF training)

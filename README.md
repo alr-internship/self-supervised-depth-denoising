@@ -148,10 +148,10 @@ For further information, visit [https://wiki.bwhpc.de/e/BwUniCluster_2.0_Slurm_c
 
 
 TODOs
-
 =====
 
 - [X] dataset calibration
 - [ ] remove NaNs from RGB and depth images
 - [ ] normalize dataset
+- [ ] mask data
 - [ ] apply augmentation to dataset
