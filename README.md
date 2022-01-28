@@ -151,9 +151,22 @@ TODOs
 =====
 
 - [X] dataset calibration
+    Calibrated dataset by map to 3D, apply homogeneous transformation, map to 2D.
+    Crop then to overlapping image region.
+    This process also introduces NaN values!
+
 - [X] notebook to visualize inference of trained models
+    Added new notebook that loads a given model and inferes a given dataset.
+    The results get visualized
+
 - [ ] remove NaNs from RGB and depth images
+    All NaN values get replaced with 0
+    Idea: Add mask to tell net where mask values are located
+
 - [ ] check if augmented frames are valid (NaNs)
 - [ ] normalize dataset
 - [ ] mask data
 - [X] apply augmentation to dataset
+    Applies augmentation to dataset, when the enable_augmentation flag is active.
+    Augmentations are chosen randomly from a set of common ones.
+    Package used is imgaug

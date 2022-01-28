@@ -2,6 +2,7 @@
 Reference: https://github.com/milesial/Pytorch-UNet
 """
 
+from audioop import add
 import imghdr
 import logging
 import math
@@ -22,9 +23,11 @@ from dataset.dataset_interface import DatasetInterface
 
 
 class BasicDataset(Dataset):
-    def __init__(self, dataset_path: Path, scale: float = 1.0, enable_augmentation: bool = True):
+    def __init__(self, dataset_path: Path, scale: float = 1.0,
+                 enable_augmentation: bool = True, add_mask_for_nans: bool = True):
         self.dataset_interface = DatasetInterface(dataset_path)
         self.enable_augmentation = enable_augmentation
+        self.add_mask_for_nans = add_mask_for_nans
 
         assert 0 < scale <= 1, 'Scale must be between 0 and 1'
         self.scale = scale
@@ -71,8 +74,8 @@ class BasicDataset(Dataset):
     def augment(self, rs_rgb, rs_depth, zv_depth):
         depths = np.concatenate((rs_depth, zv_depth), axis=2)
 
-        heatmaps = HeatmapsOnImage(depths, min_value=np.min(depths),
-                                   max_value=np.max(depths),
+        heatmaps = HeatmapsOnImage(depths, min_value=np.nanmin(depths),
+                                   max_value=np.nanmax(depths),
                                    shape=rs_rgb.shape)
 
         augmented = self.seq(image=rs_rgb, heatmaps=heatmaps)
@@ -82,47 +85,54 @@ class BasicDataset(Dataset):
         aug_rs_depth = aug_heatmaps[..., 0]
         aug_zv_depth = aug_heatmaps[..., 1]
 
+        aug_rs_depth = np.expand_dims(aug_rs_depth, axis=2)
+        aug_zv_depth = np.expand_dims(aug_zv_depth, axis=2)
+
         return aug_rs_rgb, aug_rs_depth, aug_zv_depth
 
     @classmethod
     def resize(cls, img: np.array, scale: float):
+        assert len(img.shape) == 3, "image must have 3 dims for before resizing"
         h, w = img.shape[:2]
         newW, newH = int(scale * w), int(scale * h)
 
         assert newW > 0 and newH > 0, 'Scale is too small, resized images would have no pixel'
-        return cv2.resize(img, (newW, newH), cv2.INTER_LINEAR)
+
+        resized_img = cv2.resize(img, (newW, newH), cv2.INTER_LINEAR)
+
+        if len(resized_img.shape) == 2:
+            resized_img = np.expand_dims(resized_img, axis=2)
+
+        return resized_img
 
     @classmethod
     def preprocess(cls, img: np.array, scale: float):
-        # scale images
-        # pil_img = pil_img.resize((newW, newH), resample=Image.BICUBIC)
         img_ndarray = cls.resize(img, scale)
-
-        # normalize images
-        if len(img_ndarray.shape) == 2:
-            img_ndarray = np.expand_dims(img_ndarray, axis=2)
-
         img_ndarray = img_ndarray.transpose((2, 0, 1))  # move WxHxC -> CxWxH
-        # img_ndarray = img_ndarray / 255                 # [0, 255] -> [0, 1]
         return img_ndarray
 
     @classmethod
-    def preprocess_set(cls, rs_rgb, rs_depth, zv_depth, scale):
-        rs_depth = np.expand_dims(rs_depth.astype(np.float32), axis=2)
-        zv_depth = np.expand_dims(zv_depth, axis=2)
-
+    def preprocess_set(cls, rs_rgb, rs_depth, zv_depth, scale, add_mask_for_nans):
         assert rs_rgb.shape[:2] == zv_depth.shape[:2], \
             f'Image and mask should be the same size, but are {rs_rgb.shape[:2]} and {zv_depth[:2]}'
 
-        # map nan to numbers
-        rs_depth = np.nan_to_num(rs_depth)
-        zv_depth = np.nan_to_num(zv_depth)
-
         processed_rs_rgb = cls.preprocess(rs_rgb, scale)
         processed_rs_depth = cls.preprocess(rs_depth, scale)
+        processed_zv_depth = cls.preprocess(zv_depth, scale)
 
-        input = np.concatenate((processed_rs_rgb / 255, processed_rs_depth), axis=0)
-        label = cls.preprocess(zv_depth, scale)
+        # normalize
+        processed_rs_rgb = processed_rs_rgb.astype(np.float32) / 255
+
+        # map nan to 0 and add mask to inform net about
+        processed_rs_depth = np.nan_to_num(processed_rs_depth)
+        processed_zv_depth = np.nan_to_num(processed_zv_depth)
+        if add_mask_for_nans:
+            nan_mask = np.where(processed_rs_depth == np.nan, 1, 0)
+            input = np.concatenate((processed_rs_rgb, processed_rs_depth, nan_mask), axis=0)
+        else:
+            input = np.concatenate((processed_rs_rgb, processed_rs_depth), axis=0)
+
+        label = processed_zv_depth
 
         return {
             'image': torch.as_tensor(input.copy()).float().contiguous(),
@@ -132,7 +142,12 @@ class BasicDataset(Dataset):
     def __getitem__(self, idx):
         rs_rgb, rs_depth, _, zv_depth = self.dataset_interface[idx]
 
+        # expand depth to 3 dims
+        rs_depth = np.expand_dims(rs_depth, axis=2)
+        zv_depth = np.expand_dims(zv_depth, axis=2)
+
         if self.enable_augmentation:
             rs_rgb, rs_depth, zv_depth = self.augment(rs_rgb, rs_depth, zv_depth)
 
-        return self.preprocess_set(rs_rgb, rs_depth, zv_depth, self.scale)
+        return self.preprocess_set(rs_rgb, rs_depth, zv_depth,
+                                   self.scale, self.add_mask_for_nans)
