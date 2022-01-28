@@ -196,8 +196,8 @@ class OutOfFoldTrainer:
                     true_masks = true_masks.to(device=self.device, dtype=torch.float32)
 
                     with torch.cuda.amp.autocast(enabled=amp):
-                        masks_pred = net(images)
-                        loss = criterion(masks_pred, true_masks)
+                        pred_masks = net(images)
+                        loss = criterion(pred_masks, true_masks)
 
                     optimizer.zero_grad(set_to_none=True)
                     grad_scaler.scale(loss).backward()
@@ -234,16 +234,20 @@ class OutOfFoldTrainer:
                                 histograms['Gradients/' +
                                            tag] = wandb.Histogram(value.grad.data.cpu())
 
+                            vis_image = images[0].cpu().detach().numpy().transpose((1, 2, 0))
+                            vis_true_mask = true_masks[0].float().cpu().detach().numpy()
+                            vis_pred_mask = pred_masks[0].float().cpu().detach().numpy()
+
                             experiment.log({
                                 'learning rate': optimizer.param_groups[0]['lr'],
                                 'validation loss': val_loss,
                                 'input': {
-                                    'rgb': wandb.Image(to_rgb(np.transpose(np.asarray(images[0, :3].cpu()), axes=(1, 2, 0)))),
-                                    'depth': wandb.Image(visualize_depth(images[0, 3].cpu()))
+                                    'rgb': wandb.Image(to_rgb(vis_image[..., :3])),
+                                    'depth': wandb.Image(visualize_depth(vis_image[..., 3]))
                                 },
                                 'masks': {
-                                    'true': wandb.Image(visualize_depth(true_masks[0].float().cpu())),
-                                    'pred': wandb.Image(visualize_depth(masks_pred[0].float().cpu())),
+                                    'true': wandb.Image(visualize_depth(vis_true_mask)),
+                                    'pred': wandb.Image(visualize_depth(vis_pred_mask)),
                                 },
                                 'step': global_step,
                                 'epoch': epoch,
