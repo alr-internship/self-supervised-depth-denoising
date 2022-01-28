@@ -73,7 +73,7 @@ class BasicDataset(Dataset):
         return len(self.dataset_interface)
 
     def augment(self, rs_rgb, rs_depth, zv_depth):
-        depths = np.concatenate((rs_depth, zv_depth), axis=2)
+        depths = np.concatenate((rs_depth[..., None], zv_depth[..., None]), axis=2)
 
         heatmaps = HeatmapsOnImage(depths, min_value=np.nanmin(depths),
                                    max_value=np.nanmax(depths),
@@ -81,7 +81,7 @@ class BasicDataset(Dataset):
 
         # augmentation adds some random padding to depth maps
         # this segmap sets this padding to NaN again
-        segmaps = np.ones((rs_rgb.shape[:2]))
+        segmaps = np.ones((rs_rgb.shape[:2]), dtype=np.uint8)
         segmaps = SegmentationMapsOnImage(segmaps, shape=rs_rgb.shape[:2])
 
         augmented = self.seq(image=rs_rgb, heatmaps=heatmaps,
@@ -94,14 +94,10 @@ class BasicDataset(Dataset):
         aug_rs_depth = np.where(aug_segmaps, np.nan, aug_heatmaps[..., 0])
         aug_zv_depth = np.where(aug_segmaps, np.nan, aug_heatmaps[..., 1])
 
-        aug_rs_depth = np.expand_dims(aug_rs_depth, axis=2)
-        aug_zv_depth = np.expand_dims(aug_zv_depth, axis=2)
-
         return aug_rs_rgb, aug_rs_depth, aug_zv_depth
 
     @classmethod
     def resize(cls, img: np.array, scale: float):
-        assert len(img.shape) == 3, "image must have 3 dims for before resizing"
         h, w = img.shape[:2]
         newW, newH = int(scale * w), int(scale * h)
 
@@ -109,21 +105,22 @@ class BasicDataset(Dataset):
 
         resized_img = cv2.resize(img, (newW, newH), cv2.INTER_LINEAR)
 
-        if len(resized_img.shape) == 2:
-            resized_img = np.expand_dims(resized_img, axis=2)
-
         return resized_img
 
     @classmethod
     def preprocess(cls, img: np.array, scale: float):
         img_ndarray = cls.resize(img, scale)
-        img_ndarray = img_ndarray.transpose((2, 0, 1))  # move WxHxC -> CxWxH
-        return img_ndarray
+        if len(img_ndarray.shape) == 2: # expand dim on depth maps
+            img_ndarray = img_ndarray[..., None]
+        return img_ndarray.transpose((2, 0, 1))  # move WxHxC -> CxWxH
 
     @classmethod
     def preprocess_set(cls, rs_rgb, rs_depth, zv_depth, scale, add_mask_for_nans):
         assert rs_rgb.shape[:2] == zv_depth.shape[:2], \
             f'Image and mask should be the same size, but are {rs_rgb.shape[:2]} and {zv_depth[:2]}'
+
+        rs_depth = rs_depth[..., None]
+        zv_depth = zv_depth[..., None]
 
         processed_rs_rgb = cls.preprocess(rs_rgb, scale)
         processed_rs_depth = cls.preprocess(rs_depth, scale)
@@ -133,12 +130,14 @@ class BasicDataset(Dataset):
         processed_rs_rgb = processed_rs_rgb.astype(np.float32) / 255
 
         # map nan to 0 and add mask to inform net about
-        processed_rs_depth = np.nan_to_num(processed_rs_depth)
-        processed_zv_depth = np.nan_to_num(processed_zv_depth)
         if add_mask_for_nans:
-            nan_mask = np.where(processed_rs_depth == np.nan, 1, 0)
+            nan_mask = np.logical_not(np.isnan(processed_rs_depth))
+            processed_rs_depth = np.nan_to_num(processed_rs_depth)
+            processed_zv_depth = np.nan_to_num(processed_zv_depth)
             input = np.concatenate((processed_rs_rgb, processed_rs_depth, nan_mask), axis=0)
         else:
+            processed_rs_depth = np.nan_to_num(processed_rs_depth)
+            processed_zv_depth = np.nan_to_num(processed_zv_depth)
             input = np.concatenate((processed_rs_rgb, processed_rs_depth), axis=0)
 
         label = processed_zv_depth
@@ -148,12 +147,21 @@ class BasicDataset(Dataset):
             'mask': torch.as_tensor(label.copy()).float().contiguous()
         }
 
+    @classmethod
+    def crop_region(cls, rs_rgb, rs_depth, zv_depth):
+        mask = np.zeros((rs_rgb.shape[:2]), dtype=np.uint8)
+        mask[:, 500:1600] = 1
+
+        rs_rgb = rs_rgb * mask[..., None]
+        rs_depth = np.where(mask, rs_depth, np.nan)
+        zv_depth = np.where(mask, zv_depth, np.nan)
+
+        return rs_rgb, rs_depth, zv_depth
+
     def __getitem__(self, idx):
         rs_rgb, rs_depth, _, zv_depth = self.dataset_interface[idx]
 
-        # expand depth to 3 dims
-        rs_depth = np.expand_dims(rs_depth, axis=2)
-        zv_depth = np.expand_dims(zv_depth, axis=2)
+        rs_rgb, rs_depth, zv_depth = self.crop_region(rs_rgb, rs_depth, zv_depth)
 
         if self.enable_augmentation:
             rs_rgb, rs_depth, zv_depth = self.augment(rs_rgb, rs_depth, zv_depth)
