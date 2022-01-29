@@ -173,7 +173,7 @@ class OutOfFoldTrainer:
         val_loader = DataLoader(
             val_set,
             shuffle=False,
-            drop_last=True,
+#             drop_last=True,
             **loader_args
         )
 
@@ -240,7 +240,6 @@ class OutOfFoldTrainer:
                     division_step = (n_train // (10 * batch_size))
                     if division_step == 0 or global_step % division_step == 0:
                         val_loss = self.evaluate(net, val_loader, self.device)
-                        print(val_loss)
                         scheduler.step(val_loss)
 
                         logging.info('Validation Loss: {}'.format(val_loss))
@@ -276,8 +275,6 @@ class OutOfFoldTrainer:
                                 'epoch': epoch,
                                 **histograms
                             }
-
-                            print(experiment_log)
 
                             if self.add_mask_for_nans:
                                 experiment_log['input']['mask'] = wandb.Image(visualize_mask(vis_image[..., 4]))
