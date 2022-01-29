@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 from cgitb import enable
 from colorsys import rgb_to_yiq
+from concurrent.futures import process
 from distutils.util import strtobool
 import logging
 from pathlib import Path
@@ -124,6 +125,11 @@ class OutOfFoldTrainer:
             dir_checkpoint = dir_checkpoint\
                 / f"{net.name}" / f"bs{batch_size}_aug{self.enable_augmentation}_nanmask{self.add_mask_for_nans}_sc{self.scale}"
 
+
+        division_step = (200 // batch_size)
+        n_train = len(train_set)
+        n_val = len(val_set)
+
         # (Initialize logging)
         if activate_wandb:
             experiment = wandb.init(project=net.name, resume='allow',
@@ -137,27 +143,29 @@ class OutOfFoldTrainer:
                     img_scale=self.scale,
                     enable_augmentation=self.enable_augmentation,
                     add_mask_for_nans=self.add_mask_for_nans,
-                    amp=amp)
+                    amp=amp,
+                    training_size=n_train,
+                    validation_size=n_val,
+                    evaluation_interval=division_step
+                    )
             )
 
         net = nn.DataParallel(net)
         net.to(self.device)
 
-        n_train = len(train_set)
-        n_val = len(val_set)
-
         logging.info(f'''Starting training:
-            Epochs:          {epochs}
-            Batch size:      {batch_size}
-            Learning rate:   {learning_rate}
-            Training size:   {n_train}
-            Validation size: {n_val}
-            Checkpoints:     {save_checkpoint}
-            Device:          {self.device.type}
-            Images scaling:  {self.scale}
-            Augmentation:    {self.enable_augmentation}
-            NaNs Mask:       {self.add_mask_for_nans}
-            Mixed Precision: {amp}
+            Epochs:              {epochs}
+            Batch size:          {batch_size}
+            Learning rate:       {learning_rate}
+            Training size:       {n_train}
+            Validation size:     {n_val}
+            Validation Interval (in batches): {division_step}
+            Checkpoints:         {save_checkpoint}
+            Device:              {self.device.type}
+            Images scaling:      {self.scale}
+            Augmentation:        {self.enable_augmentation}
+            NaNs Mask:           {self.add_mask_for_nans}
+            Mixed Precision:     {amp}
             ''')
 
         loader_args = dict(
@@ -173,7 +181,7 @@ class OutOfFoldTrainer:
         val_loader = DataLoader(
             val_set,
             shuffle=False,
-#             drop_last=True,
+            #             drop_last=True,
             **loader_args
         )
 
@@ -237,8 +245,7 @@ class OutOfFoldTrainer:
                     pbar.set_postfix(**{'loss (batch)': loss.item()})
 
                     # Evaluation round
-                    division_step = (n_train // (10 * batch_size))
-                    if division_step == 0 or global_step % division_step == 0:
+                    if global_step % division_step == 0:
                         val_loss = self.evaluate(net, val_loader, self.device)
                         scheduler.step(val_loss)
 
@@ -254,7 +261,7 @@ class OutOfFoldTrainer:
                                            tag] = wandb.Histogram(value.grad.data.cpu())
 
                             # visualization images
-                            # multiply prediction mask with nan mask to remove pixels where nans are 
+                            # multiply prediction mask with nan mask to remove pixels where nans are
                             # in the input or target
                             vis_image = images[0].cpu().detach().numpy().transpose((1, 2, 0))
                             vis_true_mask = label[0, 0].float().cpu().detach().numpy()
