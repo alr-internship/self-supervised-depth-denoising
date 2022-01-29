@@ -205,10 +205,10 @@ class OutOfFoldTrainer:
                     label = batch['label']
                     nan_mask = batch['nan-mask']
 
-                    assert images.shape[1] == net.n_channels, \
-                        f'Network has been defined with {net.n_channels} input channels, ' \
-                        f'but loaded images have {images.shape[1]} channels. Please check that ' \
-                        'the images are loaded correctly.'
+                    # assert images.shape[1] == net.n_channels, \
+                    #     f'Network has been defined with {net.n_channels} input channels, ' \
+                    #     f'but loaded images have {images.shape[1]} channels. Please check that ' \
+                    #     'the images are loaded correctly.'
 
                     images = images.to(device=self.device, dtype=torch.float32)
                     label = label.to(device=self.device, dtype=torch.float32)
