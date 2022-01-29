@@ -83,6 +83,8 @@ class OutOfFoldTrainer:
     ):
         net.eval()
         num_val_batches = len(dataloader)
+        assert num_val_batches != 0, "at least one batch must be selected for evaluation"
+
         criterion = nn.L1Loss()
         loss = 0
 
@@ -102,10 +104,6 @@ class OutOfFoldTrainer:
                 loss += torch.mean(torch.abs(predictions - labels) * nan_mask)
 
         net.train()
-
-        # Fixes a potential division by zero error
-        if num_val_batches == 0:
-            return loss
 
         return loss / num_val_batches
 
@@ -242,6 +240,7 @@ class OutOfFoldTrainer:
                     division_step = (n_train // (10 * batch_size))
                     if division_step == 0 or global_step % division_step == 0:
                         val_loss = self.evaluate(net, val_loader, self.device)
+                        print(val_loss)
                         scheduler.step(val_loss)
 
                         logging.info('Validation Loss: {}'.format(val_loss))
@@ -277,6 +276,8 @@ class OutOfFoldTrainer:
                                 'epoch': epoch,
                                 **histograms
                             }
+
+                            print(experiment_log)
 
                             if self.add_mask_for_nans:
                                 experiment_log['input']['mask'] = wandb.Image(visualize_mask(vis_image[..., 4]))
