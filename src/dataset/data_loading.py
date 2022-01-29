@@ -133,7 +133,7 @@ class BasicDataset(Dataset):
         # map nan to 0 and add mask to inform net about them
         rs_nan_mask = np.logical_not(np.isnan(processed_rs_depth))
         zv_nan_mask = np.logical_not(np.isnan(processed_zv_depth))
-        nan_mask = np.logical_or(rs_nan_mask, zv_nan_mask)
+        nan_mask = np.logical_and(rs_nan_mask, zv_nan_mask)
         processed_rs_depth = np.nan_to_num(processed_rs_depth)
         processed_zv_depth = np.nan_to_num(processed_zv_depth)
 

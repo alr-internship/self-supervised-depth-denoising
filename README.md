@@ -172,3 +172,4 @@ TODOs
     Applies augmentation to dataset, when the enable_augmentation flag is active.
     Augmentations are chosen randomly from a set of common ones.
     Package used is imgaug
+- [ ] Net can output negative values

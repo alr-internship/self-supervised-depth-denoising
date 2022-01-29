@@ -142,6 +142,7 @@ class OutOfFoldTrainer:
                     amp=amp)
             )
 
+        net = nn.DataParallel(net)
         net.to(self.device)
 
         n_train = len(train_set)
