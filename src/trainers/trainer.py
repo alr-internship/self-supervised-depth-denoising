@@ -5,6 +5,7 @@ from concurrent.futures import process
 from distutils.util import strtobool
 import logging
 from pathlib import Path
+import time
 import numpy as np
 import torch
 import torch.nn as nn
@@ -123,7 +124,7 @@ class OutOfFoldTrainer:
     ):
         if save_checkpoint:
             dir_checkpoint = dir_checkpoint\
-                / f"{net.name}" / f"bs{batch_size}_aug{self.enable_augmentation}_nanmask{self.add_mask_for_nans}_sc{self.scale}"
+                / f"{net.name}" / f"bs{batch_size}_aug{self.enable_augmentation}_nanmask{self.add_mask_for_nans}_sc{self.scale}_{id(time.time())}"
 
 
         division_step = (200 // batch_size)
@@ -237,9 +238,10 @@ class OutOfFoldTrainer:
 
                     if activate_wandb:
                         experiment.log({
-                            'train loss': loss.item(),
                             'step': global_step,
-                            'epoch': epoch
+                            'epoch': epoch,
+                            'train loss': loss.item(),
+                            'learning rate': optimizer.param_groups[0]['lr'],
                         })
 
                     pbar.set_postfix(**{'loss (batch)': loss.item()})
@@ -268,7 +270,8 @@ class OutOfFoldTrainer:
                             vis_pred_mask = (prediction * nan_mask)[0, 0].float().cpu().detach().numpy()
 
                             experiment_log = {
-                                'learning rate': optimizer.param_groups[0]['lr'],
+                                'step': global_step,
+                                'epoch': epoch,
                                 'validation loss': val_loss,
                                 'input': {
                                     'rgb': wandb.Image(to_rgb(vis_image[..., :3])),
@@ -278,8 +281,6 @@ class OutOfFoldTrainer:
                                     'true': wandb.Image(visualize_depth(vis_true_mask)),
                                     'pred': wandb.Image(visualize_depth(vis_pred_mask)),
                                 },
-                                'step': global_step,
-                                'epoch': epoch,
                                 **histograms
                             }
 
