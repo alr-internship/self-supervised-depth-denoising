@@ -240,7 +240,7 @@ class OutOfFoldTrainer:
 
                     # Evaluation round
                     division_step = (n_train // (10 * batch_size))
-                    if division_step > 0 and global_step % division_step == 0:
+                    if division_step == 0 or global_step % division_step == 0:
                         val_loss = self.evaluate(net, val_loader, self.device)
                         scheduler.step(val_loss)
 
