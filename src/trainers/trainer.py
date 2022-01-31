@@ -122,9 +122,10 @@ class OutOfFoldTrainer:
         amp: bool,
         activate_wandb: bool,
     ):
+        train_id = id(time.time())
         if save_checkpoint:
             dir_checkpoint = dir_checkpoint\
-                / f"{net.name}" / f"bs{batch_size}_aug{self.enable_augmentation}_nanmask{self.add_mask_for_nans}_sc{self.scale}_{id(time.time())}"
+                / f"{net.name}" / f"bs{batch_size}_aug{self.enable_augmentation}_nanmask{self.add_mask_for_nans}_sc{self.scale}_{train_id}"
 
 
         division_step = (200 // batch_size)
@@ -144,6 +145,7 @@ class OutOfFoldTrainer:
                     img_scale=self.scale,
                     enable_augmentation=self.enable_augmentation,
                     add_mask_for_nans=self.add_mask_for_nans,
+                    train_id=train_id,
                     amp=amp,
                     training_size=n_train,
                     validation_size=n_val,
