@@ -168,6 +168,10 @@ TODOs
 
 - [ ] normalize dataset
 - [ ] mask data
+    Methods:
+        - Plane segmentation
+        - Region Growing
+        - Mask-RCNN trained on YCB Video Dataset
 - [X] apply augmentation to dataset
     Applies augmentation to dataset, when the enable_augmentation flag is active.
     Augmentations are chosen randomly from a set of common ones.

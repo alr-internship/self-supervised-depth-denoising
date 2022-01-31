@@ -9,7 +9,6 @@ from pathlib import Path
 import open3d as o3d
 import numpy as np
 import cv2
-from matplotlib import pyplot as plt, transforms
 import copy
 
 from utils.visualization_utils import to_bgr, to_rgb
@@ -33,7 +32,14 @@ trans_init = np.array(
         [0.05824564, -0.02915292, 0.99787652, -0.03608739],
         [0., 0., 0., 1.]]
 )
+# trans_init_charuco = np.array(
+#     [[0.99912644, -0.00259379, -0.04170882,  0.17370972],
+#      [0.00228578, 0.99996978, -0.00743066,  0.02393987],
+#      [0.04172684, 0.00732883,  0.99910218, -0.04262905],
+#      [0., 0.,  0.,  1.]]
+# )
 final_size = (1920, 1080)
+
 
 def imgs_to_pcd(bgr, depth, ci):
     rgb = to_rgb(bgr)
@@ -182,9 +188,9 @@ def align(rs_rgb, rs_depth, zv_rgb, zv_depth):
     rs_pcd = imgs_to_pcd(rs_rgb, rs_depth, rs_ci)
     zv_pcd = imgs_to_pcd(zv_rgb, zv_depth, zv_ci)
 
+    # trans_init = compute_initial_transformation_matrix(zv_pcd, rs_pcd)
     zv_pcd.transform(trans_init)
-
-    # o3d.visualization.draw_geometries([zv_pcd, rs_pcd])
+    o3d.visualization.draw_geometries([zv_pcd, rs_pcd])
 
     zv_rgb, zv_depth, zv_ul_corner, zv_lr_corner = pcd_to_imgs(zv_pcd, rs_ci)
     rs_rgb, rs_depth, rs_ul_corner, rs_lr_corner = pcd_to_imgs(rs_pcd, rs_ci)
@@ -204,11 +210,11 @@ def align(rs_rgb, rs_depth, zv_rgb, zv_depth):
 
     print(zv_rgb.shape)
 
-    return  rs_rgb, rs_depth, zv_rgb, zv_depth
+    return rs_rgb, rs_depth, zv_rgb, zv_depth
 
 
 def main():
-    uncal_dir = Path("resources/images/uncalibrated")
+    uncal_dir = Path("resources/images/old/c_dataset_h_1")
     dataset_interface = DatasetInterface(uncal_dir)
     cal_dir = Path("resources/images/calibrated/3d_aligned")
     aligned_dataset_interface = DatasetInterface(cal_dir)
@@ -216,7 +222,7 @@ def main():
     for idx, image_tuple in tqdm(enumerate(dataset_interface)):
         aligned_image_tuple = align(*image_tuple)
         rel_dir_path = dataset_interface.data_file_paths[idx].relative_to(uncal_dir)
-        aligned_dataset_interface.append_and_save(*aligned_image_tuple, rel_dir_path)
+        # aligned_dataset_interface.append_and_save(*aligned_image_tuple, rel_dir_path)
 
 
 if __name__ == "__main__":
