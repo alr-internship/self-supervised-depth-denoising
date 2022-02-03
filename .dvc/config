@@ -3,4 +3,4 @@
 [cache]
     type = "hardlink,symlink"
 ['remote "server"']
-    url = ssh://claudiuskienle@gitlab-ssh.vincentcui.de:9022/var/opt/dvc/
+    url = ssh://claudiuskienle@gitlab-ssh.vincentcui.de:9022/var/opt/dvc/self-supervised-depth-denoising
