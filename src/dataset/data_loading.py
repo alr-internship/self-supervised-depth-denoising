@@ -145,8 +145,8 @@ class BasicDataset(Dataset):
         label = processed_zv_depth
 
         # normalize
-        input = (input - np.mean(input, axis=(1, 2))[:, None, None]) / np.std(input, axis=(1, 2))[:, None, None]
-        label = (label - np.mean(label, axis=(1, 2))[:, None, None]) / np.std(label, axis=(1, 2))[:, None, None]
+        # input = (input - np.mean(input, axis=(1, 2))[:, None, None]) / np.std(input, axis=(1, 2))[:, None, None]
+        # label = (label - np.mean(label, axis=(1, 2))[:, None, None]) / np.std(label, axis=(1, 2))[:, None, None]
 
         return {
             'image': torch.as_tensor(input.copy()).float().contiguous(),
