@@ -24,7 +24,7 @@ class OutOfFoldTrainer:
 
     @staticmethod
     def get_oof_dataset(dataset_path: Path, oof_p: float, scale: float, enable_augmentation: bool, add_mask_for_nans: bool):
-        dataset = BasicDataset(Path(dataset_path), scale, enable_augmentation, add_mask_for_nans)
+        dataset = BasicDataset(dataset_path, scale, enable_augmentation, add_mask_for_nans)
         lens = np.floor([len(dataset) * oof_p for _ in range(3)]).astype(np.int32)
         lens[-1] += len(dataset) - lens[-1] // oof_p
         assert(sum(lens) == len(dataset))
@@ -374,7 +374,7 @@ if __name__ == '__main__':
     parser.add_argument("--save", type=lambda x: bool(strtobool(x)), nargs='?',
                         const=True, default=True)   # save trained model
     parser.add_argument("--dataset_path", type=Path, default=file_dir / "../../resources/images/calibrated/3d_aligned")
-    parser.add_argument("--dir_checkpoint", type=Path, default=file_dir / "../../resources/networks")
+    parser.add_argument("--dir_checkpoint", type=Path, default=file_dir / "../../resources/models")
     parser.add_argument("--bilinear", type=lambda x: bool(strtobool(x)), nargs='?',
                         const=True, default=True)      # unet using bilinear
     parser.add_argument("--amp", type=lambda x: bool(strtobool(x)), nargs='?',

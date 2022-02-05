@@ -168,7 +168,7 @@ def align_uncropped(rs_rgb, rs_depth, zv_rgb, zv_depth):
     assert zv_rgb.shape == rs_rgb.shape and zv_depth.shape == rs_depth.shape
 
     # mask out not overlapping area
-    rs_mask = np.zeros(rs_rgb.shape, dtype=np.uint8)
+    rs_mask = np.zeros(rs_depth.shape, dtype=np.uint8)
     rs_mask[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]] = 1
 
     rs_rgb = rs_rgb * rs_mask
@@ -184,7 +184,7 @@ def align_uncropped(rs_rgb, rs_depth, zv_rgb, zv_depth):
 
 def main():
     uncal_dir = Path("resources/images/uncalibrated")
-    cal_dir = Path("resources/images/calibrated/3d_aligned_improved")
+    cal_dir = Path("resources/images/calibrated/3d_aligned_not_cropped")
     cropped = False
 
     dataset_interface = DatasetInterface(uncal_dir)
