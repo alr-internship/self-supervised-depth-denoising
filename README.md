@@ -14,7 +14,6 @@ Setup
 
 The project consists of multiple stages, named:
 - dataset
-- preprocess
 - training
 - ...
 
