@@ -99,6 +99,11 @@ class BasicDataset(Dataset):
 
     @classmethod
     def resize(cls, img: np.array, scale: float):
+        if scale == 1:
+            return img
+
+        assert 0 < scale < 1, f"invalid scale {scale}"
+
         h, w = img.shape[:2]
         newW, newH = int(scale * w), int(scale * h)
 
