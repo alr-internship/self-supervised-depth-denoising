@@ -7,7 +7,7 @@
 #SBATCH --time=00:30:00
 #SBATCH --export=ALL,EXECUTABLE="python ../../../src/segmentation/mask_rcnn_segmentation.py resources/images/calibrated/3d_aligned_not_cropped resources/images/masked/3d_aligned_not_cropped"
 #SBATCH --output="mask_rcnn_segmentation.out"
-#SBATCH -J OpenMP_Test
+#SBATCH -J MaskData
 
 #Usually you should set
 export KMP_AFFINITY=compact,1,0

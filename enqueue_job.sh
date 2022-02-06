@@ -1,14 +1,13 @@
 #!/bin/bash
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=privat@claudiuskienle.de
-#SBATCH --partition=dev_gpu_4,gpu_4,gpu_8
+#SBATCH --partition=single,dev_single
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=40
-#SBATCH --time=0:30:00
-#SBATCH --gres=gpu:2
-#SBATCH --export=ALL,EXECUTABLE="python ../../../src/trainers/trainer.py --epochs=500 --batch_size=17 --save=True --dataset_path=../../../resources/images/calibrated/3d_aligned --dir_checkpoint=../../../resources/models/calibrated/3d_aligned_cropped"
-#SBATCH --output="dev_train_models_calibrated_cropped.out"
-#SBATCH -J TrainUNet
+#SBATCH --time=00:30:00
+#SBATCH --export=ALL,EXECUTABLE="dvc commit"
+#SBATCH --output="dvc_commit.out"
+#SBATCH -J OpenMP_Test
 
 #Usually you should set
 export KMP_AFFINITY=compact,1,0

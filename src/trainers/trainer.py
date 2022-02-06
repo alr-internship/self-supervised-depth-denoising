@@ -310,7 +310,7 @@ def main(args):
 
     oof = OutOfFoldTrainer(
         device=device,
-        dataset_path=Path(args.dataset_path),
+        dataset_path=args.dataset_path,
         scale=args.scale_images,
         enable_augmentation=args.enable_augmentation,
         add_mask_for_nans=args.add_mask_for_nans,
@@ -324,7 +324,7 @@ def main(args):
         learning_rate=args.learning_rate,
         save_checkpoint=args.save,
         amp=args.amp,
-        dir_checkpoint=Path(args.dir_checkpoint),
+        dir_checkpoint=args.dir_checkpoint,
         activate_wandb=args.wandb
     )
 

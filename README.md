@@ -158,21 +158,35 @@ TODOs
     Added new notebook that loads a given model and inferes a given dataset.
     The results get visualized
 
-- [ ] remove NaNs from RGB and depth images
+- [X] remove NaNs from RGB and depth images
     All NaN values get replaced with 0
     Idea: Add mask to tell net where mask values are located
-    Problem: Mask only for rs nans or also for zv nans?
-    Loss: The networks loss function sums up pixel loss, counting only the ones
-    where no NaN is present in the data
+    Problem: Mask only for rs nans or also for zv nans? -> Only for rs nans, as zv NaNs aren't avaliable for test time
+    Loss: The networks loss function sums up pixel loss, counting only the ones where no NaN is present in the data
 
-- [ ] normalize dataset
-- [ ] mask data
+- [X] normalize dataset
+    RGB data will be normalized to [0, 1],
+    Depth data will not be normalized
+
+- [X] mask data
     Methods:
         - Plane segmentation
+            Problem: rs plane is not even enough, parts of object get segmented as plane
         - Region Growing
-        - Mask-RCNN trained on YCB Video Dataset
+            Problem: hard to pick correct hyperparameters and thresholds (like color and adjance distance)
+        - **Mask-RCNN trained on YCB Video Dataset**
 - [X] apply augmentation to dataset
     Applies augmentation to dataset, when the enable_augmentation flag is active.
     Augmentations are chosen randomly from a set of common ones.
     Package used is imgaug
+
 - [ ] Net can output negative values
+- [ ] update net dtypes
+    Currently float is chosen for all input channels,
+    it would make sense to make atleast the mask uint 
+- [ ] evaluate mask rcnn on ycb with separate test set
+- [ ] train and evaluate net on
+    - [ ] calibrated, not cropped
+    - [ ] calibrated, cropped
+    - [ ] masked, not cropped
+    - [ ] masked, cropped

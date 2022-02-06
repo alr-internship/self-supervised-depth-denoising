@@ -7,9 +7,9 @@
 #SBATCH --time=24:00:00
 #SBATCH --mem=20000mb   
 #SBATCH --gres=gpu:2
-#SBATCH --export=ALL,EXECUTABLE="python ../../../src/trainers/trainer.py --epochs=500 --batch_size=17 --save=True --dataset_path=../../resources/images/masked/3d_aligned_not_cropped --dir_checkpoint=../../resources/models/masked/3d_aligned_not_cropped"
-#SBATCH --output="train_models_masked_not_cropped.out"
-#SBATCH -J OpenMP_Test
+#SBATCH --export=ALL,EXECUTABLE="python ../../../src/trainers/trainer.py --epochs=500 --batch_size=17 --save=True --dataset_path=../../../resources/images/calibrated/3d_aligned --dir_checkpoint=../../../resources/models/calibrated/3d_aligned_cropped"
+#SBATCH --output="train_models_calibrated_cropped.out"
+#SBATCH -J TrainUNet
 
 #Usually you should set
 export KMP_AFFINITY=compact,1,0
