@@ -358,23 +358,23 @@ if __name__ == '__main__':
 
     parser = ArgumentParser()
     parser.add_argument("--epochs", type=int, default=5)  # Number of epochs
-    parser.add_argument("--batch_size", type=int, default=1)  # Batch size
-    parser.add_argument("--learning_rate", type=float, default=0.00001)  # Learning rate
-    parser.add_argument("--load_from_model", type=str, default=None)  # Load model from a .pth file (path)
-    parser.add_argument("--scale_images", type=float, default=0.5)  # Downscaling factor of the images
-    parser.add_argument("--enable_augmentation", type=lambda x: bool(strtobool(x)), nargs='?',
+    parser.add_argument("--batch-size", type=int, default=1)  # Batch size
+    parser.add_argument("--learning-rate", type=float, default=0.00001)  # Learning rate
+    parser.add_argument("--load-from-model", type=str, default=None)  # Load model from a .pth file (path)
+    parser.add_argument("--scale-images", type=float, default=0.5)  # Downscaling factor of the images
+    parser.add_argument("--enable-augmentation", type=lambda x: bool(strtobool(x)), nargs='?',
                         const=True, default=True)  # enable image augmentation
-    parser.add_argument("--add_mask_for_nans", type=lambda x: bool(strtobool(x)), nargs='?',
+    parser.add_argument("--add-mask-for-nans", type=lambda x: bool(strtobool(x)), nargs='?',
                         const=True, default=True)
-    parser.add_argument("--validation_percentage", type=float, default=10.0)
+    parser.add_argument("--validation-percentage", type=float, default=10.0)
     # Percent of the data that is used as validation (0-100)
-    parser.add_argument("--oof_p", type=float, default=1/3)  # length of each P for OOF training)
+    parser.add_argument("--oof-p", type=float, default=1/3)  # length of each P for OOF training)
     parser.add_argument("--wandb", type=lambda x: bool(strtobool(x)), nargs='?', const=True,
                         default=True)  # toggle the usage of wandb for logging purposes
     parser.add_argument("--save", type=lambda x: bool(strtobool(x)), nargs='?',
                         const=True, default=True)   # save trained model
-    parser.add_argument("--dataset_path", type=Path, default=file_dir / "../../resources/images/calibrated/3d_aligned")
-    parser.add_argument("--dir_checkpoint", type=Path, default=file_dir / "../../resources/models")
+    parser.add_argument("--dataset-path", type=Path, default=file_dir / "../../resources/images/calibrated/3d_aligned")
+    parser.add_argument("--dir-checkpoint", type=Path, default=file_dir / "../../resources/models")
     parser.add_argument("--bilinear", type=lambda x: bool(strtobool(x)), nargs='?',
                         const=True, default=True)      # unet using bilinear
     parser.add_argument("--amp", type=lambda x: bool(strtobool(x)), nargs='?',
