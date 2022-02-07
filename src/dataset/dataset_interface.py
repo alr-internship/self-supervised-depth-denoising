@@ -1,3 +1,4 @@
+import json
 import numpy as np
 from pathlib import Path
 import time
@@ -5,19 +6,40 @@ import time
 
 class DatasetInterface:
 
-    def __init__(self, dir_path: Path, recursive: bool = True):
-        if not dir_path.exists():
-            dir_path.mkdir(parents=True)
+    def __init__(self, path: Path, recursive: bool = True):
+        """creates dataset interface
+        
+        Arguments
+        -----
+        path: Path
+            can be either a path to a JSON file or a path to a directory.
+            If a path to a JSON file is passed,
+            the files stored in JSON will be loaded
+            If a path to a directory is given,
+            the .npz files in the directory will be loaded
 
-        assert dir_path.is_dir()
-        self.dir_path = dir_path
+        """
+        if not path.exists():
+            path.mkdir(parents=True)
+        
+        if path.is_file():
+            with open(path.as_posix(), 'r') as f:
+                data = json.load(f)
+            self.dir_path = Path(data['base_path'])
+            self.data_file_paths = [
+                self.dir_path / file 
+                for file in data['files']
+            ]
 
-        if recursive:
-            self.data_file_paths = list(dir_path.glob("**/*.npz"))
         else:
-            self.data_file_paths = list(dir_path.glob("*.npz"))
+            self.dir_path = path
 
-        self.data_file_paths = sorted(self.data_file_paths)
+            if recursive:
+                self.data_file_paths = list(path.glob("**/*.npz"))
+            else:
+                self.data_file_paths = list(path.glob("*.npz"))
+
+            self.data_file_paths = sorted(self.data_file_paths)
 
     def __getitem__(self, arg):
         items_to_get = self.data_file_paths[arg]

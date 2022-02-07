@@ -9,6 +9,7 @@ import math
 from os import listdir
 from os.path import splitext
 from pathlib import Path
+from typing import List
 
 from imgaug import augmenters as iaa
 from imgaug import HeatmapsOnImage

@@ -181,7 +181,9 @@ TODOs
     it would make sense to make atleast the mask uint 
 - [ ] train mask rcnn on new dataset (separate test set)
 - [ ] evaluate mask rcnn on ycb with separate test set
-- [ ] add eval code for UNet
+- [ ] JSON for test,train,val set separation
+    DatasetInterface should be able to work with that
+- [X] add eval code for UNet
 - [ ] train and evaluate UNet on
     All nets should have augmentation deactivated
     - [ ] calibrated, not cropped
