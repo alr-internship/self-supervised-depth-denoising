@@ -148,6 +148,7 @@ def align_uncropped(rs_rgb, rs_depth, zv_rgb, zv_depth):
     zv_pcd = imgs_to_pcd(zv_rgb, zv_depth, zv_ci)
 
     # trans_init = compute_initial_transformation_matrix(zv_pcd, rs_pcd)
+    # o3d.visualization.draw_geometries([zv_pcd, rs_pcd])
     zv_pcd.transform(trans_init)
     # o3d.visualization.draw_geometries([zv_pcd, rs_pcd])
 

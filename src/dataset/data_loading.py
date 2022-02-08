@@ -2,12 +2,7 @@
 Reference: https://github.com/milesial/Pytorch-UNet
 """
 
-from audioop import add
-import imghdr
 import logging
-import math
-from os import listdir
-from os.path import splitext
 from pathlib import Path
 from typing import List
 
@@ -18,18 +13,23 @@ from imgaug.augmentables.segmaps import SegmentationMapsOnImage
 import numpy as np
 import torch
 import cv2
-from torch.utils import data
 from torch.utils.data import Dataset
 
 from dataset.dataset_interface import DatasetInterface
 
 
 class BasicDataset(Dataset):
-    def __init__(self, dataset_path: Path, scale: float = 1.0,
-                 enable_augmentation: bool = True, add_mask_for_nans: bool = True):
+    def __init__(
+            self, 
+            dataset_path: Path, 
+            scale: float = 1.0,
+            enable_augmentation: bool = True, 
+            add_mask_for_nans: bool = True,
+            crop_region: bool = False):
         self.dataset_interface = DatasetInterface(dataset_path)
         self.enable_augmentation = enable_augmentation
         self.add_mask_for_nans = add_mask_for_nans
+        self.crop_region = crop_region
 
         assert 0 < scale <= 1, 'Scale must be between 0 and 1'
         self.scale = scale
@@ -82,21 +82,20 @@ class BasicDataset(Dataset):
 
         # augmentation adds some random padding to depth maps
         # this segmap sets this padding to NaN again
-        nan_segmap = crop_region_mask
-        segmaps = SegmentationMapsOnImage(nan_segmap, shape=rs_rgb.shape[:2])
+        segmap = crop_region_mask
+        segmaps = SegmentationMapsOnImage(segmap, shape=rs_rgb.shape[:2])
 
         augmented = self.seq(image=rs_rgb, heatmaps=heatmaps,
                              segmentation_maps=segmaps)
 
         aug_rs_rgb = augmented[0]
         aug_heatmaps = augmented[1].get_arr()
-        aug_nan_segmap = augmented[2].get_arr()
+        aug_segmap = augmented[2].get_arr()
 
-        aug_rs_rgb = aug_rs_rgb * aug_nan_segmap[..., None]
-        aug_rs_depth = np.where(aug_nan_segmap, aug_heatmaps[..., 0], np.nan)
-        aug_zv_depth = np.where(aug_nan_segmap, aug_heatmaps[..., 1], np.nan)
+        aug_rs_depth = aug_heatmaps[..., 0]
+        aug_zv_depth = aug_heatmaps[..., 1]
 
-        return aug_rs_rgb, aug_rs_depth, aug_zv_depth
+        return aug_rs_rgb, aug_rs_depth, aug_zv_depth, aug_segmap
 
     @classmethod
     def resize(cls, img: np.array, scale: float):
@@ -168,7 +167,12 @@ class BasicDataset(Dataset):
         crop_region_mask[:, 500:1600] = 1
 
         if self.enable_augmentation:
-            rs_rgb, rs_depth, zv_depth = self.augment(rs_rgb, rs_depth, zv_depth, crop_region_mask)
+            rs_rgb, rs_depth, zv_depth, crop_region_mask = self.augment(rs_rgb, rs_depth, zv_depth, crop_region_mask)
+
+        if self.crop_region:
+            rs_rgb = rs_rgb * crop_region_mask[..., None]
+            rs_depth = np.where(crop_region_mask, rs_depth[..., 0], np.nan)
+            zv_depth = np.where(crop_region_mask, zv_depth[..., 1], np.nan)
 
         return self.preprocess_set(rs_rgb, rs_depth, zv_depth,
                                    self.scale, self.add_mask_for_nans)

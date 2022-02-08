@@ -56,6 +56,9 @@ class DatasetInterface:
                 rs_depth = data['rs_depth']
                 zv_rgb = data['zv_rgb']
                 zv_depth = data['zv_depth']
+                if 'mask' in data:
+                    mask = data['mask']
+                    files.append(((rs_rgb, rs_depth, zv_rgb, zv_depth, mask)))
                 files.append(((rs_rgb, rs_depth, zv_rgb, zv_depth)))
 
         if not process_list:
@@ -66,7 +69,7 @@ class DatasetInterface:
     def __len__(self):
         return len(self.data_file_paths)
 
-    def append_and_save(self, rs_rgb, rs_depth, zv_rgb, zv_depth, file_name: Path = None):
+    def append_with_mask_and_save(self, rs_rgb, rs_depth, zv_rgb, zv_depth, mask, file_name: Path = None):
         if file_name == None:
             file_name = str(time.time())
 
@@ -75,16 +78,19 @@ class DatasetInterface:
         if not save_path.parent.exists():
             save_path.parent.mkdir(parents=True)
 
-        np.savez_compressed(
-            save_path,
+        params = dict(
             rs_rgb=rs_rgb,
             rs_depth=rs_depth,
             zv_rgb=zv_rgb,
             zv_depth=zv_depth
         )
 
+        if mask is None:
+            np.savez_compressed( save_path, **params)
+        else:
+            np.savez_compressed( save_path, mask=mask, **params)
+
         self.data_file_paths.append(file_name)
 
-    # def convert_from_old(self, dataset: DatasetContainer):
-    #     for files in dataset:
-    #         self.append_and_save(*files)
+    def append_and_save(self, rs_rgb, rs_depth, zv_rgb, zv_depth, file_name: Path = None):
+        self.append_with_mask_and_save(rs_rgb, rs_depth, zv_rgb, zv_depth, None, file_name)

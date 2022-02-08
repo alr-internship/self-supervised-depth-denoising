@@ -27,7 +27,7 @@ from samples.ycb.ycb_dataset import YCBDataset
 
 def main(args):
     # Directory to save logs and trained model
-    MODEL_DIR = os.path.join(ROOT_DIR, "resources/mask_rcnn/logs")
+    MODEL_DIR = os.path.join(ROOT_DIR, "resources/networks/mask_rcnn/logs")
     model_file = Path(THIRDPARTY_DIR + "/resources/ycb/mask_rcnn_ycb_video_dataset_0008.h5")
 
     config = YCBConfig(gpus=1, imgs_per_gpu=1)
@@ -59,11 +59,11 @@ def main(args):
         # visualize.display_instances(original_image, 
         # r['rois'], r['masks'], r['class_ids'], dataset.class_names, r['scores'])
         mask = np.expand_dims(np.sum(r['masks'], axis=2) > 0, axis=2)
-        rs_rgb_masked = rs_rgb * mask
-        rs_depth_masked = np.expand_dims(rs_depth, axis=2) * mask
-        zv_rgb_masked = zv_rgb * mask
-        zv_depth_masked = np.expand_dims(zv_depth, axis=2) * mask
-        masked_dataset_interface.append_and_save(rs_rgb_masked, rs_depth_masked, zv_rgb_masked, zv_depth_masked, rel_path)
+        # rs_rgb_masked = rs_rgb * mask
+        # rs_depth_masked = np.expand_dims(rs_depth, axis=2) * mask
+        # zv_rgb_masked = zv_rgb * mask
+        # zv_depth_masked = np.expand_dims(zv_depth, axis=2) * mask
+        masked_dataset_interface.append_with_mask_and_save(rs_rgb, rs_depth, zv_rgb, zv_depth, mask, rel_path)
 
 
 if __name__ == "__main__":
