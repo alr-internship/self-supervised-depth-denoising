@@ -40,10 +40,10 @@ class LSTMUNet(nn.Module):
         self.Down3 = Down(256, 512 - n_channels)
         self.Down4 = Down(512, 1024 // factor - n_channels)
 
-        self.Up1 = Up(1024, 512 // factor, bilinear)
-        self.Up2 = Up(512, 256 // factor, bilinear)
-        self.Up3 = Up(256, 128 // factor, bilinear)
-        self.Up4 = Up(128, 64, bilinear)
+        self.Up4 = Up(1024, 512 // factor, bilinear)
+        self.Up3 = Up(512, 256 // factor, bilinear)
+        self.Up2 = Up(256, 128 // factor, bilinear)
+        self.Up1 = Up(128, 64, bilinear)
 
         self.OutConv = OutConv(64, n_classes)
 
