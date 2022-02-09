@@ -1,29 +1,10 @@
-import pickletools
-from re import A
-import time
-from unittest import result
-
 from tqdm import tqdm
 from dataset.dataset_interface import DatasetInterface
 from pathlib import Path
 import open3d as o3d
 import numpy as np
 import cv2
-import copy
-
-from utils.visualization_utils import to_bgr, to_rgb
-
-zv_ci = o3d.camera.PinholeCameraIntrinsic(
-    width=1920, height=1200,
-    fx=2.76012e+03, fy=2.75978e+03,
-    cx=9.51680e+02, cy=5.94779e+02,
-)
-
-rs_ci = o3d.camera.PinholeCameraIntrinsic(
-    width=1920, height=1080,
-    fx=1377.6448974609375, fy=1375.7239990234375,
-    cx=936.4846801757812, cy=537.48779296875,
-)
+from utils.transformation_utils import imgs_to_pcd, pcd_to_imgs, rs_ci, zv_ci
 
 threshold = 1
 trans_init = np.array(
@@ -39,53 +20,6 @@ trans_init = np.array(
 #      [0., 0.,  0.,  1.]]
 # )
 final_size = (1920, 1080)
-
-
-def imgs_to_pcd(bgr, depth, ci):
-    rgb = to_rgb(bgr)
-    rgb = o3d.geometry.Image(rgb)
-    depth = o3d.geometry.Image(depth)
-
-    rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(
-        rgb, depth, convert_rgb_to_intensity=False)
-
-    pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_image, ci)
-    return pcd
-
-
-def pcd_to_imgs(pcd, ci):
-    points = np.asarray(pcd.points)
-    colors = np.asarray(pcd.colors)
-
-    # camera parameters
-    fx, fy = ci.get_focal_length()
-    cx, cy = ci.get_principal_point()
-    f = np.array([fx, fy])
-    c = np.array([cx, cy])
-
-    # convert to 3d to 2d space
-    depths = points[:, 2]
-    pixels = points[:, :2] * f / np.expand_dims(depths, axis=1) + c
-    pixels = pixels.astype(np.uint16)
-
-    # create empty frames for final rgb and depth images
-    ul_corner = np.min(pixels, axis=0)
-    lr_corner = np.max(pixels, axis=0)
-    picture_size = np.round_(lr_corner).astype(np.uint16).T
-    rgb_frame = np.zeros((picture_size[1] + 1, picture_size[0] + 1, 3), dtype=np.uint8)
-    # depth frame filled with NaNs
-    depth_frame = np.empty((picture_size[1] + 1, picture_size[0] + 1), dtype=np.float32)
-    depth_frame[:] = np.nan
-
-    # fill respective pixels with depth and rgb info
-    pixels = pixels.T
-    pixels = (pixels[1], pixels[0])
-    rgb_frame[pixels] = colors * 255
-    depth_frame[pixels] = depths
-
-    bgr_frame = to_bgr(rgb_frame)
-
-    return bgr_frame, depth_frame, ul_corner, lr_corner
 
 
 def __ask_to_annotate_points(
@@ -183,8 +117,7 @@ def compute_initial_transformation_matrix(zv_pcd, rs_pcd):
     print(trans)
     return trans
 
-
-def align(rs_rgb, rs_depth, zv_rgb, zv_depth):
+def align_cropped(rs_rgb, rs_depth, zv_rgb, zv_depth):
     rs_pcd = imgs_to_pcd(rs_rgb, rs_depth, rs_ci)
     zv_pcd = imgs_to_pcd(zv_rgb, zv_depth, zv_ci)
 
@@ -208,21 +141,63 @@ def align(rs_rgb, rs_depth, zv_rgb, zv_depth):
     rs_rgb = cv2.resize(rs_rgb, final_size)
     rs_depth = cv2.resize(rs_depth, final_size)
 
-    print(zv_rgb.shape)
+    return rs_rgb, rs_depth, zv_rgb, zv_depth
+
+def align_uncropped(rs_rgb, rs_depth, zv_rgb, zv_depth):
+    rs_pcd = imgs_to_pcd(rs_rgb, rs_depth, rs_ci)
+    zv_pcd = imgs_to_pcd(zv_rgb, zv_depth, zv_ci)
+
+    # trans_init = compute_initial_transformation_matrix(zv_pcd, rs_pcd)
+    # o3d.visualization.draw_geometries([zv_pcd, rs_pcd])
+    zv_pcd.transform(trans_init)
+    # o3d.visualization.draw_geometries([zv_pcd, rs_pcd])
+
+    zv_rgb, zv_depth, zv_ul_corner, zv_lr_corner = pcd_to_imgs(zv_pcd, rs_ci)
+    rs_rgb, rs_depth, rs_ul_corner, rs_lr_corner = pcd_to_imgs(rs_pcd, rs_ci)
+
+    ul_corner = np.max([zv_ul_corner, rs_ul_corner], axis=0)
+    lr_corner = np.min([zv_lr_corner, rs_lr_corner], axis=0)
+
+    zv_rgb_large = np.zeros_like(rs_rgb)
+    zv_depth_large = np.zeros_like(rs_depth)
+
+    zv_rgb_large[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]] = zv_rgb[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
+    zv_depth_large[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]] = zv_depth[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
+    zv_rgb = zv_rgb_large
+    zv_depth = zv_depth_large
+
+    assert zv_rgb.shape == rs_rgb.shape and zv_depth.shape == rs_depth.shape
+
+    # mask out not overlapping area
+    rs_mask = np.zeros(rs_depth.shape, dtype=np.uint8)
+    rs_mask[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]] = 1
+
+    rs_rgb = rs_rgb * rs_mask
+    rs_depth = rs_depth[..., None] * rs_mask
+
+    # validate pcds still correct after transformation
+    # rs_pcd = imgs_to_pcd(rs_rgb, rs_depth, rs_ci)
+    # zv_pcd = imgs_to_pcd(zv_rgb_large, zv_depth_large, rs_ci)
+    # o3d.visualization.draw_geometries([zv_pcd, rs_pcd])
 
     return rs_rgb, rs_depth, zv_rgb, zv_depth
 
 
 def main():
-    uncal_dir = Path("resources/images/old/c_dataset_h_1")
+    uncal_dir = Path("resources/images/uncalibrated")
+    cal_dir = Path("resources/images/calibrated/3d_aligned_not_cropped")
+    cropped = False
+
     dataset_interface = DatasetInterface(uncal_dir)
-    cal_dir = Path("resources/images/calibrated/3d_aligned")
     aligned_dataset_interface = DatasetInterface(cal_dir)
 
     for idx, image_tuple in tqdm(enumerate(dataset_interface)):
-        aligned_image_tuple = align(*image_tuple)
+        if cropped:
+            aligned_image_tuple = align_cropped(*image_tuple)
+        else:
+            aligned_image_tuple = align_uncropped(*image_tuple)
         rel_dir_path = dataset_interface.data_file_paths[idx].relative_to(uncal_dir)
-        # aligned_dataset_interface.append_and_save(*aligned_image_tuple, rel_dir_path)
+        aligned_dataset_interface.append_and_save(*aligned_image_tuple, rel_dir_path)
 
 
 if __name__ == "__main__":

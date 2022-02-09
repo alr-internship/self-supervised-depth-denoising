@@ -1,4 +1,4 @@
 [submodule "3rdparty/mask_rcnn"]
-	branch = v2.1
+	branch = master
 	path = 3rdparty/mask_rcnn
-	url = https://github.com/matterport/Mask_RCNN.git
+	url = git@github.com:alr-internship/Mask_RCNN.git
