@@ -73,38 +73,38 @@ class LSTMUNet(nn.Module):
 
             down1 = torch.cat([self.Down1(in_conv), inputs_skip[1]], 1)
             if seq_idx == 0:
-                c_1 = self.first_conv_lstm_cell.init_hidden(
+                c_1 = self.conv_lstm_cell1.init_hidden(
                     batch_size=inputs.shape[0],
                     shape=(
                         down1.shape[-2],
                         down1.shape[-1]
                     )
                 )
-            down1, c_1 = self.first_conv_lstm_cell(down1, c_1[0], c_1[1])
+            down1, c_1 = self.conv_lstm_cell1(down1, c_1[0], c_1[1])
             c_1 = [down1, c_1]
 
             down2 = torch.cat([self.Down2(down1), inputs_skip[2]], 1)
             if seq_idx == 0:
-                c_2 = self.second_conv_lstm_cell.init_hidden(
+                c_2 = self.conv_lstm_cell2.init_hidden(
                     batch_size=inputs.shape[0],
                     shape=(
                         down2.shape[-2],
                         down2.shape[-1]
                     )
                 )
-            down2, c_2 = self.second_conv_lstm_cell(down2, c_2[0], c_2[1])
+            down2, c_2 = self.conv_lstm_cell2(down2, c_2[0], c_2[1])
             c_2 = [down2, c_2]
 
             down3 = torch.cat([self.Down3(down2), inputs_skip[3]], 1)
             if seq_idx == 0:
-                c_3 = self.third_conv_lstm_cell.init_hidden(
+                c_3 = self.conv_lstm_cell3.init_hidden(
                     batch_size=inputs.shape[0],
                     shape=(
                         down3.shape[-2],
                         down3.shape[-1]
                     )
                 )
-            down3, c_3 = self.third_conv_lstm_cell(down3, c_3[0], c_3[1])
+            down3, c_3 = self.conv_lstm_cell3(down3, c_3[0], c_3[1])
             c_3 = [down3, c_3]
 
             down4 = torch.cat([self.Down4(down3), inputs_skip[4]], 1)
