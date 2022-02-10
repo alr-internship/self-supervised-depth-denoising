@@ -17,18 +17,16 @@ def main(args):
     df = df.pivot_table(values='mse', index='epoch', columns='model', aggfunc='first')
 
     # print line plot
-    df.plot.line()
+    df.plot.line(figsize=(20, 8))
     plt.title("Depth-Denoising UNet")
     plt.ylabel("MSE (m)")
     plt.xlabel("Epoch")
     plt.tight_layout()
-    plt.savefig("plt.png")
-    plt.tight_layout()
     plt.show()
-    # plt.savefig("plot.png")
+    plt.savefig(f"{args.eval_path.parent}/plt.png")
 
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("eval_path", type=str)
+    parser.add_argument("eval_path", type=Path)
     main(parser.parse_args())

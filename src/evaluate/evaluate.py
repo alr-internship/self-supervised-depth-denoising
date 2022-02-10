@@ -1,6 +1,7 @@
 import csv
 import logging
 from pathlib import Path
+import numpy as np
 import torch
 from torch import nn
 from tqdm import tqdm
@@ -46,7 +47,7 @@ def main(args):
             logging.info(f'Loading model {model}, epoch {epoch}')
             net.load_state_dict(torch.load(model, map_location=device))
 
-            mse = 0
+            mse = []
             for batch in dl:
                 images = batch['image']
                 labels = batch['label']
@@ -59,12 +60,13 @@ def main(args):
 
                 with torch.no_grad():
                     predictions = net(images)
-                    mse += torch.mean(((predictions - labels) ** 2) * nan_mask)
-                
+                    mse.append(torch.mean(((predictions - labels) ** 2) * nan_mask))
+
             metrics.append({
                 "model": model_name,
                 "epoch": epoch,
-                "mse": mse.item() / dl_size
+                "mean_mse": np.mean(mse),
+                "std_mse": np.std(mse)
             })
 
     with open(f'{args.models_dir}/eval.csv', 'w') as csvfile:

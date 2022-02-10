@@ -1,13 +1,13 @@
 #!/bin/bash
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=privat@claudiuskienle.de
-#SBATCH --partition=dev_gpu_4,gpu_4,gpu_8
+#SBATCH --partition=gpu_4,gpu_8
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=40
-#SBATCH --time=00:30:00
+#SBATCH --time=02:00:00
 #SBATCH --mem=20000mb   
 #SBATCH --gres=gpu:2
-#SBATCH --export=ALL,EXECUTABLE="python ../../../src/evaluate/evaluate.py ../../../resources/models/calibrated/3d_aligned_cropped ../../../resources/images/calibrated/3d_aligned/dataset_1"
+#SBATCH --export=ALL,EXECUTABLE="python ../../src/evaluate/evaluate.py ../../resources/models /home/kit/anthropomatik/ng3916/self-supervised-depth-denoising/resources/images/calibrated/3d_aligned/test_dataset.json"
 #SBATCH --output="dev_eval.out"
 #SBATCH -J EvalUNet
 
