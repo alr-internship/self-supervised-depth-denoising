@@ -90,3 +90,5 @@ target/
 .mypy_cache/
 /resources
 **/wandb
+/resources_2
+/resources_3

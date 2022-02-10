@@ -43,6 +43,7 @@ class Zivid:
 
         self.settings = zivid.capture_assistant.suggest_settings(
             self.camera, suggest_settings_parameters)
+        self.settings.experimental.engine = 'stripe'
 
     def get_camera_matrix_and_distortion(self):
         """returns hard coded camera intrinsics

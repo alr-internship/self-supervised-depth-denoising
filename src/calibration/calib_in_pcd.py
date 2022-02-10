@@ -1,3 +1,4 @@
+from random import shuffle
 from tqdm import tqdm
 from dataset.dataset_interface import DatasetInterface
 from pathlib import Path
@@ -172,8 +173,8 @@ def align_uncropped(rs_rgb, rs_depth, zv_rgb, zv_depth):
     rs_mask = np.zeros(rs_depth.shape, dtype=np.uint8)
     rs_mask[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]] = 1
 
-    rs_rgb = rs_rgb * rs_mask
-    rs_depth = rs_depth[..., None] * rs_mask
+    rs_rgb = rs_rgb * rs_mask[..., None]
+    rs_depth = rs_depth * rs_mask
 
     # validate pcds still correct after transformation
     # rs_pcd = imgs_to_pcd(rs_rgb, rs_depth, rs_ci)
