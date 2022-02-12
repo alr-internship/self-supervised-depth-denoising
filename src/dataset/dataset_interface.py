@@ -37,7 +37,7 @@ class DatasetInterface:
 
 
     @staticmethod
-    def get_paths_in_dir(dir: Path, recursive: bool):
+    def get_paths_in_dir(dir: Path, recursive: bool = True):
         if recursive:
             data_file_paths = list(dir.glob("**/*.npz"))
         else:

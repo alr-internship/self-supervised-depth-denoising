@@ -8,7 +8,7 @@ import numpy as np
 from joblib import Parallel, delayed
 import cv2
 from utils.general_utils import split
-from utils.transformation_utils import imgs_to_pcd, pcd_to_imgs, rs_ci, zv_ci
+from utils.transformation_utils import image_points_to_camera_points, imgs_to_pcd, pcd_to_imgs, rs_ci, zv_ci
 
 threshold = 1
 final_size = (1920, 1080)
@@ -55,28 +55,16 @@ def __compute_transform_matrix(A, B):
     return R, t
 
 
-def compute_initial_transformation_matrix(zv_pcd, rs_pcd):
-    source_pts, target_pts = __ask_to_annotate_points(zv_pcd, rs_pcd)
-    print(source_pts)
-    print(target_pts)
-    R, t = __compute_transform_matrix(source_pts.T, target_pts.T)
-    trans = np.identity(4)
-    trans[:3, :3] = R
-    trans[:3, 3] = t[:, 0]
-    print(trans)
-    return trans
-
-
 def main():
-    dir_with_charuco_files = Path("resources/images/_old/c_dataset_small_near_1")
-
-    files = DatasetInterface.get_paths_in_dir(dir_with_charuco_files, recursive=True)
+    # get all charuco images with small charuco board
+    dir_with_charuco_files = Path("resources/images/_old")
+    files = list(dir_with_charuco_files.glob("c_dataset_small*/**/*.npz"))
 
     print(f"files for calibration: {len(files)}")
 
     charuco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
     # charuco_board = cv2.aruco.CharucoBoard_create(7, 5, 7.5, 5.625, charuco_dict) # large
-    charuco_board = cv2.aruco.CharucoBoard_create(5, 3, 6.5, 4.875, charuco_dict) # small (prob. not correct)
+    charuco_board = cv2.aruco.CharucoBoard_create(5, 3, 6.5, 4.875, charuco_dict)  # small (prob. not correct)
     common_points_threshold = 10
 
     # Reference: https://stackoverflow.com/questions/64612924/opencv-stereocalibration-of-two-cameras-using-charuco
@@ -131,8 +119,8 @@ def main():
                 rs_points.append(rs_obj_to_points[objP])
                 zv_points.append(zv_obj_to_points[objP])
 
-            rs_points = np.array(rs_points)[:, [1, 0]] # swap height, width
-            zv_points = np.array(zv_points)[:, [1, 0]] # swap height, width
+            rs_points = np.array(rs_points)[:, [1, 0]]  # swap height, width
+            zv_points = np.array(zv_points)[:, [1, 0]]  # swap height, width
 
             rs_indices = tuple(rs_points.astype(np.uint16).T)
             zv_indices = tuple(zv_points.astype(np.uint16).T)
@@ -140,48 +128,36 @@ def main():
             rs_rgb = np.repeat(rs_rgb[:, :, None], repeats=3, axis=2)
             zv_rgb = np.repeat(zv_rgb[:, :, None], repeats=3, axis=2)
 
-            rs_rgb[rs_indices] = [255, 0, 0]
-            zv_rgb[zv_indices] = [255, 0, 0]
-
-            plt.imshow(rs_rgb)
-
             rs_depths = rs_depth[rs_indices]
             zv_depths = zv_depth[zv_indices]
 
             rs_xyz = np.concatenate((rs_points, rs_depths[:, None]), axis=1)
             zv_xyz = np.concatenate((zv_points, zv_depths[:, None]), axis=1)
 
-            rs_imgs_xyz.append(rs_xyz)
-            zv_imgs_xyz.append(zv_xyz)
+            # remove nan points
+            no_nans = ~np.logical_or(np.isnan(zv_xyz), np.isnan(rs_xyz)).any(axis=1)
+            rs_imgs_xyz.extend(rs_xyz[no_nans])
+            zv_imgs_xyz.extend(zv_xyz[no_nans])
 
         except Exception as e:
             print(f"Exception: {e}")
             continue
 
-        break
-
     if len(rs_imgs_xyz) == 0:
         raise Exception("No image with enough feature points given")
 
-    rs_imgs_xyz = np.array(rs_imgs_xyz).reshape(-1, 3).T
-    zv_imgs_xyz = np.array(zv_imgs_xyz).reshape(-1, 3).T
+    rs_imgs_xyz = np.array(rs_imgs_xyz)
+    zv_imgs_xyz = np.array(zv_imgs_xyz)
+    
+    rs_camera_xyz = image_points_to_camera_points(rs_imgs_xyz, rs_ci)
+    zv_camera_xyz = image_points_to_camera_points(zv_imgs_xyz, zv_ci)
 
-    print(f"""
-    rs points:
-        {rs_imgs_xyz}
-
-    zv points:
-        {zv_imgs_xyz}
-    """)    
-
-    R, t = __compute_transform_matrix(rs_imgs_xyz, zv_imgs_xyz)
+    R, t = __compute_transform_matrix(zv_camera_xyz.T, rs_camera_xyz.T)
     trans = np.identity(4)
     trans[:3, :3] = R
     trans[:3, 3] = t[:, 0]
 
     print(trans)
-
-
 
 
 if __name__ == "__main__":

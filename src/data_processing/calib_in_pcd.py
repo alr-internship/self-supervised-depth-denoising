@@ -1,4 +1,3 @@
-from random import shuffle
 from typing import List
 from tqdm import tqdm
 from dataset.dataset_interface import DatasetInterface
@@ -11,17 +10,17 @@ from utils.general_utils import split
 from utils.transformation_utils import imgs_to_pcd, pcd_to_imgs, rs_ci, zv_ci
 
 threshold = 1
-trans_init = np.array(
+trans_guess = np.array(
     [[0.99807603, -0.01957923, -0.05882929,  0.17911331],
         [0.0212527, 0.99938319, 0.02795643, -0.01932425],
         [0.05824564, -0.02915292, 0.99787652, -0.03608739],
         [0., 0., 0., 1.]]
 )
-# trans_init_charuco = np.array(
-#     [[0.99912644, -0.00259379, -0.04170882,  0.17370972],
-#      [0.00228578, 0.99996978, -0.00743066,  0.02393987],
-#      [0.04172684, 0.00732883,  0.99910218, -0.04262905],
-#      [0., 0.,  0.,  1.]]
+# trans_charuco = np.array(
+#     [[0.9992975, - 0.00791079, - 0.03663195,  0.16084574],
+#      [0.00886948,  0.99962044, 0.02608284, - 0.01348072],
+#      [0.03641171, - 0.02638942,  0.99898839, - 0.03994489],
+#         [0.,     0.,    0.,    1.]]
 # )
 final_size = (1920, 1080)
 
@@ -121,14 +120,14 @@ def compute_initial_transformation_matrix(zv_pcd, rs_pcd):
     print(trans)
     return trans
 
+
 def align_cropped(rs_rgb, rs_depth, zv_rgb, zv_depth):
-    # rs_pcd = imgs_to_pcd(rs_rgb, rs_depth, rs_ci)
+    rs_pcd = imgs_to_pcd(rs_rgb, rs_depth, rs_ci)
     zv_pcd = imgs_to_pcd(zv_rgb, zv_depth, zv_ci)
 
     # trans_init = compute_initial_transformation_matrix(zv_pcd, rs_pcd)
-    zv_pcd.transform(trans_init)
     # o3d.visualization.draw_geometries([zv_pcd, rs_pcd])
-
+    zv_pcd.transform(trans_guess)
     zv_rgb, zv_depth, ul_corner, lr_corner = pcd_to_imgs(zv_pcd, rs_ci)
     # rs_rgb, rs_depth, rs_ul_corner, rs_lr_corner = pcd_to_imgs(rs_pcd, rs_ci)
 
@@ -147,13 +146,14 @@ def align_cropped(rs_rgb, rs_depth, zv_rgb, zv_depth):
 
     return rs_rgb, rs_depth, zv_rgb, zv_depth
 
+
 def align_uncropped(rs_rgb, rs_depth, zv_rgb, zv_depth):
     # rs_pcd = imgs_to_pcd(rs_rgb, rs_depth, rs_ci)
     zv_pcd = imgs_to_pcd(zv_rgb, zv_depth, zv_ci)
 
     # trans_init = compute_initial_transformation_matrix(zv_pcd, rs_pcd)
     # o3d.visualization.draw_geometries([zv_pcd, rs_pcd])
-    zv_pcd.transform(trans_init)
+    zv_pcd.transform(trans_guess)
     # o3d.visualization.draw_geometries([zv_pcd, rs_pcd])
 
     zv_rgb, zv_depth, ul_corner, lr_corner = pcd_to_imgs(zv_pcd, rs_ci)
@@ -165,8 +165,10 @@ def align_uncropped(rs_rgb, rs_depth, zv_rgb, zv_depth):
     zv_rgb_large = np.zeros_like(rs_rgb)
     zv_depth_large = np.zeros_like(rs_depth)
 
-    zv_rgb_large[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]] = zv_rgb[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
-    zv_depth_large[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]] = zv_depth[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
+    zv_rgb_large[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]
+                 ] = zv_rgb[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
+    zv_depth_large[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]
+                   ] = zv_depth[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
     zv_rgb = zv_rgb_large
     zv_depth = zv_depth_large
 
@@ -186,9 +188,10 @@ def align_uncropped(rs_rgb, rs_depth, zv_rgb, zv_depth):
 
     return rs_rgb, rs_depth, zv_rgb, zv_depth
 
+
 def align(cropped: bool, out_path: Path, in_path: Path, files: List[Path]):
     for file in tqdm(files):
-        image_tuple = DatasetInterface.load(file)[:4] # skip mask
+        image_tuple = DatasetInterface.load(file)[:4]  # skip mask
         if cropped:
             aligned_image_tuple = align_cropped(*image_tuple)
         else:
@@ -196,19 +199,21 @@ def align(cropped: bool, out_path: Path, in_path: Path, files: List[Path]):
         rel_file_path = file.relative_to(in_path)
         DatasetInterface.save(*aligned_image_tuple, None, out_path / rel_file_path)
 
-def main():
-    uncal_dir = Path("resources/images/raw")
-    cal_dir = Path("resources/images/calibrated/not-cropped")
-    cropped = False
-    jobs = 20
 
-    dataset_interface = DatasetInterface(uncal_dir)
+def main():
+    uncal_dir = Path("resources/images/uncalibrated")
+    cal_dir = Path("resources/images/calibrated/not-cropped")
+    cropped = True
+    jobs = 1
+
+    files = DatasetInterface.get_paths_in_dir(uncal_dir)
+    import random
+    random.shuffle(files)
     aligned_dataset_interface = DatasetInterface(cal_dir)
 
-    print(f"files to process: {len(dataset_interface)}")
+    print(f"files to process: {len(files)}")
 
     if jobs > 1:
-        files = dataset_interface.data_file_paths
         files_chunked = split(files, jobs)
 
         Parallel(n_jobs=jobs)(
@@ -217,13 +222,14 @@ def main():
         )
 
     else:
-        for idx, image_tuple in tqdm(enumerate(dataset_interface)):
+        for file in tqdm(files):
+            image_tuple = DatasetInterface.load(file)[:4]  # no mask present
             if cropped:
                 aligned_image_tuple = align_cropped(*image_tuple)
             else:
                 aligned_image_tuple = align_uncropped(*image_tuple)
-            rel_dir_path = dataset_interface.data_file_paths[idx].relative_to(uncal_dir)
-            aligned_dataset_interface.append_and_save(*aligned_image_tuple, rel_dir_path)
+            rel_dir_path = file.relative_to(uncal_dir)
+            # aligned_dataset_interface.append_and_save(*aligned_image_tuple, rel_dir_path)
 
 
 if __name__ == "__main__":

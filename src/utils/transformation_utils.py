@@ -15,7 +15,7 @@ rs_ci = dict(
     cx=936.4846801757812, cy=537.48779296875,
 )
 
-def imgs_to_pcd(bgr, depth, ci):
+def imgs_to_pcd(bgr, depth, ci: dict, project_valid_depth_only: bool = True):
     ci = o3d.camera.PinholeCameraIntrinsic(**ci)
 
     rgb = to_rgb(bgr)
@@ -25,21 +25,17 @@ def imgs_to_pcd(bgr, depth, ci):
     rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(
         rgb, depth, convert_rgb_to_intensity=False)
 
-    pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_image, ci)
+    pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_image, ci, project_valid_depth_only=project_valid_depth_only)
     return pcd
 
 
-def pcd_to_imgs(pcd, ci):
-    ci = o3d.camera.PinholeCameraIntrinsic(**ci)
-
+def pcd_to_imgs(pcd, ci: dict):
     points = np.asarray(pcd.points)
     colors = np.asarray(pcd.colors)
 
     # camera parameters
-    fx, fy = ci.get_focal_length()
-    cx, cy = ci.get_principal_point()
-    f = np.array([fx, fy])
-    c = np.array([cx, cy])
+    f = np.array([ci['fx'], ci['fy']])
+    c = np.array([ci['cx'], ci['cy']])
 
     # convert to 3d to 2d space
     depths = points[:, 2]
@@ -64,3 +60,16 @@ def pcd_to_imgs(pcd, ci):
     bgr_frame = to_bgr(rgb_frame)
 
     return bgr_frame, depth_frame, ul_corner, lr_corner
+
+def image_points_to_camera_points(image_points: np.array, ci: dict, depth_scale: float = 1000.0):
+    assert image_points.shape[1] == 3, "image points must have xyz"
+
+    v = image_points[:, 0]
+    u = image_points[:, 1]
+    d = image_points[:, 2]
+
+    z = d / depth_scale
+    x = (u - ci['cx']) * z / ci['fx']
+    y = (v - ci['cy']) * z / ci['fy']
+
+    return np.concatenate((x[:, None], y[:, None], z[:, None]), axis=1)
