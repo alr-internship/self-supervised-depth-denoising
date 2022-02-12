@@ -36,7 +36,8 @@ def main(args):
         save_checkpoint=network_config['save'],
         amp=network_config['amp'],
         dir_checkpoint=evaluation_dir,
-        activate_wandb=network_config['wandb']
+        activate_wandb=network_config['wandb'],
+        val_interval=network_config['validation_interval']
     )
 
     trainer_params = dict(

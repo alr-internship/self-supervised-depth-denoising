@@ -1,29 +1,28 @@
-basic_trainer:
-  active: True
-  val_path: "/home/kit/anthropomatik/ng3916/self-supervised-depth-denoising/resources/images/calibrated/3d_aligned/val_dataset.json"
-  train_path: "/home/kit/anthropomatik/ng3916/self-supervised-depth-denoising/resources/images/calibrated/3d_aligned/train_dataset.json"
+basic_trainer: # trains model on the whole train dataset
+  active: True # toggle if training should be activated
+  val_path: PATH/TO/VAL/DATASET # path to validation dataset, JSON file or directory containing dataset
+  train_path: PATH/TO/TRAIN/DATASET # path to train datset, JSON file or directory containing dataset
 
-oof_trainer:
-  active: False
-  dataset_path: ""
+oof_trainer: # trains three models with the oof strategy
+  active: False # toggle if training should be activated
+  dataset_path: PATH/TO/WHOLE/DATASET # JSON file or direcotry containing dataset
   oof_p: 0.33
 
 network_config:
-  epochs: 5
-  batch_size: 1
-  learning_rate: 0.00001
-  load_from_model: None
-  wandb: True
-  save: True
-  dir_checkpoints: ""
-  bilinear: True
-  amp: False
+  epochs: 5 # number of epochs to train
+  batch_size: 1 # batch size for training
+  learning_rate: 0.00001 # initial learning rate
+  load_from_model: None|PATH/TO/MODEL # either "None" or a file path to model weights
+  wandb: True # if wandb should be activated for monitoring
+  save: True # if checkpoints of the model should be saved
+  evaluation_dir: PATH/TO/EVALUATION/DIR # directory all evaluation files will be saved to
+  bilinear: True # if bilinear connections should be used
+  amp: False # amp active/deactive
+  validation_interval: 200 # validation interval in samples
 
 dataset_config:
-  scale_images: 0.5
-  enable_augmentation: False
-  add_nan_mask_to_input: True
-  add_region_mask_to_input: True
-
-
+  scale_images: 0.5 # percentage all images get scaled with (1.0 implies no scaling)
+  enable_augmentation: False # if images augmentation should be applied
+  add_nan_mask_to_input: True # if nan mask should be concatented to input
+  add_region_mask_to_input: True # if region mask should be concatenated to input
 
