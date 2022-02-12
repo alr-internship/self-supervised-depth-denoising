@@ -33,13 +33,30 @@ class DatasetInterface:
 
         else:
             self.dir_path = path
+            self.data_file_paths = self.get_paths_in_dir(path, recursive)
 
-            if recursive:
-                self.data_file_paths = list(path.glob("**/*.npz"))
+
+    @staticmethod
+    def get_paths_in_dir(dir: Path, recursive: bool):
+        if recursive:
+            data_file_paths = list(dir.glob("**/*.npz"))
+        else:
+            data_file_paths = list(dir.glob("*.npz"))
+
+        return sorted(data_file_paths)
+
+    @staticmethod
+    def load(path: Path):
+        with np.load(path) as data:
+            rs_rgb = data['rs_rgb']
+            rs_depth = data['rs_depth']
+            zv_rgb = data['zv_rgb']
+            zv_depth = data['zv_depth']
+            if 'mask' in data:
+                mask = data['mask']
             else:
-                self.data_file_paths = list(path.glob("*.npz"))
-
-            self.data_file_paths = sorted(self.data_file_paths)
+                mask = None
+        return rs_rgb, rs_depth, zv_rgb, zv_depth, mask
 
     def __getitem__(self, arg):
         items_to_get = self.data_file_paths[arg]
@@ -51,14 +68,10 @@ class DatasetInterface:
 
         files = []
         for item in items_to_get:
-            with np.load(item) as data:
-                rs_rgb = data['rs_rgb']
-                rs_depth = data['rs_depth']
-                zv_rgb = data['zv_rgb']
-                zv_depth = data['zv_depth']
-                if 'mask' in data:
-                    mask = data['mask']
-                    files.append(((rs_rgb, rs_depth, zv_rgb, zv_depth, mask)))
+            rs_rgb, rs_depth, zv_rgb, zv_depth, mask = self.load(item)
+            if mask != None:
+                files.append(((rs_rgb, rs_depth, zv_rgb, zv_depth, mask)))
+            else:
                 files.append(((rs_rgb, rs_depth, zv_rgb, zv_depth)))
 
         if not process_list:
@@ -69,14 +82,10 @@ class DatasetInterface:
     def __len__(self):
         return len(self.data_file_paths)
 
-    def append_with_mask_and_save(self, rs_rgb, rs_depth, zv_rgb, zv_depth, mask, file_name: Path = None):
-        if file_name == None:
-            file_name = str(time.time())
-
-        save_path = self.dir_path / file_name
-    
-        if not save_path.parent.exists():
-            save_path.parent.mkdir(parents=True)
+    @staticmethod
+    def save(rs_rgb, rs_depth, zv_rgb, zv_depth, mask, file_name: Path):
+        if not file_name.parent.exists():
+            file_name.parent.mkdir(parents=True, exist_ok=True)
 
         params = dict(
             rs_rgb=rs_rgb,
@@ -86,9 +95,16 @@ class DatasetInterface:
         )
 
         if mask is None:
-            np.savez_compressed( save_path, **params)
+            np.savez_compressed(file_name, **params)
         else:
-            np.savez_compressed( save_path, mask=mask, **params)
+            np.savez_compressed(file_name, mask=mask, **params)
+
+    def append_with_mask_and_save(self, rs_rgb, rs_depth, zv_rgb, zv_depth, mask, file_name: Path = None):
+        if file_name == None:
+            file_name = str(time.time())
+
+        save_path = self.dir_path / file_name
+        self.save(rs_rgb, rs_depth, zv_rgb, zv_depth, mask, save_path)
 
         self.data_file_paths.append(file_name)
 

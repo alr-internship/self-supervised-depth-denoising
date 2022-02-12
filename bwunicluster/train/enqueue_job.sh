@@ -4,16 +4,16 @@
 #SBATCH --partition=gpu_4,gpu_8
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=40
-#SBATCH --time=24:00:00
-#SBATCH --mem=20000mb   
+#SBATCH --time=02:00:00
 #SBATCH --gres=gpu:2
 # #SBATCH --export=ALL,EXECUTABLE="python ../../src/trainers/trainer.py --epochs=500 --batch-size=17 --save=True --enable-augmentation=False --dataset-path=../../resources/images/calibrated/3d_aligned_not_cropped --dir-checkpoint=../../resources/models/calibrated/3d_aligned_not_cropped"
 # #SBATCH --output="train_models_calibrated_not_cropped.out"
 # #SBATCH --export=ALL,EXECUTABLE="python ../../src/trainers/trainer.py --epochs=500 --batch-size=17 --save=True --enable-augmentation=False --dataset-path=../../resources/images/calibrated/3d_aligned --dir-checkpoint=../../resources/models/calibrated/3d_aligned_cropped"
 # #SBATCH --output="train_models_calibrated_cropped.out"
-#SBATCH --export=ALL,EXECUTABLE="python ../../src/trainers/trainer.py --epochs=500 --batch-size=4 --scale-images=1 --save=True --enable-augmentation=False --dataset-path=../../resources/images/calibrated/3d_aligned --dir-checkpoint=../../resources/models/calibrated/3d_aligned_cropped_scaled"
-#SBATCH --output="train_models_calibrated_cropped_scale1.out"
+#SBATCH --export=ALL,EXECUTABLE="python -u ../../src/trainers/trainer.py --epochs=50 --batch-size=4 --scale-images=1 --save=True --enable-augmentation=False --dataset-path=../../resources/images/tmp/calibrated_masked_augmented/cropped/ycb_video --dir-checkpoint=../../resources/models/calibrated_masked_augmented/ycb_video"
+#SBATCH --output="train_models_calibrated_masked_augmented-ycb_video.out"
 #SBATCH -J TrainUNet
+#SBATCH --dependency=aftercorr:20466976
 
 #Usually you should set
 export KMP_AFFINITY=compact,1,0

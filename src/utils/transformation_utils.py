@@ -2,19 +2,22 @@ import open3d as o3d
 import numpy as np
 
 from utils.visualization_utils import to_bgr, to_rgb
-zv_ci = o3d.camera.PinholeCameraIntrinsic(
-    width=1920, height=1200,
+
+# this format to make open3d objects pickable
+zv_ci = dict(
+    width=1920, height=1080,
     fx=2.76012e+03, fy=2.75978e+03,
     cx=9.51680e+02, cy=5.94779e+02,
 )
-
-rs_ci = o3d.camera.PinholeCameraIntrinsic(
+rs_ci = dict(
     width=1920, height=1080,
     fx=1377.6448974609375, fy=1375.7239990234375,
     cx=936.4846801757812, cy=537.48779296875,
 )
 
 def imgs_to_pcd(bgr, depth, ci):
+    ci = o3d.camera.PinholeCameraIntrinsic(**ci)
+
     rgb = to_rgb(bgr)
     rgb = o3d.geometry.Image(rgb)
     depth = o3d.geometry.Image(depth)
@@ -27,6 +30,8 @@ def imgs_to_pcd(bgr, depth, ci):
 
 
 def pcd_to_imgs(pcd, ci):
+    ci = o3d.camera.PinholeCameraIntrinsic(**ci)
+
     points = np.asarray(pcd.points)
     colors = np.asarray(pcd.colors)
 
