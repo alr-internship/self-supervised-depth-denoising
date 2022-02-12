@@ -1,0 +1,29 @@
+basic_trainer:
+  active: True
+  val_path: "/home/kit/anthropomatik/ng3916/self-supervised-depth-denoising/resources/images/calibrated/3d_aligned/val_dataset.json"
+  train_path: "/home/kit/anthropomatik/ng3916/self-supervised-depth-denoising/resources/images/calibrated/3d_aligned/train_dataset.json"
+
+oof_trainer:
+  active: False
+  dataset_path: ""
+  oof_p: 0.33
+
+network_config:
+  epochs: 5
+  batch_size: 1
+  learning_rate: 0.00001
+  load_from_model: None
+  wandb: True
+  save: True
+  dir_checkpoints: ""
+  bilinear: True
+  amp: False
+
+dataset_config:
+  scale_images: 0.5
+  enable_augmentation: False
+  add_nan_mask_to_input: True
+  add_region_mask_to_input: True
+
+
+

@@ -35,6 +35,17 @@ class DatasetInterface:
             self.dir_path = path
             self.data_file_paths = self.get_paths_in_dir(path, recursive)
 
+    @staticmethod
+    def get_files_by_path(path: Path, recursive: bool = True):
+        if path.is_file():
+            with open(path, 'r') as f:
+                data = json.load(f)
+            dir_path = Path(data['base_path'])
+            return [ dir_path / file for file in data['files'] ]
+
+        else:
+            return DatasetInterface.get_paths_in_dir(path, recursive)
+
 
     @staticmethod
     def get_paths_in_dir(dir: Path, recursive: bool = True):

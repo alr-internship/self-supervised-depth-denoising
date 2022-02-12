@@ -1,8 +1,10 @@
+from ctypes import addressof
 from pathlib import Path
 import torch
 from dataset.data_loading import BasicDataset
 from networks.UNet.unet_model import UNet
 from trainers.trainer import Trainer
+
 
 class BasicTrainer(Trainer):
 
@@ -13,18 +15,23 @@ class BasicTrainer(Trainer):
         val_path: Path,
         scale: float,
         enable_augmentation: bool,
-        add_mask_for_nans: bool,
+        add_nan_mask_to_input: bool,
+        add_region_mask_to_input: bool,
         bilinear: bool,
     ):
-        super().__init__(device, scale, enable_augmentation, add_mask_for_nans)
+        super().__init__(device, scale, enable_augmentation,
+                         add_nan_mask_to_input, add_region_mask_to_input)
 
-        dataset_params = dict(scale=scale, add_mask_for_nans=add_mask_for_nans)
+        dataset_params = dict(scale=scale, add_nan_mask_to_input=add_nan_mask_to_input,
+                              add_region_mask_to_input=add_region_mask_to_input)
         self.train_dataset = BasicDataset(train_path,
-                                          enable_augmentation=enable_augmentation, **dataset_params)
+                                          enable_augmentation=enable_augmentation, 
+                                          **dataset_params)
         self.val_dataset = BasicDataset(val_path,
                                         enable_augmentation=False, **dataset_params)
 
-        n_input_channels = 5 if add_mask_for_nans else 4
+
+        n_input_channels = 4 + add_nan_mask_to_input + add_region_mask_to_input
         n_output_channels = 1
 
         self.M_total = UNet(

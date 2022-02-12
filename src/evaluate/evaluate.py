@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader
 
 def main(args):
     ds = BasicDataset(args.dataset_dir, scale=0.5,
-                      enable_augmentation=False, add_mask_for_nans=True)
+                      enable_augmentation=False, add_nan_mask_to_input=True)
     dl = DataLoader(ds, shuffle=False, batch_size=15,
                     num_workers=4, pin_memory=True)
     dl_size = len(dl)

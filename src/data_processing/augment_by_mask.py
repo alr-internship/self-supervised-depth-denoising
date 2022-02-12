@@ -27,9 +27,9 @@ def augment(data: List[np.array]):
             continue
         mask = np.expand_dims(np.sum(masks[:, :, masks_indices], axis=2) > 0, axis=2)
         rs_rgb_masked = rs_rgb * mask
-        rs_depth_masked = np.expand_dims(rs_depth, axis=2) * mask
+        rs_depth_masked = np.where(mask, rs_depth, np.nan) 
         zv_rgb_masked = zv_rgb * mask
-        zv_depth_masked = np.expand_dims(zv_depth, axis=2) * mask
+        zv_depth_masked = np.where(mask, zv_depth, np.nan)
         augmented_dataset.append([rs_rgb_masked, rs_depth_masked, zv_rgb_masked, zv_depth_masked, mask])
     return augmented_dataset
 

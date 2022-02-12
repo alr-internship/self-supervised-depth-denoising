@@ -75,7 +75,7 @@ execute following commands to update conda and pip packages
 
 
 Project Organization
-======
+====
 
     ├── LICENSE
     ├── Makefile           <- Makefile with commands like `make data` or `make train`
@@ -106,8 +106,35 @@ Project Organization
 
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
 
+Dataset Generation
+===
 
-Train Model on BwUniCluster 2.0
+The dataset generation can be split into following steps
+- Retrieve Images for Calibration
+    - CharuCo
+    - 
+- 
+
+Train Depth-Denoising Model
+===
+
+The main script to train the denoising model is [train_models.py](src/trainers/train_models.py).
+To run the script execute
+```bash
+python train_models.py %CONFIG_PATH%
+```
+The training can be configured via a configuration script.
+A demo config file is located in [src/trainers/config.yml](src/trainers/config.yml).
+There are two trainers present to train a model.
+- Out-Of-Fold Trainer
+- Basic Trainer
+Each trainer can be activated/deactivated in the configuration file.
+The configuration file contains many arguments that are explained in the config.yml referenced before.
+The argument %CONFIG_PATH% must be replaced with the path to the configuration file
+that should be used for training.
+
+
+BwUniCluster 2.0
 ====
 
 There are multiple scripts located in models, that might be helpful to train all the models on the BwUniCluster 2.0.
@@ -157,9 +184,9 @@ TODOs
 - [ ] update net dtypes
     Currently float is chosen for all input channels,
     it would make sense to make atleast the mask uint 
-- [ ] train mask rcnn on new dataset (separate test set)
-- [ ] evaluate mask rcnn on ycb with separate test set
-- [ ] JSON for test,train,val set separation
+- [X] train mask rcnn on new dataset (separate test set)
+- [X] evaluate mask rcnn on ycb with separate test set
+- [X] JSON for test,train,val set separation
     DatasetInterface should be able to work with that
 - [X] add eval code for UNet
 - [ ] train and evaluate UNet on
@@ -168,3 +195,4 @@ TODOs
     - [ ] calibrated, cropped
     - [ ] masked, not cropped
     - [ ] masked, cropped
+- [ ] augmented dataset contains 0 for NaNs in out of region

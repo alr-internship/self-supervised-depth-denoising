@@ -1,3 +1,4 @@
+from ctypes import addressof
 from pathlib import Path
 import numpy as np
 import torch
@@ -10,8 +11,11 @@ from trainers.trainer import Trainer
 class OutOfFoldTrainer(Trainer):
 
     @staticmethod
-    def get_oof_dataset(dataset_path: Path, oof_p: float, scale: float, enable_augmentation: bool, add_mask_for_nans: bool):
-        dataset = BasicDataset(dataset_path, scale, enable_augmentation, add_mask_for_nans)
+    def get_oof_dataset(dataset_path: Path, oof_p: float, scale: float,
+                        enable_augmentation: bool, add_nan_mask_to_input: bool,
+                        add_region_mask_to_input):
+        dataset = BasicDataset(dataset_path, scale, enable_augmentation,
+                               add_nan_mask_to_input, add_region_mask_to_input)
         lens = np.floor([len(dataset) * oof_p for _ in range(3)]).astype(np.int32)
         lens[-1] += len(dataset) - lens[-1] // oof_p
         assert(sum(lens) == len(dataset))
@@ -28,13 +32,17 @@ class OutOfFoldTrainer(Trainer):
         dataset_path: Path,
         scale: float,
         enable_augmentation: bool,
-        add_mask_for_nans: bool,
+        add_nan_mask_to_input: bool,
+        add_region_mask_to_input: bool,
         oof_p: float,
         bilinear: bool,
     ):
-        super.__init__(device, scale, enable_augmentation, add_mask_for_nans)
+        super.__init__(device, scale, enable_augmentation,
+                       add_nan_mask_to_input, add_region_mask_to_input)
 
-        dataset_params = dict(dataset_path=dataset_path, oof_p=oof_p, scale=scale, add_mask_for_nans=add_mask_for_nans)
+        dataset_params = dict(dataset_path=dataset_path, oof_p=oof_p, scale=scale,
+                              add_mask_for_nans=add_nan_mask_to_input,
+                              add_region_mask_to_input=add_region_mask_to_input)
         self.P_1, self.P_2, self.P_test = self.get_oof_dataset(
             enable_augmentation=enable_augmentation, **dataset_params)
         self.P_1_and_P_2 = torch.utils.data.ConcatDataset([self.P_1, self.P_2])
@@ -43,7 +51,7 @@ class OutOfFoldTrainer(Trainer):
         self.P_2_val = self.get_validation_subset(P_2_val)
         self.P_test_val = self.get_validation_subset(P_test_val)
 
-        n_input_channels = 5 if add_mask_for_nans else 4
+        n_input_channels = 5 if add_nan_mask_to_input else 4
         n_output_channels = 1
 
         self.M_11 = UNet(

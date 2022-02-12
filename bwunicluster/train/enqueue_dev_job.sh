@@ -6,8 +6,8 @@
 #SBATCH --cpus-per-task=40
 #SBATCH --time=0:30:00
 #SBATCH --gres=gpu:2
-#SBATCH --export=ALL,EXECUTABLE="python ../../../src/trainers/trainer.py --epochs=500 --batch_size=17 --save=True --dataset_path=../../../resources/images/calibrated/3d_aligned --dir_checkpoint=../../../resources/models/calibrated/3d_aligned_cropped"
-#SBATCH --output="dev_train_models_calibrated_cropped.out"
+#SBATCH --export=ALL,EXECUTABLE="python ../../src/trainers/train_models.py configs/config_augmented_crop_noscale.yml"
+#SBATCH --output="dev_train_models.out"
 #SBATCH -J TrainUNet
 
 #Usually you should set

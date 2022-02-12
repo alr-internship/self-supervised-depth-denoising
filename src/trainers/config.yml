@@ -22,7 +22,8 @@ network_config:
 dataset_config:
   scale_images: 0.5
   enable_augmentation: False
-  add_mask_for_nans: True
+  add_nan_mask_to_input: True
+  add_region_mask_to_input: True
 
 
 

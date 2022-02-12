@@ -2,6 +2,7 @@
 Reference: https://github.com/milesial/Pytorch-UNet
 """
 
+from concurrent.futures import process
 import logging
 from pathlib import Path
 from typing import List
@@ -20,24 +21,27 @@ from dataset.dataset_interface import DatasetInterface
 
 class BasicDataset(Dataset):
     def __init__(
-            self, 
-            dataset_path: Path, 
+            self,
+            dataset_path: Path,
             scale: float = 1.0,
-            enable_augmentation: bool = True, 
-            add_mask_for_nans: bool = True,
+            enable_augmentation: bool = True,
+            add_nan_mask_to_input: bool = True,
+            add_region_mask_to_input: bool = True,
             crop_region: bool = False):
-        self.dataset_interface = DatasetInterface(dataset_path)
+        assert dataset_path.exists(), "file at dataset path does not exist"
+        self.files = DatasetInterface.get_files_by_path(dataset_path)
         self.enable_augmentation = enable_augmentation
-        self.add_mask_for_nans = add_mask_for_nans
+        self.add_nan_mask_to_input = add_nan_mask_to_input
+        self.add_region_mask_to_input = add_region_mask_to_input
         self.crop_region = crop_region
 
         assert 0 < scale <= 1, 'Scale must be between 0 and 1'
         self.scale = scale
 
-        if len(self.dataset_interface) == 0:
+        if len(self.files) == 0:
             raise RuntimeError(f'Dataset {dataset_path} contains no images, make sure you put your images there')
 
-        logging.info(f'Creating dataset with {len(self.dataset_interface)} examples')
+        logging.info(f'Creating dataset with size {len(self.files)}')
 
         self.seq = iaa.Sequential([
             iaa.Fliplr(0.5),  # horizontal flips
@@ -71,7 +75,7 @@ class BasicDataset(Dataset):
         ], random_order=True)  # apply augmenters in random order
 
     def __len__(self):
-        return len(self.dataset_interface)
+        return len(self.files)
 
     def augment(self, rs_rgb, rs_depth, zv_depth, crop_region_mask):
         depths = np.concatenate((rs_depth[..., None], zv_depth[..., None]), axis=2)
@@ -116,63 +120,61 @@ class BasicDataset(Dataset):
     @classmethod
     def preprocess(cls, img: np.array, scale: float):
         img_ndarray = cls.resize(img, scale)
-        if len(img_ndarray.shape) == 2: # expand dim on depth maps
+        if len(img_ndarray.shape) == 2:  # expand dim on depth maps
             img_ndarray = img_ndarray[..., None]
         return img_ndarray.transpose((2, 0, 1))  # move WxHxC -> CxWxH
 
     @classmethod
-    def preprocess_set(cls, rs_rgb, rs_depth, zv_depth, scale, add_mask_for_nans):
+    def preprocess_set(cls, rs_rgb, rs_depth, region_mask, zv_depth,
+                       scale, add_nan_mask_to_input, add_region_mask_to_input):
+
         assert rs_rgb.shape[:2] == zv_depth.shape[:2], \
             f'Image and mask should be the same size, but are {rs_rgb.shape[:2]} and {zv_depth[:2]}'
 
-        rs_depth = rs_depth[..., None]
-        zv_depth = zv_depth[..., None]
-
         processed_rs_rgb = cls.preprocess(rs_rgb, scale)
         processed_rs_depth = cls.preprocess(rs_depth, scale)
+        processed_region_mask = cls.preprocess(region_mask, scale)
         processed_zv_depth = cls.preprocess(zv_depth, scale)
 
         # normalize
         processed_rs_rgb = processed_rs_rgb.astype(np.float32) / 255
 
-        # map nan to 0 and add mask to inform net about them
+        # map nan to 0 and add mask to inform net about where nans are located
         rs_nan_mask = np.logical_not(np.isnan(processed_rs_depth))
         zv_nan_mask = np.logical_not(np.isnan(processed_zv_depth))
         nan_mask = np.logical_and(rs_nan_mask, zv_nan_mask)
         processed_rs_depth = np.nan_to_num(processed_rs_depth)
         processed_zv_depth = np.nan_to_num(processed_zv_depth)
 
-        if add_mask_for_nans:
-            input = np.concatenate((processed_rs_rgb, processed_rs_depth, rs_nan_mask), axis=0)
-        else:
-            input = np.concatenate((processed_rs_rgb, processed_rs_depth), axis=0)
+        input_tuple = (processed_rs_rgb, processed_rs_depth)
 
+        if add_nan_mask_to_input:
+            input_tuple += (nan_mask,)
+        if add_region_mask_to_input:
+            input_tuple += (processed_region_mask,)
+
+        input = np.concatenate(input_tuple, axis=0)
         label = processed_zv_depth
-
-        # normalize
-        # input = (input - np.mean(input, axis=(1, 2))[:, None, None]) / np.std(input, axis=(1, 2))[:, None, None]
-        # label = (label - np.mean(label, axis=(1, 2))[:, None, None]) / np.std(label, axis=(1, 2))[:, None, None]
 
         return {
             'image': torch.as_tensor(input.copy()).float().contiguous(),
             'label': torch.as_tensor(label.copy()).float().contiguous(),
-            'nan-mask': torch.as_tensor(nan_mask.copy())
+            'nan-mask': torch.as_tensor(nan_mask.copy()),
+            'region-mask': torch.as_tensor(processed_region_mask.copy())
         }
 
     def __getitem__(self, idx):
-        rs_rgb, rs_depth, _, zv_depth = self.dataset_interface[idx]
-
-        # crop region mask
-        crop_region_mask = np.zeros((rs_rgb.shape[:2]), dtype=np.uint8)
-        crop_region_mask[:, 500:1600] = 1
+        rs_rgb, rs_depth, _, zv_depth, region_mask = DatasetInterface.load(self.files[idx])
 
         if self.enable_augmentation:
-            rs_rgb, rs_depth, zv_depth, crop_region_mask = self.augment(rs_rgb, rs_depth, zv_depth, crop_region_mask)
+            rs_rgb, rs_depth, zv_depth, region_mask = self.augment(rs_rgb, rs_depth, zv_depth, region_mask)
 
-        if self.crop_region:
-            rs_rgb = rs_rgb * crop_region_mask[..., None]
-            rs_depth = np.where(crop_region_mask, rs_depth[..., 0], np.nan)
-            zv_depth = np.where(crop_region_mask, zv_depth[..., 1], np.nan)
+        # needed since dataset contains 0 instead of NaNs
+        # normaly mask must not imply that images are NaN in the not mask regions
+        rs_rgb = rs_rgb * region_mask
+        rs_depth = np.where(region_mask[..., 0], rs_depth[..., 0], np.nan)
+        zv_depth = np.where(region_mask[..., 0], zv_depth[..., 0], np.nan)
 
-        return self.preprocess_set(rs_rgb, rs_depth, zv_depth,
-                                   self.scale, self.add_mask_for_nans)
+        return self.preprocess_set(rs_rgb, rs_depth, region_mask, zv_depth,
+                                   self.scale, self.add_nan_mask_to_input,
+                                   self.add_region_mask_to_input)

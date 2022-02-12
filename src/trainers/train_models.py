@@ -1,12 +1,15 @@
 from argparse import ArgumentParser
+from hashlib import md5
 import logging
 from pathlib import Path
+import time
 import torch
 import yaml
 from trainers.basic_trainer import BasicTrainer
 
 from trainers.oof_trainer import OutOfFoldTrainer
 
+ROOT_DIR = Path(__file__).parent.parent.parent
 
 def main(args):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -19,13 +22,20 @@ def main(args):
     oof_trainer = config['oof_trainer']
     basic_trainer = config['basic_trainer']
 
+    evaluation_dir = ROOT_DIR / network_config['evaluation_dir'] / f"{time.time()}"
+    evaluation_dir.mkdir(parents=True, exist_ok=True)
+
+    # write config to evaluation directory
+    with open(evaluation_dir / "config.yml", 'w') as f:
+        yaml.safe_dump(config, f)
+
     params = dict(
         epochs=network_config['epochs'],
         batch_size=network_config['batch_size'],
         learning_rate=network_config['learning_rate'],
         save_checkpoint=network_config['save'],
         amp=network_config['amp'],
-        dir_checkpoint=Path(network_config['dir_checkpoints']),
+        dir_checkpoint=evaluation_dir,
         activate_wandb=network_config['wandb']
     )
 
@@ -33,13 +43,14 @@ def main(args):
         device=device,
         scale=dataset_config['scale_images'],
         enable_augmentation=dataset_config['enable_augmentation'],
-        add_mask_for_nans=dataset_config['add_mask_for_nans'],
+        add_nan_mask_to_input=dataset_config['add_nan_mask_to_input'],
+        add_region_mask_to_input=dataset_config['add_region_mask_to_input'],
         bilinear=network_config['bilinear']
     )
 
     if oof_trainer['active']:
         oof = OutOfFoldTrainer(
-            dataset_path=Path(oof_trainer['dataset_path']),
+            dataset_path=ROOT_DIR / oof_trainer['dataset_path'],
             oof_p=oof_trainer['oof_p'],
             **trainer_params
         )
@@ -68,8 +79,8 @@ def main(args):
     
     if basic_trainer['active']:
         basic = BasicTrainer(
-            train_path=Path(basic_trainer['train_path']),
-            val_path=Path(basic_trainer['val_path']),
+            train_path=ROOT_DIR / basic_trainer['train_path'],
+            val_path=ROOT_DIR / basic_trainer['val_path'],
             **trainer_params
         )
 
