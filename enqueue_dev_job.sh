@@ -3,9 +3,9 @@
 #SBATCH --mail-user=privat@claudiuskienle.de
 #SBATCH --partition=single
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=1
-#SBATCH --time=00:30:00
-#SBATCH --export=ALL,EXECUTABLE="dvc commit resources/images -f"
+#SBATCH --cpus-per-task=40
+#SBATCH --time=04:00:00
+#SBATCH --export=ALL,EXECUTABLE="dvc push"
 #SBATCH --output="tmp.out"
 #SBATCH -J Tmp
 

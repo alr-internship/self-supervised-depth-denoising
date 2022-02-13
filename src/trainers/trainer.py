@@ -26,35 +26,48 @@ class Trainer:
         self.add_nan_mask_to_input = add_nan_mask_to_input
         self.add_region_mask_to_input = add_region_mask_to_input
 
+    def infer(
+        self,
+        net,
+        batch,
+    ):
+        images = batch['image']
+        label = batch['label']
+        nan_masks = batch['nan-mask']
+        region_masks = batch['region-mask']
+
+        # assert images.shape[1] == net.n_channels, \
+        #     f'Network has been defined with {net.n_channels} input channels, ' \
+        #     f'but loaded images have {images.shape[1]} channels. Please check that ' \
+        #     'the images are loaded correctly.'
+
+        images = images.to(device=self.device, dtype=torch.float32)
+        label = label.to(device=self.device, dtype=torch.float32)
+        nan_masks = nan_masks.to(device=self.device)
+        region_masks = region_masks.to(device=self.device)
+
+        prediction = net(images)
+        # sum loss only where no nan is present and region
+        loss = torch.mean(torch.abs(prediction - label) * nan_masks * region_masks)
+
+        return prediction, loss
+
     def evaluate(
         self,
         net: nn.Module,
         dataloader: DataLoader,
-        device: torch.device
     ):
         net.eval()
         num_val_batches = len(dataloader)
         assert num_val_batches != 0, "at least one batch must be selected for evaluation"
 
-        criterion = nn.L1Loss()
         loss = 0
 
         # iterate over the validation set
         for batch in tqdm(dataloader, desc='Validation round', unit='batch', leave=False):
-            images = batch['image']
-            labels = batch['label']
-            nan_mask = batch['nan-mask']
-            region_mask = batch['region-mask']
-
-            # move images and labels to correct device and type
-            images = images.to(device=device, dtype=torch.float32)
-            labels = labels.to(device=device, dtype=torch.float32)
-            nan_mask = nan_mask.to(device=self.device)
-            region_mask = region_mask.to(device=self.device)
-
             with torch.no_grad():
-                predictions = net(images)
-                loss += torch.mean(torch.abs(predictions - labels) * nan_mask * region_mask)
+                _, batch_loss = self.infer(net, batch)
+                loss += batch_loss
 
         net.train()
 
@@ -94,7 +107,8 @@ class Trainer:
                     save_checkpoint=save_checkpoint,
                     img_scale=self.scale,
                     enable_augmentation=self.enable_augmentation,
-                    add_mask_for_nans=self.add_nan_mask_to_input,
+                    add_nan_mask_to_input=self.add_nan_mask_to_input,
+                    add_region_mask_to_input=self.add_region_mask_to_input,
                     train_id=train_id,
                     amp=amp,
                     training_size=n_train,
@@ -153,7 +167,6 @@ class Trainer:
             patience=2
         )
         grad_scaler = torch.cuda.amp.GradScaler(enabled=amp)
-        criterion = nn.L1Loss()
         global_step = 0
 
         # Begin training
@@ -162,33 +175,15 @@ class Trainer:
             epoch_loss = 0
             with tqdm(total=n_train, desc=f'Epoch {epoch + 1}/{epochs}', unit='img') as pbar:
                 for batch in train_loader:
-                    images = batch['image']
-                    label = batch['label']
-                    nan_masks = batch['nan-mask']
-                    region_masks = batch['region-mask']
-
-                    # assert images.shape[1] == net.n_channels, \
-                    #     f'Network has been defined with {net.n_channels} input channels, ' \
-                    #     f'but loaded images have {images.shape[1]} channels. Please check that ' \
-                    #     'the images are loaded correctly.'
-
-                    images = images.to(device=self.device, dtype=torch.float32)
-                    label = label.to(device=self.device, dtype=torch.float32)
-                    nan_masks = nan_masks.to(device=self.device)
-                    region_masks = region_masks.to(device=self.device)
-
                     with torch.cuda.amp.autocast(enabled=amp):
-                        prediction = net(images)
-                        # sum loss only where no nan is present
-                        loss = torch.mean(torch.abs(prediction - label) * nan_masks * region_masks)
-                        # loss = criterion(prediction, label)
+                        predictions, loss = self.infer(net, batch)
 
                     optimizer.zero_grad(set_to_none=True)
                     grad_scaler.scale(loss).backward()
                     grad_scaler.step(optimizer)
                     grad_scaler.update()
 
-                    pbar.update(images.shape[0])
+                    pbar.update(batch_size)
                     global_step += 1
                     epoch_loss += loss.item()
 
@@ -204,7 +199,7 @@ class Trainer:
 
                     # Evaluation round
                     if global_step % division_step == 0:
-                        val_loss = self.evaluate(net, val_loader, self.device)
+                        val_loss = self.evaluate(net, val_loader)
                         scheduler.step(val_loss)
 
                         logging.info('Validation Loss: {}'.format(val_loss))
@@ -219,11 +214,12 @@ class Trainer:
                                            tag] = wandb.Histogram(value.grad.data.cpu())
 
                             # visualization images
-                            # multiply prediction mask with nan mask to remove pixels where nans are
-                            # in the input or target
-                            vis_image = images[0].cpu().detach().numpy().transpose((1, 2, 0))
-                            vis_true_mask = label[0, 0].float().cpu().detach().numpy()
-                            vis_pred_mask = (prediction * nan_masks)[0, 0].float().cpu().detach().numpy()
+                            vis_image = batch['image'][0].numpy().transpose((1, 2, 0))
+                            vis_true_mask = batch['label'][0].numpy().squeeze()
+                            nan_mask = batch['nan-mask'][0].numpy().squeeze()
+                            region_mask = batch['region-mask'][0].numpy().squeeze()
+                            prediction = predictions[0].float().cpu().detach().numpy().squeeze()
+                            vis_pred_mask = prediction * nan_mask * region_mask
 
                             experiment_log = {
                                 'step': global_step,
@@ -241,10 +237,8 @@ class Trainer:
                             }
 
                             if self.add_nan_mask_to_input:
-                                nan_mask = nan_masks[0].cpu().detach().numpy()
                                 experiment_log['input']['nan-mask'] = wandb.Image(visualize_mask(nan_mask))
                             if self.add_region_mask_to_input:
-                                region_mask = region_masks[0].cpu().detach().numpy()
                                 experiment_log['input']['region-mask'] = wandb.Image(visualize_mask(region_mask))
 
                             experiment.log(experiment_log)

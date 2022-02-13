@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=40
 #SBATCH --time=12:00:00
 #SBATCH --gres=gpu:2
-#SBATCH --export=ALL,EXECUTABLE="python ../../src/trainers/train_models.py configs/config_augmented_crop_noscale.yml"
+#SBATCH --export=ALL,EXECUTABLE="python ../../src/trainers/train_models.py configs/config_augmented_crop_scale.yml"
 #SBATCH --output="train_models.out"
 #SBATCH -J TrainUNet
 

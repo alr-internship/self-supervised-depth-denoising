@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 
 
 def main(args):
-    ds = BasicDataset(args.dataset_dir, scale=0.5,
+    ds = BasicDataset(args.dataset_path, scale=0.5,
                       enable_augmentation=False, add_nan_mask_to_input=True)
     dl = DataLoader(ds, shuffle=False, batch_size=15,
                     num_workers=4, pin_memory=True)
@@ -21,7 +21,7 @@ def main(args):
     assert dl_size > 0, "test dataset is empty"
 
     # model_files = list(args.models_dir.glob("**/*.pth"))
-    models_dir = sorted([model for model in args.models_dir.rglob("*") if model.is_dir()])
+    models_dir = sorted([model for model in args.models_path.rglob("*") if model.is_dir()])
     assert len(models_dir) > 0, "models dir has no models of type .pth"
 
     net = UNet(n_input_channels=5, n_output_channels=1)
@@ -77,7 +77,7 @@ def main(args):
 
 if __name__ == "__main__":
     argparse = ArgumentParser()
-    argparse.add_argument("models_dir", type=Path)
-    argparse.add_argument("dataset_dir", type=Path)
+    argparse.add_argument("models_path", type=Path)
+    argparse.add_argument("dataset_path", type=Path)
     argparse.add_argument("--all-epochs", type=bool, default=True)
     main(argparse.parse_args())

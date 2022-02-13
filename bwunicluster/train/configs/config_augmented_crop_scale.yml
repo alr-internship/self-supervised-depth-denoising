@@ -10,7 +10,7 @@ oof_trainer:
 
 network_config:
   epochs: 50
-  batch_size: 4
+  batch_size: 17
   learning_rate: 0.00001
   load_from_model: None
   wandb: True
@@ -21,7 +21,7 @@ network_config:
   validation_interval: 300
 
 dataset_config:
-  scale_images: 1
+  scale_images: 0.5
   enable_augmentation: False
   add_nan_mask_to_input: True
   add_region_mask_to_input: True

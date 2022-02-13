@@ -7,7 +7,7 @@
 #SBATCH --time=02:00:00
 #SBATCH --mem=20000mb   
 #SBATCH --gres=gpu:2
-#SBATCH --export=ALL,EXECUTABLE="python ../../src/evaluate/evaluate.py ../../resources/models /home/kit/anthropomatik/ng3916/self-supervised-depth-denoising/resources/images/calibrated/3d_aligned/test_dataset.json"
+#SBATCH --export=ALL,EXECUTABLE="python ../../src/evaluate/evaluate.py ../../resources/models ../../resources/images/calibrated_masked_augmented/cropped/ycb_video/test_datset.json"
 #SBATCH --output="dev_eval.out"
 #SBATCH -J EvalUNet
 
