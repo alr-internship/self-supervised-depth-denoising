@@ -29,7 +29,7 @@ def imgs_to_pcd(bgr, depth, ci: dict, project_valid_depth_only: bool = True):
     return pcd
 
 
-def pcd_to_imgs(pcd, ci: dict):
+def pcd_to_imgs(pcd, ci: dict, depth_scale: float = 1000.0):
     points = np.asarray(pcd.points)
     colors = np.asarray(pcd.colors)
 
@@ -55,7 +55,7 @@ def pcd_to_imgs(pcd, ci: dict):
     pixels = pixels.T
     pixels = (pixels[1], pixels[0])
     rgb_frame[pixels] = colors * 255
-    depth_frame[pixels] = depths
+    depth_frame[pixels] = depths * depth_scale
 
     bgr_frame = to_bgr(rgb_frame)
 

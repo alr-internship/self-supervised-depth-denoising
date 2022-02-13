@@ -2,3 +2,9 @@
 	branch = master
 	path = 3rdparty/mask_rcnn
 	url = git@github.com:alr-internship/Mask_RCNN.git
+[submodule "report/intern"]
+	path = report/intern
+	url = https://git.overleaf.com/61efcf20385aeeeb6d756510
+[submodule "report/seminar"]
+	path = report/seminar
+	url = https://git.overleaf.com/61efcee3385aeef5be755f7b
