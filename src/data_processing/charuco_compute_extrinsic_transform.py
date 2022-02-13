@@ -1,17 +1,9 @@
-from typing import List
-from matplotlib import pyplot as plt
-from tqdm import tqdm
+from argparse import ArgumentParser
 from dataset.dataset_interface import DatasetInterface
 from pathlib import Path
-import open3d as o3d
 import numpy as np
-from joblib import Parallel, delayed
 import cv2
-from utils.general_utils import split
-from utils.transformation_utils import image_points_to_camera_points, imgs_to_pcd, pcd_to_imgs, rs_ci, zv_ci
-
-threshold = 1
-final_size = (1920, 1080)
+from utils.transformation_utils import image_points_to_camera_points, rs_ci, zv_ci
 
 
 def __compute_transform_matrix(A, B):
@@ -55,10 +47,9 @@ def __compute_transform_matrix(A, B):
     return R, t
 
 
-def main():
+def main(args):
     # get all charuco images with small charuco board
-    dir_with_charuco_files = Path("resources/images/_old")
-    files = list(dir_with_charuco_files.glob("c_dataset_small*/**/*.npz"))
+    files = list(args.dir_with_charuco_images.rglob("*.npz"))
 
     print(f"files for calibration: {len(files)}")
 
@@ -148,7 +139,7 @@ def main():
 
     rs_imgs_xyz = np.array(rs_imgs_xyz)
     zv_imgs_xyz = np.array(zv_imgs_xyz)
-    
+
     rs_camera_xyz = image_points_to_camera_points(rs_imgs_xyz, rs_ci)
     zv_camera_xyz = image_points_to_camera_points(zv_imgs_xyz, zv_ci)
 
@@ -157,8 +148,16 @@ def main():
     trans[:3, :3] = R
     trans[:3, 3] = t[:, 0]
 
-    print(trans)
+    print(f"""
+
+    Computed extrinsic transformation matrix:
+        {trans}
+
+    """)
 
 
 if __name__ == "__main__":
-    main()
+    argparse = ArgumentParser()
+    argparse.add_argument("dir_with_charuco_images", type=Path,
+                          help="directory where the raw charuco images are located")
+    main(argparse.parse_args())

@@ -18,7 +18,7 @@ network_config:
   evaluation_dir: "resources/models"
   bilinear: True
   amp: False
-  validation_interval: 200
+  validation_interval: 5000
 
 dataset_config:
   scale_images: 1
