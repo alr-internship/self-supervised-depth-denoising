@@ -30,6 +30,7 @@ class Trainer:
         self,
         net,
         batch,
+        loss_criterion
     ):
         images = batch['image']
         label = batch['label']
@@ -47,8 +48,12 @@ class Trainer:
         region_masks = region_masks.to(device=self.device)
 
         prediction = net(images)
-        # sum loss only where no nan is present and region
-        loss = torch.mean(torch.abs(prediction - label) * nan_masks * region_masks)
+
+        # apply loss only on relevant regions
+        loss = loss_criterion(
+            prediction * nan_masks * region_masks, 
+            label * nan_masks * region_masks
+        )
 
         return prediction, loss
 
@@ -56,6 +61,7 @@ class Trainer:
         self,
         net: nn.Module,
         dataloader: DataLoader,
+        loss_criterion
     ):
         net.eval()
         num_val_batches = len(dataloader)
@@ -66,7 +72,7 @@ class Trainer:
         # iterate over the validation set
         for batch in tqdm(dataloader, desc='Validation round', unit='batch', leave=False):
             with torch.no_grad():
-                _, batch_loss = self.infer(net, batch)
+                _, batch_loss = self.infer(net, batch, loss_criterion)
                 loss += batch_loss
 
         net.train()
@@ -154,6 +160,8 @@ class Trainer:
             **loader_args
         )
 
+        loss_criterion = nn.L1Loss(reduction='sum')
+
         # Set up the optimizer, the loss, the learning rate scheduler and the loss scaling for AMP
         optimizer = optim.RMSprop(
             net.parameters(),
@@ -176,7 +184,7 @@ class Trainer:
             with tqdm(total=n_train, desc=f'Epoch {epoch + 1}/{epochs}', unit='img') as pbar:
                 for batch in train_loader:
                     with torch.cuda.amp.autocast(enabled=amp):
-                        predictions, loss = self.infer(net, batch)
+                        predictions, loss = self.infer(net, batch, loss_criterion)
 
                     optimizer.zero_grad(set_to_none=True)
                     grad_scaler.scale(loss).backward()
@@ -199,7 +207,7 @@ class Trainer:
 
                     # Evaluation round
                     if global_step % division_step == 0:
-                        val_loss = self.evaluate(net, val_loader)
+                        val_loss = self.evaluate(net, val_loader, loss_criterion)
                         scheduler.step(val_loss)
 
                         logging.info('Validation Loss: {}'.format(val_loss))

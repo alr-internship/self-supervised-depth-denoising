@@ -15,6 +15,7 @@ rs_ci = dict(
     cx=936.4846801757812, cy=537.48779296875,
 )
 
+
 def imgs_to_pcd(bgr, depth, ci: dict, project_valid_depth_only: bool = True):
     ci = o3d.camera.PinholeCameraIntrinsic(**ci)
 
@@ -25,7 +26,8 @@ def imgs_to_pcd(bgr, depth, ci: dict, project_valid_depth_only: bool = True):
     rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(
         rgb, depth, convert_rgb_to_intensity=False)
 
-    pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_image, ci, project_valid_depth_only=project_valid_depth_only)
+    pcd = o3d.geometry.PointCloud.create_from_rgbd_image(
+        rgbd_image, ci, project_valid_depth_only=project_valid_depth_only)
     return pcd
 
 
@@ -60,6 +62,7 @@ def pcd_to_imgs(pcd, ci: dict, depth_scale: float = 1000.0):
     bgr_frame = to_bgr(rgb_frame)
 
     return bgr_frame, depth_frame, ul_corner, lr_corner
+
 
 def image_points_to_camera_points(image_points: np.array, ci: dict, depth_scale: float = 1000.0):
     assert image_points.shape[1] == 3, "image points must have xyz"
