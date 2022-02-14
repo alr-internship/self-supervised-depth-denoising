@@ -10,8 +10,8 @@ oof_trainer:
 
 network_config:
   epochs: 50
-  batch_size: 17
-  learning_rate: 0.00001
+  batch_size: 1
+  learning_rate: 0.1
   load_from_model: None
   wandb: True
   save: True
@@ -25,3 +25,4 @@ dataset_config:
   enable_augmentation: False
   add_nan_mask_to_input: True
   add_region_mask_to_input: True
+  normalize_depths: True # normalized input and label depth d with (d - mean) / std channel wise

@@ -5,6 +5,7 @@ from pathlib import Path
 import time
 import torch
 import yaml
+from dataset.data_loading import BasicDataset
 from trainers.basic_trainer import BasicTrainer
 
 from trainers.oof_trainer import OutOfFoldTrainer
@@ -22,7 +23,9 @@ def main(args):
     oof_trainer = config['oof_trainer']
     basic_trainer = config['basic_trainer']
 
-    evaluation_dir = ROOT_DIR / network_config['evaluation_dir'] / f"{time.time()}"
+    trainer_id = str(time.time())
+
+    evaluation_dir = ROOT_DIR / network_config['evaluation_dir'] / trainer_id
     evaluation_dir.mkdir(parents=True, exist_ok=True)
 
     # write config to evaluation directory
@@ -42,11 +45,15 @@ def main(args):
 
     trainer_params = dict(
         device=device,
-        scale=dataset_config['scale_images'],
-        enable_augmentation=dataset_config['enable_augmentation'],
-        add_nan_mask_to_input=dataset_config['add_nan_mask_to_input'],
-        add_region_mask_to_input=dataset_config['add_region_mask_to_input'],
-        bilinear=network_config['bilinear']
+        dataset_config=BasicDataset.Config(
+            scale=dataset_config['scale_images'],
+            enable_augmentation=dataset_config['enable_augmentation'],
+            add_nan_mask_to_input=dataset_config['add_nan_mask_to_input'],
+            add_region_mask_to_input=dataset_config['add_region_mask_to_input'],
+            normalize_depths=dataset_config['normalize_depths']
+        ),
+        bilinear=network_config['bilinear'],
+        trainer_id=trainer_id
     )
 
     if oof_trainer['active']:

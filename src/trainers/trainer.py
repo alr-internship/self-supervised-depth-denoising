@@ -6,6 +6,7 @@ import torch.nn as nn
 from torch import optim
 from torch.utils.data import DataLoader
 import wandb
+from dataset.data_loading import BasicDataset
 from utils.visualization_utils import to_rgb, visualize_depth, visualize_mask
 from tqdm import tqdm
 
@@ -14,17 +15,13 @@ class Trainer:
 
     def __init__(
         self,
+        trainer_id: str,
         device: torch.device,
-        scale: float,
-        enable_augmentation: bool,
-        add_nan_mask_to_input: bool,
-        add_region_mask_to_input: bool
+        dataset_config: BasicDataset.Config
     ):
+        self.trainer_id = trainer_id
         self.device = device
-        self.scale = scale
-        self.enable_augmentation = enable_augmentation
-        self.add_nan_mask_to_input = add_nan_mask_to_input
-        self.add_region_mask_to_input = add_region_mask_to_input
+        self.dataset_config = dataset_config
 
     def infer(
         self,
@@ -50,10 +47,12 @@ class Trainer:
         prediction = net(images)
 
         # apply loss only on relevant regions
-        loss = loss_criterion(
-            prediction * nan_masks * region_masks, 
+        batch_loss = loss_criterion(
+            prediction * nan_masks * region_masks,
             label * nan_masks * region_masks
         )
+
+        loss = batch_loss / len(images)
 
         return prediction, loss
 
@@ -93,7 +92,6 @@ class Trainer:
         amp: bool,
         activate_wandb: bool,
     ):
-        train_id = id(time.time())
         if save_checkpoint:
             dir_checkpoint = dir_checkpoint / f"{net.name}"
 
@@ -111,11 +109,8 @@ class Trainer:
                     batch_size=batch_size,
                     learning_rate=learning_rate,
                     save_checkpoint=save_checkpoint,
-                    img_scale=self.scale,
-                    enable_augmentation=self.enable_augmentation,
-                    add_nan_mask_to_input=self.add_nan_mask_to_input,
-                    add_region_mask_to_input=self.add_region_mask_to_input,
-                    train_id=train_id,
+                    **dict(self.dataset_config),
+                    trainer_id=self.trainer_id,
                     amp=amp,
                     training_size=n_train,
                     validation_size=n_val,
@@ -136,10 +131,8 @@ class Trainer:
             Validation Interval: {val_interval} (in samples) 
             Checkpoints:         {save_checkpoint}
             Device:              {self.device.type}
-            Images scaling:      {self.scale}
-            Augmentation:        {self.enable_augmentation}
-            NaNs Mask:           {self.add_nan_mask_to_input}
-            Region Mask:         {self.add_region_mask_to_input}
+            Dataset Config:      
+                {self.dataset_config.get_printout()}
             Mixed Precision:     {amp}
             ''')
 
@@ -197,7 +190,7 @@ class Trainer:
 
                     if activate_wandb:
                         experiment.log({
-                            'step': global_step,
+                            'step': global_step * batch_size,
                             'epoch': epoch,
                             'train loss': loss.item(),
                             'learning rate': optimizer.param_groups[0]['lr'],
@@ -230,7 +223,7 @@ class Trainer:
                             vis_pred_mask = prediction * nan_mask * region_mask
 
                             experiment_log = {
-                                'step': global_step,
+                                'step': global_step * batch_size,
                                 'epoch': epoch,
                                 'validation loss': val_loss,
                                 'input': {
@@ -244,9 +237,9 @@ class Trainer:
                                 **histograms
                             }
 
-                            if self.add_nan_mask_to_input:
+                            if self.dataset_config.add_nan_mask_to_input:
                                 experiment_log['input']['nan-mask'] = wandb.Image(visualize_mask(nan_mask))
-                            if self.add_region_mask_to_input:
+                            if self.dataset_config.add_region_mask_to_input:
                                 experiment_log['input']['region-mask'] = wandb.Image(visualize_mask(region_mask))
 
                             experiment.log(experiment_log)

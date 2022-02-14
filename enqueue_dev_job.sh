@@ -3,11 +3,11 @@
 #SBATCH --mail-user=privat@claudiuskienle.de
 #SBATCH --partition=single
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=40
-#SBATCH --time=04:00:00
-#SBATCH --export=ALL,EXECUTABLE="dvc push"
-#SBATCH --output="tmp.out"
-#SBATCH -J Tmp
+#SBATCH --cpus-per-task=1
+#SBATCH --time=12:00:00
+#SBATCH --export=ALL,EXECUTABLE="python tmp2.py"
+#SBATCH --output="tmp2.out"
+#SBATCH -J Tmp2
 
 #Usually you should set
 export KMP_AFFINITY=compact,1,0

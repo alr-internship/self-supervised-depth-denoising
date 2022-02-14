@@ -7,7 +7,7 @@
 #SBATCH --time=02:00:00
 #SBATCH --mem=20000mb   
 #SBATCH --gres=gpu:2
-#SBATCH --export=ALL,EXECUTABLE="python ../../src/evaluate/evaluate.py ../../resources/models ../../resources/images/calibrated_masked_augmented/cropped/ycb_video/test_datset.json"
+#SBATCH --export=ALL,EXECUTABLE="python ../../src/evaluate/evaluate.py ../../resources/models/1644845668.36219 ../../resources/images/calibrated_masked_augmented/cropped/ycb_video/test_datset.json"
 #SBATCH --output="dev_eval.out"
 #SBATCH -J EvalUNet
 

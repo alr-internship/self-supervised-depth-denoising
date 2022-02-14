@@ -287,6 +287,7 @@ the test set is then later used for evaluation.
 Training
 ===
 
+Code from this section should be executed in the `depth-denoising_training` conda environment.
 The main script to train the denoising model is
 [train_models.py](src/trainers/train_models.py). To run the script execute
 ```bash
@@ -316,6 +317,8 @@ If it points to a (JSON) file, the files in that file fill form the dataset.
 
 Evaluation
 ===
+
+Code from this section should be executed in the `depth-denoising_training` conda environment.
 
 Run Evaluation
 ----
@@ -401,5 +404,6 @@ TODOs
     - [ ] calibrated, cropped
     - [ ] masked, not cropped
     - [ ] masked, cropped
-- [ ] augmented dataset contains 0 for NaNs outside of region
-- [ ] depth values may be in meter instead of millimeter
+- [X] augmented dataset contains 0 for NaNs outside of region
+- [X] depth values may be in meter instead of millimeter
+- [ ] somehow normalize depth input (currently in millimeters?!)

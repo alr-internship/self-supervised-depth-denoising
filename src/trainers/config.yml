@@ -25,4 +25,5 @@ dataset_config:
   enable_augmentation: False # if images augmentation should be applied
   add_nan_mask_to_input: True # if nan mask should be concatented to input
   add_region_mask_to_input: True # if region mask should be concatenated to input
+  normalize_depths: True # normalized input and label depth d with (d - mean) / std channel wise
 

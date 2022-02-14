@@ -24,6 +24,6 @@ dataset_config:
   enable_augmentation: False
   add_nan_mask_to_input: True
   add_region_mask_to_input: True
-
+  normalize_depths: True # normalized input and label depth d with (d - mean) / std channel wise
 
 
