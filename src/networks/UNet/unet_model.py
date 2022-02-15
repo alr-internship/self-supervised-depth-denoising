@@ -8,10 +8,11 @@ Reference: https://github.com/milesial/Pytorch-UNet
 class UNet(nn.Module):
     def __init__(
         self,
-        n_input_channels,
-        n_output_channels,
-        bilinear=True,
-        name='UNet'                     # name for wandb
+        n_input_channels: int,
+        n_output_channels: int,
+        initial_channels: int,
+        bilinear: bool = True,
+        name: str = 'UNet'                     # name for wandb
     ):
         super().__init__()
 
@@ -21,20 +22,22 @@ class UNet(nn.Module):
 
         factor = 2 if bilinear else 1
 
-        self.InConv = DoubleConv(n_input_channels, 64 - n_input_channels)
+        ic = initial_channels
+
+        self.InConv = DoubleConv(n_input_channels, ic - n_input_channels)
 
         # '- n_channels' for concatenation later of skip connections
-        self.Down1 = Down(64, 128 - n_input_channels)
-        self.Down2 = Down(128, 256 - n_input_channels)
-        self.Down3 = Down(256, 512 - n_input_channels)
-        self.Down4 = Down(512, 1024 // factor - n_input_channels)
+        self.Down1 = Down(ic, ic * 2 - n_input_channels)
+        self.Down2 = Down(ic * 2, ic * 4 - n_input_channels)
+        self.Down3 = Down(ic * 4, ic * 8 - n_input_channels)
+        self.Down4 = Down(ic * 8, ic * 16 // factor - n_input_channels)
 
-        self.Up1 = Up(1024, 512 // factor, bilinear)
-        self.Up2 = Up(512, 256 // factor, bilinear)
-        self.Up3 = Up(256, 128 // factor, bilinear)
-        self.Up4 = Up(128, 64, bilinear)
+        self.Up1 = Up(ic * 16, ic * 8 // factor, bilinear)
+        self.Up2 = Up(ic * 8, ic * 4 // factor, bilinear)
+        self.Up3 = Up(ic * 4, ic * 2 // factor, bilinear)
+        self.Up4 = Up(ic * 2, ic, bilinear)
 
-        self.OutConv = OutConv(64, n_output_channels)
+        self.OutConv = OutConv(ic, n_output_channels)
 
     def forward(self, inputs):
         AdaptSize = nn.AvgPool2d(2, 2)

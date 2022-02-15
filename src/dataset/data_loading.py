@@ -35,7 +35,7 @@ class BasicDataset(Dataset):
             self.normalize_depths = normalize_depths
 
         def __iter__(self):
-            yield 'scale', self.scale
+            yield 'img_scale', self.scale
             yield 'enable_augmentation', self.enable_augmentation
             yield 'add_nan_mask_to_input', self.add_nan_mask_to_input
             yield 'add_region_mask_to_input', self.add_region_mask_to_input
@@ -156,6 +156,18 @@ class BasicDataset(Dataset):
     def preprocess_set(cls, rs_rgb, rs_depth, region_mask, zv_depth,
                        dataset_config: Config):
 
+        if region_mask.shape[2] > 1:
+            # mask is still on a per object basis => union
+            region_mask = np.sum(region_mask, axis=2) > 0
+
+        # normalize depth
+        if dataset_config.normalize_depths:
+            eps = np.finfo(float).eps
+            # rs_depth = (rs_depth - np.nanmean(rs_depth)) / (np.nanstd(rs_depth + eps))
+            # zv_depth = (zv_depth - np.nanmean(zv_depth)) / (np.nanstd(zv_depth + eps))
+            rs_depth = (rs_depth - np.nanmin(rs_depth)) / (np.nanmax(rs_depth) - np.nanmin(rs_depth))
+            zv_depth = (zv_depth - np.nanmin(zv_depth)) / (np.nanmax(zv_depth) - np.nanmin(zv_depth))
+
         if dataset_config.enable_augmentation:
             rs_rgb, rs_depth, zv_depth, region_mask = cls.augment(rs_rgb, rs_depth,
                                                                    zv_depth, region_mask)
@@ -178,11 +190,6 @@ class BasicDataset(Dataset):
         processed_rs_depth = np.nan_to_num(processed_rs_depth)
         processed_zv_depth = np.nan_to_num(processed_zv_depth)
 
-        # normalize depth
-        if dataset_config.normalize_depths:
-            eps = np.finfo(float).eps
-            processed_rs_depth = (processed_rs_depth - np.mean(processed_rs_depth)) / (np.std(processed_rs_depth + eps))
-            processed_zv_depth = (processed_zv_depth - np.mean(processed_zv_depth)) / (np.std(processed_zv_depth + eps))
 
         input_tuple = (processed_rs_rgb, processed_rs_depth)
 
@@ -203,9 +210,5 @@ class BasicDataset(Dataset):
 
     def __getitem__(self, idx):
         rs_rgb, rs_depth, _, zv_depth, region_mask = DatasetInterface.load(self.files[idx])
-
-        if region_mask.shape[2] > 1:
-            # mask is still on a per object basis => union
-            region_mask = np.sum(region_mask, axis=2) > 0
 
         return self.preprocess_set(rs_rgb, rs_depth, region_mask, zv_depth, self.dataset_config)

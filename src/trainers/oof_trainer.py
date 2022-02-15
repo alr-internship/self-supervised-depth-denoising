@@ -31,6 +31,7 @@ class OutOfFoldTrainer(Trainer):
         dataset_path: Path,
         dataset_config: BasicDataset.Config,
         oof_p: float,
+        initial_channels: int,
         bilinear: bool,
     ):
         super.__init__(trainer_id, device, dataset_config)
@@ -58,17 +59,20 @@ class OutOfFoldTrainer(Trainer):
         self.M_11 = UNet(
             n_input_channels=n_input_channels,
             n_output_channels=n_output_channels,
+            initial_channels=initial_channels,
             name='M_11'
         )
         self.M_12 = UNet(
             n_input_channels=n_input_channels,
             n_output_channels=n_output_channels,
+            initial_channels=initial_channels,
             bilinear=bilinear,
             name='M_12'
         )
         self.M_1 = UNet(
             n_input_channels=n_input_channels,
             n_output_channels=n_output_channels,
+            initial_channels=initial_channels,
             bilinear=bilinear,
             name='M_1'
         )

@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 import time
+import numpy as np
 import torch
 import torch.nn as nn
 from torch import optim
@@ -220,7 +221,7 @@ class Trainer:
                             nan_mask = batch['nan-mask'][0].numpy().squeeze()
                             region_mask = batch['region-mask'][0].numpy().squeeze()
                             prediction = predictions[0].float().cpu().detach().numpy().squeeze()
-                            vis_pred_mask = prediction * nan_mask * region_mask
+                            vis_pred_mask = np.where(np.logical_and(nan_mask, region_mask), prediction, np.nan)
 
                             experiment_log = {
                                 'step': global_step * batch_size,

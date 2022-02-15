@@ -53,7 +53,8 @@ def main(args):
             normalize_depths=dataset_config['normalize_depths']
         ),
         bilinear=network_config['bilinear'],
-        trainer_id=trainer_id
+        trainer_id=trainer_id,
+        initial_channels=network_config['initial_channels']
     )
 
     if oof_trainer['active']:

@@ -16,6 +16,7 @@ class BasicTrainer(Trainer):
         val_path: Path,
         dataset_config: BasicDataset.Config,
         bilinear: bool,
+        initial_channels: int,
     ):
         super().__init__(trainer_id, device, dataset_config)
 
@@ -31,6 +32,7 @@ class BasicTrainer(Trainer):
         self.M_total = UNet(
             n_input_channels=n_input_channels,
             n_output_channels=n_output_channels,
+            initial_channels=initial_channels,
             bilinear=bilinear,
             name='M_total'
         )
