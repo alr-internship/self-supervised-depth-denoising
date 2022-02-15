@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=privat@claudiuskienle.de
-#SBATCH --partition=gpu_4,gpu_8
+#SBATCH --partition=dev_gpu_4,gpu_4,gpu_8
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=40
-#SBATCH --time=02:00:00
+#SBATCH --time=00:30:00
 #SBATCH --mem=20000mb   
 #SBATCH --gres=gpu:2
 #SBATCH --export=ALL,EXECUTABLE="python ../../src/evaluate/evaluate.py ../../resources/models/1644845668.36219 ../../resources/images/calibrated_masked_augmented/cropped/ycb_video/test_datset.json"

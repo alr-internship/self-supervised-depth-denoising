@@ -9,17 +9,17 @@ oof_trainer:
   oof_p: 0.33
 
 network_config:
-  initial_channels: 64
+  initial_channels: 8
   epochs: 50
-  batch_size: 17
-  learning_rate: 0.1
+  batch_size: 100
+  learning_rate: 0.05
   load_from_model: None
   wandb: True
   save: True
   evaluation_dir: "resources/models"
   bilinear: True
   amp: False
-  validation_interval: 300
+  validation_interval: 250
 
 dataset_config:
   scale_images: 0.5

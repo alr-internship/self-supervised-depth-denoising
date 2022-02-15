@@ -1,7 +1,7 @@
 basic_trainer:
   active: True
-  val_path: "resources/images/calibrated_masked_augmented/cropped/ycb_video/val_dataset.json"
-  train_path: "resources/images/calibrated_masked_augmented/cropped/ycb_video/train_dataset.json"
+  val_path: "resources/images/calibrated_masked/cropped/ycb_video/val_dataset.json"
+  train_path: "resources/images/calibrated_masked/cropped/ycb_video/train_dataset.json"
 
 oof_trainer:
   active: False
@@ -19,11 +19,11 @@ network_config:
   evaluation_dir: "resources/models"
   bilinear: True
   amp: False
-  validation_interval: 300
+  validation_interval: 500
 
 dataset_config:
   scale_images: 0.5
   enable_augmentation: False
   add_nan_mask_to_input: True
   add_region_mask_to_input: True
-  normalize_depths: False # normalized input and label depth d with (d - mean) / std channel wise
+  normalize_depths: True # normalized input and label depth d with (d - mean) / std channel wise

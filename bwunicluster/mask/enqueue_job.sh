@@ -1,12 +1,12 @@
 #!/bin/bash
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=privat@claudiuskienle.de
-#SBATCH --partition=gpu_4,gpu_8
+#SBATCH --partition=dev_gpu_4,gpu_4,gpu_8
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=40
-#SBATCH --time=01:00:00
+#SBATCH --time=00:30:00
 #SBATCH --gres=gpu:1
-#SBATCH --export=ALL,EXECUTABLE="python ../../src/data_processing/mask_rcnn_segmentation.py ../../resources/images/calibrated ../../resources/images/calibrated_masked --gpus=1 --imgs-per-gpu=8"
+#SBATCH --export=ALL,EXECUTABLE="python ../../src/data_processing/mask_rcnn_segmentation.py ../../resources/images/calibrated/not-cropped/ycb_video ../../resources/images/calibrated_masked/not-cropped/ycb_video --gpus=1 --imgs-per-gpu=8"
 #SBATCH --output="mask_rcnn_segmentation.out"
 #SBATCH -J MaskData
 

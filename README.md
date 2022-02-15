@@ -407,3 +407,13 @@ TODOs
 - [X] augmented dataset contains 0 for NaNs outside of region
 - [X] depth values may be in meter instead of millimeter
 - [ ] somehow normalize depth input (currently in millimeters?!)
+    - Tried to normalize depth images D with (D - mean(D)) / std(D) channel wise.
+        The model then outputs NaNs only.
+        The normalization was added at the very last layer.
+        Therefore 0 values (genated by the masks) became negative values!
+        Next try: Directly normalize 'raw' depth images.
+    - Normalization on raw data does work better.
+        But maybe it would be better to just divide by the std. dev. and not also substract the mean
+    - Normalization by mapping the images linear from 0 - 1 (img - min) * (max - min).
+        The trained model now has a plain! Loses all depth info in prediction
+        INVESTIGATE!!!

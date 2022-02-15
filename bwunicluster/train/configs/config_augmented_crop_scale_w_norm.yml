@@ -1,7 +1,7 @@
 basic_trainer:
   active: True
-  val_path: "/home/kit/anthropomatik/ng3916/self-supervised-depth-denoising/resources/images/calibrated/3d_aligned/val_dataset.json"
-  train_path: "/home/kit/anthropomatik/ng3916/self-supervised-depth-denoising/resources/images/calibrated/3d_aligned/train_dataset.json"
+  val_path: "resources/images/calibrated_masked_augmented/cropped/ycb_video/val_dataset.json"
+  train_path: "resources/images/calibrated_masked_augmented/cropped/ycb_video/train_dataset.json"
 
 oof_trainer:
   active: False
@@ -9,15 +9,17 @@ oof_trainer:
   oof_p: 0.33
 
 network_config:
-  epochs: 5
-  batch_size: 1
-  learning_rate: 0.00001
+  initial_channels: 64
+  epochs: 50
+  batch_size: 17
+  learning_rate: 0.1
   load_from_model: None
   wandb: True
   save: True
-  dir_checkpoints: ""
+  evaluation_dir: "resources/models"
   bilinear: True
   amp: False
+  validation_interval: 300
 
 dataset_config:
   scale_images: 0.5
@@ -25,5 +27,3 @@ dataset_config:
   add_nan_mask_to_input: True
   add_region_mask_to_input: True
   normalize_depths: True # normalized input and label depth d with (d - mean) / std channel wise
-
-
