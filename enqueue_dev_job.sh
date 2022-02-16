@@ -3,9 +3,9 @@
 #SBATCH --mail-user=privat@claudiuskienle.de
 #SBATCH --partition=single
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=1
+#SBATCH --cpus-per-task=20
 #SBATCH --time=12:00:00
-#SBATCH --export=ALL,EXECUTABLE="python tmp2.py"
+#SBATCH --export=ALL,EXECUTABLE="dvc push"
 #SBATCH --output="tmp2.out"
 #SBATCH -J Tmp2
 

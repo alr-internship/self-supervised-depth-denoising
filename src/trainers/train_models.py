@@ -1,5 +1,4 @@
 from argparse import ArgumentParser
-from hashlib import md5
 import logging
 from pathlib import Path
 import time

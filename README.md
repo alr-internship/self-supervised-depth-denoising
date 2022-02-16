@@ -446,3 +446,5 @@ TODOs
         INVESTIGATE!!
         
 - [ ] generate augmented dataset by applying augmentation in 3d space
+
+- [ ] Check tensor datatypes. Looks like some depth maps have uint16. Is that oke?

@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from typing import List
+from matplotlib.pyplot import fill
 from tqdm import tqdm
 from dataset.dataset_interface import DatasetInterface
 from pathlib import Path
@@ -59,12 +60,9 @@ def align_uncropped(rs_rgb, rs_depth, zv_rgb, zv_depth, debug: bool):
     zv_rgb, zv_depth, ul_corner, lr_corner = pcd_to_imgs(zv_pcd, rs_ci)
 
     zv_rgb_large = np.zeros_like(rs_rgb)
-    zv_depth_large = np.zeros_like(rs_depth)
-
-    zv_rgb_large[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]
-                 ] = zv_rgb[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
-    zv_depth_large[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]
-                   ] = zv_depth[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
+    zv_depth_large = np.full_like(rs_depth, fill_value=np.nan, dtype=np.float32)
+    zv_rgb_large[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]] = zv_rgb[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
+    zv_depth_large[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]] = zv_depth[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
     zv_rgb = zv_rgb_large
     zv_depth = zv_depth_large
 
@@ -75,7 +73,7 @@ def align_uncropped(rs_rgb, rs_depth, zv_rgb, zv_depth, debug: bool):
     rs_mask[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]] = 1
 
     rs_rgb = rs_rgb * rs_mask[..., None]
-    rs_depth = rs_depth * rs_mask
+    rs_depth = np.where(rs_mask, rs_depth, np.nan)
 
     return rs_rgb, rs_depth, zv_rgb, zv_depth
 
@@ -111,7 +109,7 @@ def main(args):
             else:
                 aligned_image_tuple = align_uncropped(*image_tuple, args.debug)
             rel_dir_path = file.relative_to(args.raw_dir)
-            DatasetInterface.save(*aligned_image_tuple, mask=None, file_name=rel_dir_path)
+            DatasetInterface.save(*aligned_image_tuple, mask=None, file_name=args.out_dir / rel_dir_path)
 
 
 if __name__ == "__main__":

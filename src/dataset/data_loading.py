@@ -190,6 +190,10 @@ class BasicDataset(Dataset):
         processed_rs_depth = np.nan_to_num(processed_rs_depth)
         processed_zv_depth = np.nan_to_num(processed_zv_depth)
 
+        assert processed_rs_rgb.shape[0] == 3
+        assert len(processed_rs_depth.shape) == 2 or processed_rs_depth.shape[0] == 1
+        assert len(processed_region_mask.shape) == 2 or processed_region_mask.shape[0] == 1
+        assert len(nan_mask.shape) == 2 or nan_mask.shape[0] == 1
 
         input_tuple = (processed_rs_rgb, processed_rs_depth)
 
@@ -201,9 +205,11 @@ class BasicDataset(Dataset):
         input = np.concatenate(input_tuple, axis=0)
         label = processed_zv_depth
 
+        assert input.shape[0] == 4 + dataset_config.add_nan_mask_to_input + dataset_config.add_region_mask_to_input
+
         return {
             'image': torch.as_tensor(input.copy()).float().contiguous(),
-            'label': torch.as_tensor(label.copy()).float().contiguous(),
+            'label': torch.as_tensor(label.copy().astype(np.float32)).float().contiguous(),
             'nan-mask': torch.as_tensor(nan_mask.copy()),
             'region-mask': torch.as_tensor(processed_region_mask.copy())
         }
@@ -211,4 +217,7 @@ class BasicDataset(Dataset):
     def __getitem__(self, idx):
         rs_rgb, rs_depth, _, zv_depth, region_mask = DatasetInterface.load(self.files[idx])
 
-        return self.preprocess_set(rs_rgb, rs_depth, region_mask, zv_depth, self.dataset_config)
+        try:
+            return self.preprocess_set(rs_rgb, rs_depth, region_mask, zv_depth, self.dataset_config)
+        except AssertionError as e:
+            raise RuntimeError(f"AssertionError in file {self.files[idx]}: {e}")

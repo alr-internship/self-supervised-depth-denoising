@@ -6,10 +6,10 @@
 #SBATCH --cpus-per-task=40
 #SBATCH --time=5:00:00
 #SBATCH --gres=gpu:2
-#SBATCH --export=ALL,EXECUTABLE="python ../../src/trainers/train_models.py configs/config_not-augmented_nocrop_noscale.yml"
+#SBATCH --export=ALL,EXECUTABLE="python ../../src/trainers/train_models.py configs/config_small_not-augmented_nocrop_noscale.yml"
 #SBATCH --output="train_models.out"
 #SBATCH -J TrainUNet
-#SBATCH --dependency afterok:20472048
+# #SBATCH --dependency afterok:20472048
 
 #Usually you should set
 export KMP_AFFINITY=compact,1,0
