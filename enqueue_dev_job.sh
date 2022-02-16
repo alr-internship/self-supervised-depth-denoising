@@ -5,7 +5,7 @@
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=20
 #SBATCH --time=12:00:00
-#SBATCH --export=ALL,EXECUTABLE="dvc push"
+#SBATCH --export=ALL,EXECUTABLE="dvc push resources/models"
 #SBATCH --output="tmp2.out"
 #SBATCH -J Tmp2
 
