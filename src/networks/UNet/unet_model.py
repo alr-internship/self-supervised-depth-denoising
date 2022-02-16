@@ -6,6 +6,7 @@ Reference: https://github.com/milesial/Pytorch-UNet
 
 
 class UNet(nn.Module):
+
     def __init__(
         self,
         n_input_channels: int,

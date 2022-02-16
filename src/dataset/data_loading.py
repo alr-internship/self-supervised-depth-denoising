@@ -162,9 +162,6 @@ class BasicDataset(Dataset):
 
         # normalize depth
         if dataset_config.normalize_depths:
-            eps = np.finfo(float).eps
-            # rs_depth = (rs_depth - np.nanmean(rs_depth)) / (np.nanstd(rs_depth + eps))
-            # zv_depth = (zv_depth - np.nanmean(zv_depth)) / (np.nanstd(zv_depth + eps))
             rs_depth = (rs_depth - np.nanmin(rs_depth)) / (np.nanmax(rs_depth) - np.nanmin(rs_depth))
             zv_depth = (zv_depth - np.nanmin(zv_depth)) / (np.nanmax(zv_depth) - np.nanmin(zv_depth))
 

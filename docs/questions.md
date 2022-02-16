@@ -3,3 +3,4 @@
 - Does the augmentation actuqlly make sense?
 - Can actual augmentation help?
 - NORMALIZATION?!
+- Resization: Resizing the masked data destroyes it

@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from typing import List
+import joblib
 from matplotlib.pyplot import fill
 from tqdm import tqdm
 from dataset.dataset_interface import DatasetInterface
@@ -61,8 +62,10 @@ def align_uncropped(rs_rgb, rs_depth, zv_rgb, zv_depth, debug: bool):
 
     zv_rgb_large = np.zeros_like(rs_rgb)
     zv_depth_large = np.full_like(rs_depth, fill_value=np.nan, dtype=np.float32)
-    zv_rgb_large[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]] = zv_rgb[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
-    zv_depth_large[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]] = zv_depth[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
+    zv_rgb_large[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]
+                 ] = zv_rgb[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
+    zv_depth_large[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]
+                   ] = zv_depth[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
     zv_rgb = zv_rgb_large
     zv_depth = zv_depth_large
 
@@ -116,7 +119,7 @@ if __name__ == "__main__":
     argparse = ArgumentParser()
     argparse.add_argument("raw_dir", type=Path, help="path to raw, uncalibrated dataset")
     argparse.add_argument("out_dir", type=Path, help="path where the calibrated files will be saved to")
-    argparse.add_argument("--jobs", type=int, default=1, help="number of jobs")
+    argparse.add_argument("--jobs", type=int, default=joblib.cpu_count(), help="number of jobs")
     argparse.add_argument("--cropped", action="store_true",
                           help="if the resulting images should be cropped to remove black regions")
     argparse.add_argument("--debug", action="store_true", help="visualized uncalibrated and calibrated results")

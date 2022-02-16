@@ -1,8 +1,11 @@
 import json
+from typing import List, Tuple
 import numpy as np
 from pathlib import Path
 import time
 
+
+ROOT_DIR = Path(__file__).parent.parent.parent
 
 class DatasetInterface:
 
@@ -21,30 +24,23 @@ class DatasetInterface:
         """
         if not path.exists():
             path.mkdir(parents=True)
-        
-        if path.is_file():
-            with open(path.as_posix(), 'r') as f:
-                data = json.load(f)
-            self.dir_path = Path(data['base_path'])
-            self.data_file_paths = [
-                self.dir_path / file 
-                for file in data['files']
-            ]
 
-        else:
-            self.dir_path = path
-            self.data_file_paths = self.get_paths_in_dir(path, recursive)
+        self.dir_path, self.data_file_paths = self.__get_files_by_path(path, recursive) 
 
-    @staticmethod
-    def get_files_by_path(path: Path, recursive: bool = True):
+    def __get_files_by_path(path: Path, recursive: bool = True) -> Tuple[Path, List[Path]]:
         if path.is_file():
             with open(path, 'r') as f:
                 data = json.load(f)
-            dir_path = Path(data['base_path'])
-            return [ dir_path / file for file in data['files'] ]
+            dir_path = ROOT_DIR / Path(data['base_path'])
+            return dir_path, [ dir_path / file for file in data['files'] ]
 
         else:
-            return DatasetInterface.get_paths_in_dir(path, recursive)
+            return path, DatasetInterface.get_paths_in_dir(path, recursive)
+
+    @staticmethod
+    def get_files_by_path(path: Path, recursive: bool = True) -> Tuple[Path, List[Path]]:
+        path, files = DatasetInterface.__get_files_by_path(path, recursive)
+        return files
 
 
     @staticmethod

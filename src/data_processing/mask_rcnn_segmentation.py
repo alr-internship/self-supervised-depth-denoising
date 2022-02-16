@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from ctypes import resize
 import os
 import cv2
 import numpy as np
@@ -22,27 +23,17 @@ import mrcnn.model as modellib
 from samples.ycb.ycb_config import YCBConfig
 from samples.ycb.ycb_dataset import YCBDataset
 
-def compute_bound(files):
-    min_bound = [np.inf, np.inf]
-    max_bound = [-np.inf, -np.inf]
-    for file in files:
-        rs_rgb, rs_depth, zv_rgb, zv_depth, _  = DatasetInterface.load(file)
-        indices = (rs_rgb != [0, 0, 0]).nonzero()
-        mins = np.min(indices, axis=1)[:2]
-        maxs = np.max(indices, axis=1)[:2]
-
-        min_bound = np.min([min_bound, mins], axis=0)
-        max_bound = np.max([max_bound, maxs], axis=0)
-    return min_bound, max_bound
+def compute_bound(rgb_image):
+    indices = (rgb_image != [0, 0, 0]).nonzero()
+    mins = np.min(indices, axis=1)[:2]
+    maxs = np.max(indices, axis=1)[:2] + [1, 1] # max bound exclusive
+    return mins, maxs
 
 def main(args):
     input_dir = args.input_dir
     output_dir = args.output_dir
     paths = DatasetInterface.get_paths_in_dir(input_dir, recursive=True)
     assert paths != 0, f"{input_dir} does not contain any data to mask"
-
-    min_bound, max_bound = compute_bound(paths)
-    max_bound += [1, 1] # max bound is exclusive
 
     # Directory to save logs and trained model
     MODEL_DIR = os.path.join(ROOT_DIR, "resources/networks/mask_rcnn/logs")
@@ -60,7 +51,7 @@ def main(args):
     model.load_weights(model_file.as_posix(), by_name=True)
 
     dataset = YCBDataset()
-    dataset.load_classes(THIRDPARTY_DIR + "/samples/ycb/data/YCB_Video_Dataset/annotations/val_instances.json")
+    dataset.load_classes(THIRDPARTY_DIR + "/resources/ycb/val_instances.json")
     dataset.prepare()
 
     paths_chunked = list(zip(*[iter(paths)]*batch_size))
@@ -69,24 +60,25 @@ def main(args):
     for paths_chunk in tqdm(paths_chunked):
         images_tuples = []
         images = []
+        images_bounds = []
         for path in paths_chunk:
             rs_rgb, rs_depth, zv_rgb, zv_depth, _ = DatasetInterface.load(path)
             images_tuples.append((rs_rgb, rs_depth, zv_rgb, zv_depth))
             zv_rgb = cv2.cvtColor(zv_rgb, cv2.COLOR_BGR2RGB)
 
+            # resize region of image with no nans to original size to get best prediction results
             image = zv_rgb if use_zivid_rgbs else rs_rgb
-            cv2.imwrite("original.png")
+            min_bound, max_bound = compute_bound(image)
             image_region  = image[min_bound[0]:max_bound[0], min_bound[1]:max_bound[1]]
-            cv2.imwrite("region.png")
-            image_region = cv2.resize(image_region, tuple(reversed(image.shape)))
-            cv2.imwrite("region_resized.png")
+            image_region = cv2.resize(image_region, tuple(reversed(image.shape[:2])))
             images.append(image_region)
+            images_bounds.append((min_bound, max_bound))
         
         tqdm.write("infer images")
         results = model.detect(images)
 
         tqdm.write("save images with computed mask")
-        for path, images_tuples, result in zip(paths_chunk, images_tuples, results):
+        for image_bounds, path, images_tuples, result in zip(images_bounds, paths_chunk, images_tuples, results):
             # rel_path = dataset_interface.data_file_paths[idx].relative_to(input_dir)
 
             # visualize.display_instances(original_image, 
@@ -96,8 +88,18 @@ def main(args):
                 print(f"did not detect ycb objects in file {path}")
                 continue
 
+            # resize mask to original image
+            min_bound, max_bound = image_bounds
+            size = max_bound - min_bound
+            masks = masks.astype(np.uint16)
+            resized_masks = cv2.resize(masks, tuple(reversed(size)), interpolation=cv2.INTER_NEAREST)
+            resized_masks = resized_masks.astype(np.bool)
+
+            total_masks = np.zeros(tuple(images_tuples[1].shape[:2]) + (resized_masks.shape[-1],), dtype=np.bool)
+            total_masks[min_bound[0]:max_bound[0], min_bound[1]:max_bound[1]] = resized_masks
+
             rel_file_path = path.relative_to(input_dir)
-            DatasetInterface.save(*images_tuples, masks, file_name=output_dir / rel_file_path)
+            DatasetInterface.save(*images_tuples, total_masks, file_name=output_dir / rel_file_path)
 
 
 if __name__ == "__main__":

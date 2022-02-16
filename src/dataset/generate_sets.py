@@ -1,13 +1,16 @@
 from argparse import ArgumentParser
 import json
+import os
 from pathlib import Path
 import random
 from typing import List
 
+ROOT_DIR = Path(__file__).parent.parent.parent
+
 def save_paths_to_json(paths: List[Path], basepath: Path, file_name: str):
-    paths = [path.relative_to(basepath).as_posix() for path in paths]
+    paths = [path.relative_to(ROOT_DIR).as_posix() for path in paths]
     dataset = {
-        'base_path': basepath.resolve().as_posix(),
+        'base_path': basepath.relative_to(ROOT_DIR).as_posix(),
         'files': paths
     }
 
