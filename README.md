@@ -372,40 +372,67 @@ For further information, visit
 TODOs
 =====
 
-- [X] dataset calibration Calibrated dataset by map to 3D, apply homogeneous
+- [X] dataset calibration
+    
+    Calibrated dataset by map to 3D, apply homogeneous
     transformation, map to 2D. Crop then to overlapping image region. This
     process also introduces NaN values!
-- [X] notebook to visualize inference of trained models Added new notebook that
+    
+- [X] notebook to visualize inference of trained models. 
+ 
+    Added new notebook that
     loads a given model and inferes a given dataset. The results get visualized
-- [X] remove NaNs from RGB and depth images All NaN values get replaced with 0
+    
+- [X] remove NaNs from RGB and depth images
+ 
+    All NaN values get replaced with 0
     Idea: Add mask to tell net where mask values are located Problem: Mask only
     for rs nans or also for zv nans? -> Only for rs nans, as zv NaNs aren't
     avaliable for test time Loss: The networks loss function sums up pixel loss,
     counting only the ones where no NaN is present in the data
-- [X] normalize dataset RGB data will be normalized to [0, 1], Depth data will
+    
+- [X] normalize dataset 
+ 
+    RGB data will be normalized to [0, 1], Depth data will
     not be normalized
-- [X] mask data Methods: - Plane segmentation Problem: rs plane is not even
-    enough, parts of object get segmented as plane - Region Growing Problem:
-        hard to pick correct hyperparameters and thresholds (like color and
-            adjance distance) - **Mask-RCNN trained on YCB Video Dataset**
-- [X] apply augmentation to dataset Applies augmentation to dataset, when the
+    
+- [X] mask data Methods: 
+ 
+   - Plane segmentation Problem: rs plane is not even enough, parts of object get segmented as plane 
+   - Region Growing Problem: hard to pick correct hyperparameters and thresholds (like color and adjance distance) 
+   - **Mask-RCNN trained on YCB Video Dataset**
+   
+- [X] apply augmentation to dataset 
+  
+    Applies augmentation to dataset, when the
     enable_augmentation flag is active. Augmentations are chosen randomly from a
-    set of common ones. Package used is imgaug
+    set of common ones. Package used is imgaug.
+    Update: Augmentation might generate invalid results, as RGBD datasets cant be resized/translated (otherwise point cloud invalid)
+    
 - [ ] Net can output negative values
-- [ ] update net dtypes Currently float is chosen for all input channels, it
+- [ ] update net dtypes 
+ 
+    Currently float is chosen for all input channels, it
     would make sense to make atleast the mask uint 
+    
 - [X] train mask rcnn on new dataset (separate test set)
 - [X] evaluate mask rcnn on ycb with separate test set
-- [X] JSON for test,train,val set separation DatasetInterface should be able to
+- [X] JSON for test,train,val set separation. DatasetInterface should be able to
     work with that
 - [X] add eval code for UNet
 - [ ] train and evaluate UNet on All nets should have augmentation deactivated
     - [ ] calibrated, not cropped
     - [ ] calibrated, cropped
     - [ ] masked, not cropped
-    - [ ] masked, cropped
-- [X] augmented dataset contains 0 for NaNs outside of region
+    - [X] masked, cropped: Results are not good. Cropping/Resizing introduces weird points
+- [X] FIX: augmented dataset contains 0 for NaNs outside of region
+
+    Dataset now contains NaNs instead of 0s outside of region
+    
 - [X] depth values may be in meter instead of millimeter
+
+    Open3D transform depth values per default in meter! Data Processing fixed.
+    
 - [ ] somehow normalize depth input (currently in millimeters?!)
     - Tried to normalize depth images D with (D - mean(D)) / std(D) channel wise.
         The model then outputs NaNs only.
@@ -416,4 +443,6 @@ TODOs
         But maybe it would be better to just divide by the std. dev. and not also substract the mean
     - Normalization by mapping the images linear from 0 - 1 (img - min) * (max - min).
         The trained model now has a plain! Loses all depth info in prediction
-        INVESTIGATE!!!
+        INVESTIGATE!!
+        
+- [ ] generate augmented dataset by applying augmentation in 3d space
