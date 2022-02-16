@@ -93,9 +93,12 @@ def main(args):
             size = max_bound - min_bound
             masks = masks.astype(np.uint16)
             resized_masks = cv2.resize(masks, tuple(reversed(size)), interpolation=cv2.INTER_NEAREST)
+            if len(resized_masks.shape) == 2: # channel dimension got lost during cv2.resize, if only 1 wide
+                resized_masks = resized_masks[..., None]
             resized_masks = resized_masks.astype(np.bool)
 
-            total_masks = np.zeros(tuple(images_tuples[1].shape[:2]) + (resized_masks.shape[-1],), dtype=np.bool)
+            total_masks = np.zeros(tuple(images_tuples[0].shape[:2]) + (resized_masks.shape[-1],), dtype=np.bool)
+            print(total_masks.shape, resized_masks.shape, masks.shape)
             total_masks[min_bound[0]:max_bound[0], min_bound[1]:max_bound[1]] = resized_masks
 
             rel_file_path = path.relative_to(input_dir)
