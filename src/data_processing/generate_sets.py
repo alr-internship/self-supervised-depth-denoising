@@ -8,9 +8,9 @@ from typing import List
 ROOT_DIR = Path(__file__).parent.parent.parent
 
 def save_paths_to_json(paths: List[Path], basepath: Path, file_name: str):
-    paths = [path.relative_to(ROOT_DIR).as_posix() for path in paths]
+    paths = [path.relative_to(basepath).as_posix() for path in paths]
     dataset = {
-        'base_path': basepath.relative_to(ROOT_DIR).as_posix(),
+        'base_path': basepath.as_posix(),
         'files': paths
     }
 
@@ -36,7 +36,7 @@ def main(args):
 
 if __name__ == "__main__":
     argparse = ArgumentParser()
-    argparse.add_argument("dataset_path", type=Path)
+    argparse.add_argument("dataset_path", type=Path, help="path to the dataset containing npz for training")
     argparse.add_argument("--test-percentage", type=float, default=0.05)
     argparse.add_argument("--val-percentage", type=float, default=0.05)
     main(argparse.parse_args())
