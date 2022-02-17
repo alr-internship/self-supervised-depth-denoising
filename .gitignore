@@ -92,3 +92,5 @@ target/
 **/wandb
 /resources_2
 /resources_3
+**/*.out
+enqueue_dev_job.sh
