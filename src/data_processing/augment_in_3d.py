@@ -48,33 +48,48 @@ def sample_transformation():
 
 
 def generate_augmentations(imgs: Tuple[np.array, np.array, np.array, np.array], num_augs: int):
-    rs_rgb, rs_depth, zv_rgb, zv_depth = imgs
+    rs_rgb, rs_depth, zv_rgb, zv_depth, mask = imgs
+
+    if len(mask.shape) == 2:
+        mask = mask[..., None]
+
+    mask = np.sum(mask, axis=2, keepdims=True) > 0
+
+    rgb_mask = np.repeat(mask.astype(np.uint8), repeats=3, axis=2)
 
     rs_pcd = imgs_to_pcd(rs_rgb, rs_depth.astype(np.float32), rs_ci)
     zv_pcd = imgs_to_pcd(zv_rgb, zv_depth.astype(np.float32), rs_ci)
+    mask_pcd = imgs_to_pcd(rgb_mask, zv_depth.astype(np.float32), rs_ci)
     # o3d.visualization.draw_geometries([rs_pcd, zv_pcd])
 
-    # _, ax = plt.subplots(2, num_augs + 1)
+    # _, ax = plt.subplots(3, num_augs + 1)
 
     # ax[0][0].imshow(rs_rgb)
     # ax[1][0].imshow(zv_rgb)
-    augmented_imgs = [(rs_rgb, rs_depth, zv_rgb, zv_depth)]
+    # ax[2][0].imshow(mask)
+    augmented_imgs = [(rs_rgb, rs_depth, zv_rgb, zv_depth, mask)]
     for i in range(1, num_augs + 1):
         transform = sample_transformation()
-        t_rs_pcd, t_zv_pcd = transform([rs_pcd, zv_pcd])
+        t_rs_pcd, t_zv_pcd, t_mask_pcd = transform([rs_pcd, zv_pcd, mask_pcd])
         # o3d.visualization.draw_geometries([t_rs_pcd, t_zv_pcd])
 
         t_rs_rgb, t_rs_depth, _, _ = pcd_to_imgs(t_rs_pcd, rs_ci)
         t_zv_rgb, t_zv_depth, _, _ = pcd_to_imgs(t_zv_pcd, rs_ci)
+        t_mask, _, _, _ = pcd_to_imgs(t_mask_pcd, rs_ci)
+
+        t_mask = t_mask[..., 0]
+        t_mask = t_mask[..., None]
         
         t_rs_rgb = fill_to_shape(t_rs_rgb, rs_rgb.shape, 0, dtype=np.uint8)
         t_rs_depth = fill_to_shape(t_rs_depth, rs_depth.shape, np.nan, dtype=np.float32)
         t_zv_rgb = fill_to_shape(t_zv_rgb, zv_rgb.shape, 0, dtype=np.uint8)
         t_zv_depth = fill_to_shape(t_zv_depth, zv_depth.shape, np.nan, dtype=np.float32)
-        augmented_imgs.append((t_rs_rgb, t_rs_depth, t_zv_rgb, t_zv_depth))
+        t_mask = fill_to_shape(t_mask, mask.shape, False, dtype=bool)
+        augmented_imgs.append((t_rs_rgb, t_rs_depth, t_zv_rgb, t_zv_depth, t_mask))
 
         # ax[0][i].imshow(to_rgb(t_rs_rgb))
         # ax[1][i].imshow(to_rgb(t_zv_rgb))
+        # ax[2][i].imshow(t_mask)
 
     # plt.show()
 
@@ -82,21 +97,21 @@ def generate_augmentations(imgs: Tuple[np.array, np.array, np.array, np.array], 
 
 
 def main():
-    img_dir = Path("resources/images/calibrated")
-    out_dir = Path("resources/images/calibrated_augmented")
+    img_dir = Path("resources/images/calibrated_masked/not-cropped")
+    out_dir = Path("resources/images/calibrated_masked_augmented/not-cropped")
     num_augs_per_img = 5
 
     files = list(img_dir.rglob("*.npz"))
 
     for file in tqdm(files):
-        imgs = DatasetInterface.load(file)[:4] # skip mask
+        imgs = DatasetInterface.load(file)
         augmented_img_sets = generate_augmentations(imgs, num_augs=num_augs_per_img)
 
         out_dir_path = out_dir / file.relative_to(img_dir).parent
 
         for idx, augmented_img_set in enumerate(augmented_img_sets):
             out_file_name = out_dir_path / f"{file.stem}_{idx}.npz"
-            DatasetInterface.save(*augmented_img_set, mask=None, file_name=out_file_name)
+            DatasetInterface.save(*augmented_img_set, file_name=out_file_name)
 
 
 if __name__ == "__main__":
