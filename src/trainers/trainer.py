@@ -8,6 +8,7 @@ from torch import optim
 from torch.utils.data import DataLoader
 import wandb
 from dataset.data_loading import BasicDataset
+from utils.transformation_utils import unnormalize_depth
 from utils.visualization_utils import to_rgb, visualize_depth, visualize_mask
 from tqdm import tqdm
 
@@ -34,11 +35,6 @@ class Trainer:
         label = batch['label']
         nan_masks = batch['nan-mask']
         region_masks = batch['region-mask']
-
-        # assert images.shape[1] == net.n_channels, \
-        #     f'Network has been defined with {net.n_channels} input channels, ' \
-        #     f'but loaded images have {images.shape[1]} channels. Please check that ' \
-        #     'the images are loaded correctly.'
 
         images = images.to(device=self.device, dtype=torch.float32)
         label = label.to(device=self.device, dtype=torch.float32)
@@ -92,7 +88,7 @@ class Trainer:
         save_checkpoint: bool,
         amp: bool,
         activate_wandb: bool,
-        optimizer_name: str='rmsprop',
+        optimizer_name: str = 'rmsprop',
     ):
         if save_checkpoint:
             dir_checkpoint = dir_checkpoint / f"{net.name}"
@@ -158,14 +154,14 @@ class Trainer:
         loss_criterion = nn.L1Loss(reduction='sum')
 
         # Set up the optimizer, the loss, the learning rate scheduler and the loss scaling for AMP
-        if optimizer_name is 'rmpsprop':
+        if optimizer_name == 'rmsprop':
             optimizer = optim.RMSprop(
                 net.parameters(),
                 lr=learning_rate,
                 weight_decay=1e-8,
                 momentum=0.9
             )
-        elif optimizer_name is 'adam':
+        elif optimizer_name == 'adam':
             optimizer = optim.Adam(
                 net.parameters(),
                 lr=learning_rate,
@@ -174,6 +170,9 @@ class Trainer:
                 weight_decay=0,
                 amsgrad=False
             )
+        else:
+            RuntimeError(f"invalid optimizer name given {optimizer_name}")
+
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
             'max',
@@ -221,10 +220,8 @@ class Trainer:
                             histograms = {}
                             for tag, value in net.named_parameters():
                                 tag = tag.replace('/', '.')
-                                histograms['Weights/' +
-                                           tag] = wandb.Histogram(value.data.cpu())
-                                histograms['Gradients/' +
-                                           tag] = wandb.Histogram(value.grad.data.cpu())
+                                histograms['Weights/' + tag] = wandb.Histogram(value.data.cpu())
+                                histograms['Gradients/' + tag] = wandb.Histogram(value.grad.data.cpu())
 
                             # visualization images
                             vis_image = batch['image'][0].numpy().transpose((1, 2, 0))
@@ -233,6 +230,11 @@ class Trainer:
                             region_mask = batch['region-mask'][0].numpy().squeeze()
                             prediction = predictions[0].float().cpu().detach().numpy().squeeze()
                             vis_pred_mask = np.where(np.logical_and(nan_mask, region_mask), prediction, np.nan)
+
+                            # undo normalization
+                            params = dict(min=self.dataset_config.normalize_depths_min, mxx=self.dataset_config.normalize_depths_max)
+                            vis_true_mask = unnormalize_depth(vis_true_mask, **params) 
+                            vis_pred_mask = unnormalize_depth(vis_pred_mask, **params) 
 
                             experiment_log = {
                                 'step': global_step * batch_size,

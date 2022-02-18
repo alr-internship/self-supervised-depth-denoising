@@ -12,6 +12,7 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 
 from dataset.dataset_interface import DatasetInterface
+from utils.transformation_utils import normalize_depth
 
 
 class BasicDataset(Dataset):
@@ -22,12 +23,28 @@ class BasicDataset(Dataset):
                 scale: float = 1.0,
                 add_nan_mask_to_input: bool = True,
                 add_region_mask_to_input: bool = True,
-                normalize_depths: bool = False):
+                normalize_depths: bool = False,
+                normalize_depths_min: float = 0,
+                normalize_depths_max: float = 3000
+                ):
             assert 0 < scale <= 1, 'Scale must be between 0 and 1'
             self.scale = scale
             self.add_nan_mask_to_input = add_nan_mask_to_input
             self.add_region_mask_to_input = add_region_mask_to_input
             self.normalize_depths = normalize_depths
+            self.normalize_depths_min = normalize_depths_min
+            self.normalize_depths_max = normalize_depths_max
+
+        @staticmethod
+        def from_config(config: dict):
+            return BasicDataset.Config(
+                scale=config['scale_images'],
+                add_nan_mask_to_input=config['add_nan_mask_to_input'],
+                add_region_mask_to_input=config['add_region_mask_to_input'],
+                normalize_depths=config['normalize_depths']['active'],
+                normalize_depths_min=config['normalize_depths']['min'],
+                normalize_depths_max=config['normalize_depths']['max']
+            )
 
         def __iter__(self):
             yield 'img_scale', self.scale
@@ -54,32 +71,13 @@ class BasicDataset(Dataset):
         self.files = DatasetInterface.get_files_by_path(dataset_path)
         self.dataset_config = config
 
-        if self.dataset_config.normalize_depths:
-            self.depth_normalization, _ = self.compute_depth_bounds_normalization(self.files)
-
         if len(self.files) == 0:
             raise RuntimeError(f'Dataset {dataset_path} contains no images, make sure you put your images there')
 
         logging.info(f'Creating dataset with size {len(self.files)}')
 
-
     def __len__(self):
         return len(self.files)
-
-    @staticmethod
-    def compute_depth_bounds_normalization(files):
-        min_depth = np.inf
-        max_depth = -np.inf
-        for file in tqdm(files, desc='computing depth bounds for normalization'):
-            _, rs_depth, _, zv_depth, _ = DatasetInterface.load(file)
-            min_depth = min(np.nanmin([rs_depth, zv_depth]), min_depth)
-            max_depth = max(np.nanmax([rs_depth, zv_depth]), max_depth)
-        print(f"computed normalization bounds: min {min_depth}, max {max_depth}")
-
-        norm = lambda depth: (depth - min_depth) / (max_depth - min_depth)
-        unnorm = lambda depth: depth * (max_depth - min_depth) + min_depth
-        return norm, unnorm
-
 
     @classmethod
     def resize(cls, img: np.array, scale: float):
@@ -109,7 +107,7 @@ class BasicDataset(Dataset):
 
     @classmethod
     def preprocess_set(cls, rs_rgb, rs_depth, region_mask, zv_depth,
-                       dataset_config: Config, depth_normalization = None):
+                       dataset_config: Config):
 
         if region_mask.shape[2] > 1:
             # mask is still on a per object basis => union
@@ -118,7 +116,7 @@ class BasicDataset(Dataset):
         assert rs_rgb.shape[:2] == zv_depth.shape[:2], \
             f'Image and mask should be the same size, but are {rs_rgb.shape[:2]} and {zv_depth[:2]}'
 
-        # resize and transpose 
+        # resize and transpose
         processed_rs_rgb = cls.preprocess(rs_rgb, dataset_config.scale)
         processed_rs_depth = cls.preprocess(rs_depth, dataset_config.scale)
         processed_region_mask = cls.preprocess(region_mask, dataset_config.scale)
@@ -127,10 +125,9 @@ class BasicDataset(Dataset):
         # normalize rgb and depth
         processed_rs_rgb = processed_rs_rgb.astype(np.float32) / 255
         if dataset_config.normalize_depths:
-            mean1 = np.nanmean(processed_zv_depth)
-            processed_rs_depth = depth_normalization(processed_rs_depth)
-            processed_zv_depth = depth_normalization(processed_zv_depth)
-            mean1 = np.nanmean(processed_zv_depth)
+            params = dict(min=dataset_config.normalize_depths_min, max=dataset_config.normalize_depths_max)
+            processed_rs_depth = normalize_depth(processed_rs_depth, **params)
+            processed_zv_depth = normalize_depth(processed_zv_depth, **params)
 
         # map nan to 0 and add mask to inform net about where nans are located
         nan_mask = ~np.logical_or(np.isnan(processed_rs_depth), np.isnan(processed_zv_depth))
@@ -167,6 +164,6 @@ class BasicDataset(Dataset):
         rs_rgb, rs_depth, _, zv_depth, region_mask = DatasetInterface.load(self.files[idx])
 
         try:
-            return self.preprocess_set(rs_rgb, rs_depth, region_mask, zv_depth, self.dataset_config, self.depth_normalization)
+            return self.preprocess_set(rs_rgb, rs_depth, region_mask, zv_depth, self.dataset_config)
         except AssertionError as e:
             raise RuntimeError(f"AssertionError in file {self.files[idx]}: {e}")
