@@ -23,9 +23,11 @@ network_config:
 
 dataset_config:
   scale_images: 1
-  enable_augmentation: False
   add_nan_mask_to_input: True
   add_region_mask_to_input: True
-  normalize_depths: False # normalized input and label depth d with (d - mean) / std channel wise
+  normalize_depths: 
+    active: False # normalized input and label depth d with (d - mean) / std channel wise
+    min: 0
+    max: 0
 
 
