@@ -5,6 +5,7 @@ from typing import Tuple
 import numpy as np
 import open3d as o3d
 from matplotlib import pyplot as plt
+from argparse import ArgumentParser
 
 from tqdm import tqdm
 from dataset.dataset_interface import DatasetInterface
@@ -96,10 +97,10 @@ def generate_augmentations(imgs: Tuple[np.array, np.array, np.array, np.array], 
     return augmented_imgs
 
 
-def main():
-    img_dir = Path("resources/images/calibrated_masked/not-cropped")
-    out_dir = Path("resources/images/calibrated_masked_augmented/not-cropped")
-    num_augs_per_img = 5
+def main(args):
+    img_dir = args.in_dir
+    out_dir = args.out_dir
+    num_augs_per_img = args.num_augs
 
     files = list(img_dir.rglob("*.npz"))
 
@@ -115,4 +116,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    argparse = ArgumentParser()
+    argparse.add_argument("in_dir", type=Path)
+    argparse.add_argument("out_dir", type=Path)
+    argparse.add_argument("--num-augs", type=int, default=5)
+    main(argparse.parse_args())
