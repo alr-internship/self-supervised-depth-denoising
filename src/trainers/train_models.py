@@ -39,7 +39,8 @@ def main(args):
         amp=network_config['amp'],
         dir_checkpoint=evaluation_dir,
         activate_wandb=network_config['wandb'],
-        val_interval=network_config['validation_interval']
+        val_interval=network_config['validation_interval'],
+        optimizer_name=network_config['optimizer_name']
     )
 
     trainer_params = dict(
@@ -55,6 +56,21 @@ def main(args):
         trainer_id=trainer_id,
         initial_channels=network_config['initial_channels']
     )
+
+    if basic_trainer['active']:
+        basic = BasicTrainer(
+            train_path=ROOT_DIR / basic_trainer['train_path'],
+            val_path=ROOT_DIR / basic_trainer['val_path'],
+            **trainer_params
+        )
+
+        # Training M_11
+        basic.train(
+            net=basic.M_total,
+            train_set=basic.train_dataset,
+            val_set=basic.val_dataset,
+            **params
+        )
 
     if oof_trainer['active']:
         oof = OutOfFoldTrainer(
@@ -85,20 +101,6 @@ def main(args):
             **params
         )
     
-    if basic_trainer['active']:
-        basic = BasicTrainer(
-            train_path=ROOT_DIR / basic_trainer['train_path'],
-            val_path=ROOT_DIR / basic_trainer['val_path'],
-            **trainer_params
-        )
-
-        # Training M_11
-        basic.train(
-            net=basic.M_total,
-            train_set=basic.train_dataset,
-            val_set=basic.val_dataset,
-            **params
-        )
 
 
 if __name__ == '__main__':

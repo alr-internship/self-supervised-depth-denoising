@@ -92,6 +92,7 @@ class Trainer:
         save_checkpoint: bool,
         amp: bool,
         activate_wandb: bool,
+        optimizer_name: str='rmsprop',
     ):
         if save_checkpoint:
             dir_checkpoint = dir_checkpoint / f"{net.name}"
@@ -157,12 +158,22 @@ class Trainer:
         loss_criterion = nn.L1Loss(reduction='sum')
 
         # Set up the optimizer, the loss, the learning rate scheduler and the loss scaling for AMP
-        optimizer = optim.RMSprop(
-            net.parameters(),
-            lr=learning_rate,
-            weight_decay=1e-8,
-            momentum=0.9
-        )
+        if optimizer_name is 'rmpsprop':
+            optimizer = optim.RMSprop(
+                net.parameters(),
+                lr=learning_rate,
+                weight_decay=1e-8,
+                momentum=0.9
+            )
+        elif optimizer_name is 'adam':
+            optimizer = optim.Adam(
+                net.parameters(),
+                lr=learning_rate,
+                betas=(0.9, 0.999),
+                eps=1e-08,
+                weight_decay=0,
+                amsgrad=False
+            )
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
             'max',
