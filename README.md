@@ -272,7 +272,7 @@ Generate JSONs to split Dataset into train/val/test set
 ---
 
 To have always the same, but initialy randomly split sets,
-the script [generate_sets.py](src/dataset/generate_sets.py) can be executed.
+the script [generate_sets.py](src/data_processing/generate_sets.py) can be executed.
 This script will collect all paths to images in a given directory,
 shuffle the list of paths and split it into train/val/test set.
 The percentage, the test and val set will have can be configured via parameters.
@@ -421,10 +421,12 @@ TODOs
     work with that
 - [X] add eval code for UNet
 - [ ] train and evaluate UNet on All nets should have augmentation deactivated
-    - [ ] calibrated, not cropped
-    - [ ] calibrated, cropped
-    - [ ] masked, not cropped
+    - [X] calibrated, not cropped: No artifacts, but masking improves results
+    - [X] calibrated, cropped: Cropping introduces artifacts!
+    - [X] masked, not cropped
     - [X] masked, cropped: Results are not good. Cropping/Resizing introduces weird points
+    - [ ] normalization
+    - [ ] 3d augmentation
 - [X] FIX: augmented dataset contains 0 for NaNs outside of region
 
     Dataset now contains NaNs instead of 0s outside of region
@@ -443,8 +445,21 @@ TODOs
         But maybe it would be better to just divide by the std. dev. and not also substract the mean
     - Normalization by mapping the images linear from 0 - 1 (img - min) * (max - min).
         The trained model now has a plain! Loses all depth info in prediction
-        INVESTIGATE!!
+    - Next idea: Map depthmap to 0-1 by finding out max an minimal values present int depth frames at the beginning of training.
+        RESULTS MUST BE ADDED HERE!
         
-- [ ] generate augmented dataset by applying augmentation in 3d space
+- [X] generate augmented dataset by applying augmentation in 3d space
 
-- [ ] Check tensor datatypes. Looks like some depth maps have uint16. Is that oke?
+    Script located in data_processing/augment_in_3d.py
+    The script generates N random augmentations of each data tuple.
+    The augmentation contains a random rotation with max rotation values (default 5 degreees)
+    and a translation in m.
+    The augmented data tuples get saved in the given out dir, concatenated with an index.
+    
+- [ ] TRY to find out, if augmentation does really improve learning!
+
+- [X] Check tensor datatypes. Looks like some depth maps have uint16. Is that oke?
+
+    realsense depth maps are uint16. Since there unit is millimeters, that should be oke.
+
+- [ ] why does the unet perform so bad on our dataset, but so good on the trained on?! (overfitted)

@@ -47,7 +47,6 @@ def main(args):
         device=device,
         dataset_config=BasicDataset.Config(
             scale=dataset_config['scale_images'],
-            enable_augmentation=dataset_config['enable_augmentation'],
             add_nan_mask_to_input=dataset_config['add_nan_mask_to_input'],
             add_region_mask_to_input=dataset_config['add_region_mask_to_input'],
             normalize_depths=dataset_config['normalize_depths']

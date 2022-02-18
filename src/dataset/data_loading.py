@@ -5,14 +5,11 @@ Reference: https://github.com/milesial/Pytorch-UNet
 import logging
 from pathlib import Path
 
-from imgaug import augmenters as iaa
-from imgaug import HeatmapsOnImage
-from imgaug.augmentables.segmaps import SegmentationMapsOnImage
-
 import numpy as np
 import torch
 import cv2
 from torch.utils.data import Dataset
+from tqdm import tqdm
 
 from dataset.dataset_interface import DatasetInterface
 
@@ -23,20 +20,17 @@ class BasicDataset(Dataset):
         def __init__(
                 self,
                 scale: float = 1.0,
-                enable_augmentation: bool = True,
                 add_nan_mask_to_input: bool = True,
                 add_region_mask_to_input: bool = True,
                 normalize_depths: bool = False):
             assert 0 < scale <= 1, 'Scale must be between 0 and 1'
             self.scale = scale
-            self.enable_augmentation = enable_augmentation
             self.add_nan_mask_to_input = add_nan_mask_to_input
             self.add_region_mask_to_input = add_region_mask_to_input
             self.normalize_depths = normalize_depths
 
         def __iter__(self):
             yield 'img_scale', self.scale
-            yield 'enable_augmentation', self.enable_augmentation
             yield 'add_nan_mask_to_input', self.add_nan_mask_to_input
             yield 'add_region_mask_to_input', self.add_region_mask_to_input
             yield 'normalize_depths', self.normalize_depths
@@ -47,42 +41,10 @@ class BasicDataset(Dataset):
         def get_printout(self):
             return f"""
                 Images scaling:      {self.scale}
-                Augmentation:        {self.enable_augmentation}
                 NaNs Mask:           {self.add_nan_mask_to_input}
                 Region Mask:         {self.add_region_mask_to_input}
                 Normalize Depths:    {self.normalize_depths}
             """
-
-    seq = iaa.Sequential([
-        iaa.Fliplr(0.5),  # horizontal flips
-        iaa.Crop(percent=(0, 0.1)),  # random crops
-        # Small gaussian blur with random sigma between 0 and 0.5.
-        # But we only blur about 50% of all images.
-        iaa.Sometimes(
-            0.5,
-            iaa.GaussianBlur(sigma=(0, 0.5))
-        ),
-        # Strengthen or weaken the contrast in each image.
-        iaa.LinearContrast((0.75, 1.5)),
-        # Add gaussian noise.
-        # For 50% of all images, we sample the noise once per pixel.
-        # For the other 50% of all images, we sample the noise per pixel AND
-        # channel. This can change the color (not only brightness) of the
-        # pixels.
-        iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05*255), per_channel=0.5),
-        # Make some images brighter and some darker.
-        # In 20% of all cases, we sample the multiplier once per channel,
-        # which can end up changing the color of the images.
-        iaa.Multiply((0.8, 1.2), per_channel=0.2),
-        # Apply affine transformations to each image.
-        # Scale/zoom them, translate/move them, rotate them and shear them.
-        iaa.Affine(
-            scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},
-            translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)},
-            rotate=(-25, 25),
-            shear=(-8, 8),
-        )
-    ], random_order=True)  # apply augmenters in random order
 
     def __init__(
             self,
@@ -91,6 +53,9 @@ class BasicDataset(Dataset):
         assert dataset_path.exists(), "file at dataset path does not exist"
         self.files = DatasetInterface.get_files_by_path(dataset_path)
         self.dataset_config = config
+
+        if self.dataset_config.normalize_depths:
+            self.depth_normalization, _ = self.compute_depth_bounds_normalization(self.files)
 
         if len(self.files) == 0:
             raise RuntimeError(f'Dataset {dataset_path} contains no images, make sure you put your images there')
@@ -101,30 +66,20 @@ class BasicDataset(Dataset):
     def __len__(self):
         return len(self.files)
 
-    @classmethod
-    def augment(cls, rs_rgb, rs_depth, zv_depth, crop_region_mask):
-        depths = np.concatenate((rs_depth[..., None], zv_depth[..., None]), axis=2)
+    @staticmethod
+    def compute_depth_bounds_normalization(files):
+        min_depth = np.inf
+        max_depth = -np.inf
+        for file in tqdm(files, desc='computing depth bounds for normalization'):
+            _, rs_depth, _, zv_depth, _ = DatasetInterface.load(file)
+            min_depth = min(np.nanmin([rs_depth, zv_depth]), min_depth)
+            max_depth = max(np.nanmax([rs_depth, zv_depth]), max_depth)
+        print(f"computed normalization bounds: min {min_depth}, max {max_depth}")
 
-        heatmaps = HeatmapsOnImage(depths, min_value=np.nanmin(depths),
-                                   max_value=np.nanmax(depths),
-                                   shape=rs_rgb.shape)
+        norm = lambda depth: (depth - min_depth) / (max_depth - min_depth)
+        unnorm = lambda depth: depth * (max_depth - min_depth) + min_depth
+        return norm, unnorm
 
-        # augmentation adds some random padding to depth maps
-        # this segmap sets this padding to NaN again
-        segmap = crop_region_mask
-        segmaps = SegmentationMapsOnImage(segmap, shape=rs_rgb.shape[:2])
-
-        augmented = cls.seq(image=rs_rgb, heatmaps=heatmaps,
-                             segmentation_maps=segmaps)
-
-        aug_rs_rgb = augmented[0]
-        aug_heatmaps = augmented[1].get_arr()
-        aug_segmap = augmented[2].get_arr()
-
-        aug_rs_depth = aug_heatmaps[..., 0]
-        aug_zv_depth = aug_heatmaps[..., 1]
-
-        return aug_rs_rgb, aug_rs_depth, aug_zv_depth, aug_segmap
 
     @classmethod
     def resize(cls, img: np.array, scale: float):
@@ -154,7 +109,7 @@ class BasicDataset(Dataset):
 
     @classmethod
     def preprocess_set(cls, rs_rgb, rs_depth, region_mask, zv_depth,
-                       dataset_config: Config):
+                       dataset_config: Config, depth_normalization = None):
 
         if region_mask.shape[2] > 1:
             # mask is still on a per object basis => union
@@ -164,10 +119,6 @@ class BasicDataset(Dataset):
         if dataset_config.normalize_depths:
             rs_depth = (rs_depth - np.nanmin(rs_depth)) / (np.nanmax(rs_depth) - np.nanmin(rs_depth))
             zv_depth = (zv_depth - np.nanmin(zv_depth)) / (np.nanmax(zv_depth) - np.nanmin(zv_depth))
-
-        if dataset_config.enable_augmentation:
-            rs_rgb, rs_depth, zv_depth, region_mask = cls.augment(rs_rgb, rs_depth,
-                                                                   zv_depth, region_mask)
 
         assert rs_rgb.shape[:2] == zv_depth.shape[:2], \
             f'Image and mask should be the same size, but are {rs_rgb.shape[:2]} and {zv_depth[:2]}'
@@ -179,11 +130,12 @@ class BasicDataset(Dataset):
 
         # normalize
         processed_rs_rgb = processed_rs_rgb.astype(np.float32) / 255
+        if dataset_config.normalize_depths:
+            processed_rs_depth = depth_normalization(processed_rs_depth)
+            processed_zv_depth = depth_normalization(processed_zv_depth)
 
         # map nan to 0 and add mask to inform net about where nans are located
-        rs_nan_mask = np.logical_not(np.isnan(processed_rs_depth))
-        zv_nan_mask = np.logical_not(np.isnan(processed_zv_depth))
-        nan_mask = np.logical_and(rs_nan_mask, zv_nan_mask)
+        nan_mask = ~np.logical_or(np.isnan(processed_rs_depth), np.isnan(processed_zv_depth))
         processed_rs_depth = np.nan_to_num(processed_rs_depth)
         processed_zv_depth = np.nan_to_num(processed_zv_depth)
 
@@ -215,6 +167,6 @@ class BasicDataset(Dataset):
         rs_rgb, rs_depth, _, zv_depth, region_mask = DatasetInterface.load(self.files[idx])
 
         try:
-            return self.preprocess_set(rs_rgb, rs_depth, region_mask, zv_depth, self.dataset_config)
+            return self.preprocess_set(rs_rgb, rs_depth, region_mask, zv_depth, self.dataset_config, self.depth_normalization)
         except AssertionError as e:
             raise RuntimeError(f"AssertionError in file {self.files[idx]}: {e}")
