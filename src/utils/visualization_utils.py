@@ -12,12 +12,18 @@ def visualize_mask(mask):
 
 def visualize_depth(depth):
     # ignore nans for max,min
-    max = np.nanmax(depth)
-    min = np.nanmin(depth)
+    mean = np.nanmean(depth)
+    std = np.nanstd(depth)
+    min = mean - 1 * std
+    max = mean + 1 * std
+    # max = np.nanmax(depth)
+    # min = np.nanmin(depth)
     # set nan to mean, +inf to max, -inf to min
     # map from [min, max] to [0, 255] linearly
-    depth = ((depth - min) / max - min) * 255
+    depth = ((depth - min) / (max - min)) * 255
     depth = np.nan_to_num(depth)
+    depth = np.where(depth > 255, 255, depth)
+    depth = np.where(depth < 0, 0, depth)
     depth = depth.astype(np.uint8)
     depth = cv2.applyColorMap(depth, cv2.COLORMAP_JET)
     return depth
