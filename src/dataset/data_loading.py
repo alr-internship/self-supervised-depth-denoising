@@ -115,35 +115,35 @@ class BasicDataset(Dataset):
             # mask is still on a per object basis => union
             region_mask = np.sum(region_mask, axis=2) > 0
 
-        # normalize depth
-        if dataset_config.normalize_depths:
-            rs_depth = (rs_depth - np.nanmin(rs_depth)) / (np.nanmax(rs_depth) - np.nanmin(rs_depth))
-            zv_depth = (zv_depth - np.nanmin(zv_depth)) / (np.nanmax(zv_depth) - np.nanmin(zv_depth))
-
         assert rs_rgb.shape[:2] == zv_depth.shape[:2], \
             f'Image and mask should be the same size, but are {rs_rgb.shape[:2]} and {zv_depth[:2]}'
 
+        # resize and transpose 
         processed_rs_rgb = cls.preprocess(rs_rgb, dataset_config.scale)
         processed_rs_depth = cls.preprocess(rs_depth, dataset_config.scale)
         processed_region_mask = cls.preprocess(region_mask, dataset_config.scale)
         processed_zv_depth = cls.preprocess(zv_depth, dataset_config.scale)
 
-        # normalize
+        # normalize rgb and depth
         processed_rs_rgb = processed_rs_rgb.astype(np.float32) / 255
         if dataset_config.normalize_depths:
+            mean1 = np.nanmean(processed_zv_depth)
             processed_rs_depth = depth_normalization(processed_rs_depth)
             processed_zv_depth = depth_normalization(processed_zv_depth)
+            mean1 = np.nanmean(processed_zv_depth)
 
         # map nan to 0 and add mask to inform net about where nans are located
         nan_mask = ~np.logical_or(np.isnan(processed_rs_depth), np.isnan(processed_zv_depth))
         processed_rs_depth = np.nan_to_num(processed_rs_depth)
         processed_zv_depth = np.nan_to_num(processed_zv_depth)
 
+        # some assertions to check channel correctness
         assert processed_rs_rgb.shape[0] == 3
         assert len(processed_rs_depth.shape) == 2 or processed_rs_depth.shape[0] == 1
         assert len(processed_region_mask.shape) == 2 or processed_region_mask.shape[0] == 1
         assert len(nan_mask.shape) == 2 or nan_mask.shape[0] == 1
 
+        # setup input and label
         input_tuple = (processed_rs_rgb, processed_rs_depth)
 
         if dataset_config.add_nan_mask_to_input:
