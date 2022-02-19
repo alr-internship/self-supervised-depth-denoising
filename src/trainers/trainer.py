@@ -223,14 +223,19 @@ class Trainer:
                                 histograms['Weights/' + tag] = wandb.Histogram(value.data.cpu())
                                 histograms['Gradients/' + tag] = wandb.Histogram(value.grad.data.cpu())
 
-                            # visualization images
+                            # visualizate images
                             vis_image = batch['image'][0].numpy().transpose((1, 2, 0))
                             nan_mask = batch['nan-mask'][0].numpy().squeeze()
                             region_mask = batch['region-mask'][0].numpy().squeeze()
                             vis_depth_input = vis_image[..., 3].squeeze()
                             vis_depth_label = batch['label'][0].numpy().squeeze()
                             depth_prediction = predictions[0].float().cpu().detach().numpy().squeeze()
-                            vis_depth_prediction = np.where(np.logical_and(nan_mask, region_mask), depth_prediction, np.nan)
+
+                            # apply masks
+                            mask = np.logical_and(nan_mask, region_mask)
+                            vis_depth_prediction = np.where(mask, depth_prediction, np.nan)
+                            vis_depth_input = np.where(mask, vis_depth_input, np.nan)
+                            vis_depth_label = np.where(mask, vis_depth_label, np.nan)
 
                             # undo normalization
                             if self.dataset_config.normalize_depths:

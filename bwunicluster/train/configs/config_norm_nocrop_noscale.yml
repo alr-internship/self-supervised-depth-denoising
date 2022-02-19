@@ -16,7 +16,7 @@ network_config:
   load_from_model: None
   wandb: True
   save: True
-  evaluation_dir: resources/models
+  evaluation_dir: local_resources/models
   bilinear: True
   amp: False
   validation_interval: 250
