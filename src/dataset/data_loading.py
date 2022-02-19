@@ -138,8 +138,9 @@ class BasicDataset(Dataset):
             processed_rs_depth = normalize_depth(processed_rs_depth, **params)
             processed_zv_depth = normalize_depth(processed_zv_depth, **params)
 
-        # map nan to 0 and add mask to inform net about where nans are located; nan mask only in region
-        nan_mask = ~np.logical_and(np.logical_or(np.isnan(processed_rs_depth), np.isnan(processed_zv_depth)), ~processed_region_mask)
+        # map nan to 0
+        # add nan mask. 1 implies nan value in input region
+        nan_mask = np.logical_and(np.isnan(processed_rs_depth), processed_region_mask)
         processed_rs_depth = np.nan_to_num(processed_rs_depth)
         processed_zv_depth = np.nan_to_num(processed_zv_depth)
 

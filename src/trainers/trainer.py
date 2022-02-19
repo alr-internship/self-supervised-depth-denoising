@@ -45,8 +45,8 @@ class Trainer:
 
         # apply loss only on relevant regions
         batch_loss = loss_criterion(
-            prediction * nan_masks * region_masks,
-            label * nan_masks * region_masks
+            prediction * ~nan_masks * region_masks,
+            label * ~nan_masks * region_masks
         )
 
         loss = batch_loss / len(images)
