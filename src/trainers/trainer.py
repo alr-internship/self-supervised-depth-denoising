@@ -84,6 +84,7 @@ class Trainer:
         epochs: int,
         batch_size: int,
         learning_rate: float,
+        lr_patience: int,
         val_interval: int,
         save_checkpoint: bool,
         amp: bool,
@@ -106,6 +107,7 @@ class Trainer:
                     epochs=epochs,
                     batch_size=batch_size,
                     learning_rate=learning_rate,
+                    lr_patience=lr_patience,
                     save_checkpoint=save_checkpoint,
                     **dict(self.dataset_config),
                     trainer_id=self.trainer_id,
@@ -124,6 +126,7 @@ class Trainer:
             Epochs:              {epochs}
             Batch size:          {batch_size}
             Learning rate:       {learning_rate}
+            LR patience:         {lr_patience}
             Training size:       {n_train}
             Validation size:     {n_val}
             Validation Interval: {val_interval} (in samples) 
@@ -175,8 +178,8 @@ class Trainer:
 
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
-            'max',
-            patience=2
+            'min',
+            patience=lr_patience
         )
         grad_scaler = torch.cuda.amp.GradScaler(enabled=amp)
         global_step = 0
