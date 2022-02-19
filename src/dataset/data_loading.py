@@ -116,6 +116,12 @@ class BasicDataset(Dataset):
         assert rs_rgb.shape[:2] == zv_depth.shape[:2], \
             f'Image and mask should be the same size, but are {rs_rgb.shape[:2]} and {zv_depth[:2]}'
 
+        # apply region mask
+        rs_rgb = np.where(region_mask, rs_rgb, 0)
+        rs_depth = np.where(region_mask, rs_depth, np.nan)
+        zv_rgb = np.where(region_mask, zv_rgb, 0)
+        zv_depth = np.where(region_mask, zv_depth, np.nan)
+
         # resize and transpose
         processed_rs_rgb = cls.preprocess(rs_rgb, dataset_config.scale)
         processed_rs_depth = cls.preprocess(rs_depth, dataset_config.scale)
@@ -129,8 +135,8 @@ class BasicDataset(Dataset):
             processed_rs_depth = normalize_depth(processed_rs_depth, **params)
             processed_zv_depth = normalize_depth(processed_zv_depth, **params)
 
-        # map nan to 0 and add mask to inform net about where nans are located
-        nan_mask = ~np.logical_or(np.isnan(processed_rs_depth), np.isnan(processed_zv_depth))
+        # map nan to 0 and add mask to inform net about where nans are located; nan mask only in region
+        nan_mask = ~np.logical_and(np.logical_or(np.isnan(processed_rs_depth), np.isnan(processed_zv_depth)), ~region_mask)
         processed_rs_depth = np.nan_to_num(processed_rs_depth)
         processed_zv_depth = np.nan_to_num(processed_zv_depth)
 

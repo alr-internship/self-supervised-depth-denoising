@@ -16,14 +16,10 @@ def compute_bounds(files):
     max_depth = -np.inf
     for file in tqdm(files, desc='computing depth bounds for normalization'):
         _, rs_depth, _, zv_depth, _ = DatasetInterface.load(file)
-
-        print(np.nanmin(zv_depth))
-        print(np.nanmin(np.where(zv_depth == 0, np.nan, zv_depth)))
         min_t = np.nanmin([rs_depth, zv_depth])
         max_t = np.nanmax([rs_depth, zv_depth])
         min_depth = min(min_t, min_depth)
         max_depth = max(max_t, max_depth)
-        print(min_depth, max_depth)
     return min_depth, max_depth
 
 def main(args):

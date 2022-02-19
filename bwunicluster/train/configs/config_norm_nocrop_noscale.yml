@@ -20,14 +20,15 @@ network_config:
   bilinear: True
   amp: False
   validation_interval: 250
+  optimizer_name: 'rmsprop'
 
 dataset_config:
   scale_images: 1
   add_nan_mask_to_input: True
   add_region_mask_to_input: True
   normalize_depths: 
-    active: False # normalized input and label depth d with (d - mean) / std channel wise
-    min: 0
-    max: 0
+    active: True # normalized input and label depth d with (d - mean) / std channel wise
+    min: 263
+    max: 2879.106201171875
 
 

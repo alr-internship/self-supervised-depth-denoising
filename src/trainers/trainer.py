@@ -225,16 +225,19 @@ class Trainer:
 
                             # visualization images
                             vis_image = batch['image'][0].numpy().transpose((1, 2, 0))
-                            vis_true_mask = batch['label'][0].numpy().squeeze()
                             nan_mask = batch['nan-mask'][0].numpy().squeeze()
                             region_mask = batch['region-mask'][0].numpy().squeeze()
-                            prediction = predictions[0].float().cpu().detach().numpy().squeeze()
-                            vis_pred_mask = np.where(np.logical_and(nan_mask, region_mask), prediction, np.nan)
+                            vis_depth_input = vis_image[..., 3].squeeze()
+                            vis_depth_label = batch['label'][0].numpy().squeeze()
+                            depth_prediction = predictions[0].float().cpu().detach().numpy().squeeze()
+                            vis_depth_prediction = np.where(np.logical_and(nan_mask, region_mask), depth_prediction, np.nan)
 
                             # undo normalization
-                            params = dict(min=self.dataset_config.normalize_depths_min, mxx=self.dataset_config.normalize_depths_max)
-                            vis_true_mask = unnormalize_depth(vis_true_mask, **params) 
-                            vis_pred_mask = unnormalize_depth(vis_pred_mask, **params) 
+                            if self.dataset_config.normalize_depths:
+                                params = dict(min=self.dataset_config.normalize_depths_min, max=self.dataset_config.normalize_depths_max)
+                                vis_depth_input = unnormalize_depth(vis_depth_input, **params) 
+                                vis_depth_label = unnormalize_depth(vis_depth_label, **params) 
+                                vis_depth_prediction = unnormalize_depth(vis_depth_prediction, **params) 
 
                             experiment_log = {
                                 'step': global_step * batch_size,
@@ -242,11 +245,11 @@ class Trainer:
                                 'validation loss': val_loss,
                                 'input': {
                                     'rgb': wandb.Image(to_rgb(vis_image[..., :3])),
-                                    'depth': wandb.Image(visualize_depth(vis_image[..., 3])),
+                                    'depth': wandb.Image(visualize_depth(vis_depth_input)),
                                 },
-                                'masks': {
-                                    'true': wandb.Image(visualize_depth(vis_true_mask)),
-                                    'pred': wandb.Image(visualize_depth(vis_pred_mask)),
+                                'output': {
+                                    'label': wandb.Image(visualize_depth(vis_depth_label)),
+                                    'pred': wandb.Image(visualize_depth(vis_depth_prediction)),
                                 },
                                 **histograms
                             }

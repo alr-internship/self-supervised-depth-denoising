@@ -283,6 +283,15 @@ that point to the indivial files.
 Typically the train and val set is used for training and valuation,
 the test set is then later used for evaluation.
 
+Compute Bounds for Depth Normalization
+---
+
+To improve training, it is possible to enable depth normalization.
+This maps the depth values from [min_depth, max_depth] to [0, 1].
+To compute min_depth, max_depth, use the script [compute_depth_bounds.py](src/data_processing/compute_depth_bounds.py).
+The script takes the directory containing the dataset and computes the maximum
+and minimum depth values.
+The values get printed to stdout at the end.
 
 Training
 ===
@@ -463,3 +472,5 @@ TODOs
     realsense depth maps are uint16. Since there unit is millimeters, that should be oke.
 
 - [ ] why does the unet perform so bad on our dataset, but so good on the trained on?! (overfitted)
+
+- [ ] cleanup dataset

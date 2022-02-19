@@ -20,6 +20,7 @@ network_config:
   bilinear: True
   amp: False
   validation_interval: 300
+  optimizer_name: 'rmsprop'
 
 dataset_config:
   scale_images: 0.5
