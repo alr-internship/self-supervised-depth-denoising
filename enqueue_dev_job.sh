@@ -1,11 +1,11 @@
 #!/bin/bash
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=privat@claudiuskienle.de
+#SBATCH --mail-user=dapetri0@gmail.com
 #SBATCH --partition=single
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=20
 #SBATCH --time=12:00:00
-#SBATCH --export=ALL,EXECUTABLE="dvc push resources/models"
+#SBATCH --export=ALL,EXECUTABLE="dvc pull -f"
 #SBATCH --output="tmp2.out"
 #SBATCH -J Tmp2
 

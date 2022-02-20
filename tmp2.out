@@ -1,2 +1,19 @@
-Executable dvc push running on 20 cores with 10 threads
-dvc push
+Executable dvc pull -f running on 20 cores with 10 threads
+dvc pull -f
+A       resources/
+1 file added and 5781 files fetched
+
+============================= JOB FEEDBACK =============================
+
+NodeName=uc2n417
+Job ID: 20479157
+Cluster: uc2
+User/Group: jv4866/anthropomatik
+State: COMPLETED (exit code 0)
+Nodes: 1
+Cores per node: 20
+CPU Utilized: 00:19:00
+CPU Efficiency: 0.67% of 1-23:06:20 core-walltime
+Job Wall-clock time: 02:21:19
+Memory Utilized: 285.02 MB
+Memory Efficiency: 1.27% of 21.97 GB
