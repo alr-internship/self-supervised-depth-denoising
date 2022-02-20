@@ -35,6 +35,7 @@ def main(args):
         epochs=network_config['epochs'],
         batch_size=network_config['batch_size'],
         learning_rate=network_config['learning_rate'],
+        lr_patience=network_config['lr_patience']
         save_checkpoint=network_config['save'],
         amp=network_config['amp'],
         dir_checkpoint=evaluation_dir,
@@ -45,13 +46,7 @@ def main(args):
 
     trainer_params = dict(
         device=device,
-        dataset_config=BasicDataset.Config(
-            scale=dataset_config['scale_images'],
-            enable_augmentation=dataset_config['enable_augmentation'],
-            add_nan_mask_to_input=dataset_config['add_nan_mask_to_input'],
-            add_region_mask_to_input=dataset_config['add_region_mask_to_input'],
-            normalize_depths=dataset_config['normalize_depths']
-        ),
+        dataset_config=BasicDataset.Config.from_config(dataset_config),
         bilinear=network_config['bilinear'],
         trainer_id=trainer_id,
         initial_channels=network_config['initial_channels']

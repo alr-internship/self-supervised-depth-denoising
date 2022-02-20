@@ -8,6 +8,7 @@ from torch import optim
 from torch.utils.data import DataLoader
 import wandb
 from dataset.data_loading import BasicDataset
+from utils.transformation_utils import unnormalize_depth
 from utils.visualization_utils import to_rgb, visualize_depth, visualize_mask
 from tqdm import tqdm
 
@@ -35,11 +36,6 @@ class Trainer:
         nan_masks = batch['nan-mask']
         region_masks = batch['region-mask']
 
-        # assert images.shape[1] == net.n_channels, \
-        #     f'Network has been defined with {net.n_channels} input channels, ' \
-        #     f'but loaded images have {images.shape[1]} channels. Please check that ' \
-        #     'the images are loaded correctly.'
-
         images = images.to(device=self.device, dtype=torch.float32)
         label = label.to(device=self.device, dtype=torch.float32)
         nan_masks = nan_masks.to(device=self.device)
@@ -49,8 +45,8 @@ class Trainer:
 
         # apply loss only on relevant regions
         batch_loss = loss_criterion(
-            prediction * nan_masks * region_masks,
-            label * nan_masks * region_masks
+            prediction * ~nan_masks * region_masks,
+            label * ~nan_masks * region_masks
         )
 
         loss = batch_loss / len(images)
@@ -88,11 +84,16 @@ class Trainer:
         epochs: int,
         batch_size: int,
         learning_rate: float,
+        lr_patience: int,
         val_interval: int,
         save_checkpoint: bool,
         amp: bool,
         activate_wandb: bool,
+<<<<<<< HEAD
         optimizer_name: str,
+=======
+        optimizer_name: str = 'rmsprop',
+>>>>>>> dc97d9141b82cf6caaa0c461bba6326c53664996
     ):
         if save_checkpoint:
             dir_checkpoint = dir_checkpoint / f"{net.name}"
@@ -110,6 +111,7 @@ class Trainer:
                     epochs=epochs,
                     batch_size=batch_size,
                     learning_rate=learning_rate,
+                    lr_patience=lr_patience,
                     save_checkpoint=save_checkpoint,
                     **dict(self.dataset_config),
                     trainer_id=self.trainer_id,
@@ -128,6 +130,7 @@ class Trainer:
             Epochs:              {epochs}
             Batch size:          {batch_size}
             Learning rate:       {learning_rate}
+            LR patience:         {lr_patience}
             Training size:       {n_train}
             Validation size:     {n_val}
             Validation Interval: {val_interval} (in samples) 
@@ -159,7 +162,11 @@ class Trainer:
         loss_criterion = nn.L1Loss(reduction='sum')
 
         # Set up the optimizer, the loss, the learning rate scheduler and the loss scaling for AMP
+<<<<<<< HEAD
         if optimizer_name == 'rmpsprop':
+=======
+        if optimizer_name == 'rmsprop':
+>>>>>>> dc97d9141b82cf6caaa0c461bba6326c53664996
             optimizer = optim.RMSprop(
                 net.parameters(),
                 lr=learning_rate,
@@ -175,10 +182,13 @@ class Trainer:
                 weight_decay=0,
                 amsgrad=False
             )
+        else:
+            RuntimeError(f"invalid optimizer name given {optimizer_name}")
+
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
-            'max',
-            patience=2
+            'min',
+            patience=lr_patience
         )
         grad_scaler = torch.cuda.amp.GradScaler(enabled=amp)
         global_step = 0
@@ -222,18 +232,29 @@ class Trainer:
                             histograms = {}
                             for tag, value in net.named_parameters():
                                 tag = tag.replace('/', '.')
-                                histograms['Weights/' +
-                                           tag] = wandb.Histogram(value.data.cpu())
-                                histograms['Gradients/' +
-                                           tag] = wandb.Histogram(value.grad.data.cpu())
+                                histograms['Weights/' + tag] = wandb.Histogram(value.data.cpu())
+                                histograms['Gradients/' + tag] = wandb.Histogram(value.grad.data.cpu())
 
-                            # visualization images
+                            # visualizate images
                             vis_image = batch['image'][0].numpy().transpose((1, 2, 0))
-                            vis_true_mask = batch['label'][0].numpy().squeeze()
                             nan_mask = batch['nan-mask'][0].numpy().squeeze()
                             region_mask = batch['region-mask'][0].numpy().squeeze()
-                            prediction = predictions[0].float().cpu().detach().numpy().squeeze()
-                            vis_pred_mask = np.where(np.logical_and(nan_mask, region_mask), prediction, np.nan)
+                            vis_depth_input = vis_image[..., 3].squeeze()
+                            vis_depth_label = batch['label'][0].numpy().squeeze()
+                            depth_prediction = predictions[0].float().cpu().detach().numpy().squeeze()
+
+                            # apply masks
+                            mask = np.logical_and(nan_mask, region_mask)
+                            vis_depth_prediction = np.where(mask, depth_prediction, np.nan)
+                            vis_depth_input = np.where(mask, vis_depth_input, np.nan)
+                            vis_depth_label = np.where(mask, vis_depth_label, np.nan)
+
+                            # undo normalization
+                            if self.dataset_config.normalize_depths:
+                                params = dict(min=self.dataset_config.normalize_depths_min, max=self.dataset_config.normalize_depths_max)
+                                vis_depth_input = unnormalize_depth(vis_depth_input, **params) 
+                                vis_depth_label = unnormalize_depth(vis_depth_label, **params) 
+                                vis_depth_prediction = unnormalize_depth(vis_depth_prediction, **params) 
 
                             experiment_log = {
                                 'step': global_step * batch_size,
@@ -241,11 +262,11 @@ class Trainer:
                                 'validation loss': val_loss,
                                 'input': {
                                     'rgb': wandb.Image(to_rgb(vis_image[..., :3])),
-                                    'depth': wandb.Image(visualize_depth(vis_image[..., 3])),
+                                    'depth': wandb.Image(visualize_depth(vis_depth_input)),
                                 },
-                                'masks': {
-                                    'true': wandb.Image(visualize_depth(vis_true_mask)),
-                                    'pred': wandb.Image(visualize_depth(vis_pred_mask)),
+                                'output': {
+                                    'label': wandb.Image(visualize_depth(vis_depth_label)),
+                                    'pred': wandb.Image(visualize_depth(vis_depth_prediction)),
                                 },
                                 **histograms
                             }

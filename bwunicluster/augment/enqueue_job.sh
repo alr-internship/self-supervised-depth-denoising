@@ -4,12 +4,11 @@
 #SBATCH --partition=single
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=2
-#SBATCH --time=02:00:00
+#SBATCH --time=20:00:00
 #SBATCH --mem=180000mb
-#SBATCH --export=ALL,EXECUTABLE="python -u ../../src/data_processing/augment_by_mask.py ../../resources/images/calibrated_masked/cropped ../../resources/images/calibrated_masked_augmented/cropped --jobs=2"
+#SBATCH --export=ALL,EXECUTABLE="python -u ../../src/data_processing/augment_in_3d.py ../../resources/images/calibrated_masked/not-cropped/ycb_video ../../resources/images/calibrated_masked_augmented/not-cropped/ycb_video --num-augs=50"
 #SBATCH --output="augment.out"
 #SBATCH -J AugData
-#SBATCH --dependency=aftercorr:20466975
 
 
 #Usually you should set

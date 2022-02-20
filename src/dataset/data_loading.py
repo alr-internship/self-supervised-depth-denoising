@@ -5,16 +5,14 @@ Reference: https://github.com/milesial/Pytorch-UNet
 import logging
 from pathlib import Path
 
-from imgaug import augmenters as iaa
-from imgaug import HeatmapsOnImage
-from imgaug.augmentables.segmaps import SegmentationMapsOnImage
-
 import numpy as np
 import torch
 import cv2
 from torch.utils.data import Dataset
+from tqdm import tqdm
 
 from dataset.dataset_interface import DatasetInterface
+from utils.transformation_utils import normalize_depth
 
 
 class BasicDataset(Dataset):
@@ -23,20 +21,33 @@ class BasicDataset(Dataset):
         def __init__(
                 self,
                 scale: float = 1.0,
-                enable_augmentation: bool = True,
                 add_nan_mask_to_input: bool = True,
                 add_region_mask_to_input: bool = True,
-                normalize_depths: bool = False):
+                normalize_depths: bool = False,
+                normalize_depths_min: float = 0,
+                normalize_depths_max: float = 3000
+                ):
             assert 0 < scale <= 1, 'Scale must be between 0 and 1'
             self.scale = scale
-            self.enable_augmentation = enable_augmentation
             self.add_nan_mask_to_input = add_nan_mask_to_input
             self.add_region_mask_to_input = add_region_mask_to_input
             self.normalize_depths = normalize_depths
+            self.normalize_depths_min = normalize_depths_min
+            self.normalize_depths_max = normalize_depths_max
+
+        @staticmethod
+        def from_config(config: dict):
+            return BasicDataset.Config(
+                scale=config['scale_images'],
+                add_nan_mask_to_input=config['add_nan_mask_to_input'],
+                add_region_mask_to_input=config['add_region_mask_to_input'],
+                normalize_depths=config['normalize_depths']['active'],
+                normalize_depths_min=config['normalize_depths']['min'],
+                normalize_depths_max=config['normalize_depths']['max']
+            )
 
         def __iter__(self):
             yield 'img_scale', self.scale
-            yield 'enable_augmentation', self.enable_augmentation
             yield 'add_nan_mask_to_input', self.add_nan_mask_to_input
             yield 'add_region_mask_to_input', self.add_region_mask_to_input
             yield 'normalize_depths', self.normalize_depths
@@ -47,42 +58,10 @@ class BasicDataset(Dataset):
         def get_printout(self):
             return f"""
                 Images scaling:      {self.scale}
-                Augmentation:        {self.enable_augmentation}
                 NaNs Mask:           {self.add_nan_mask_to_input}
                 Region Mask:         {self.add_region_mask_to_input}
                 Normalize Depths:    {self.normalize_depths}
             """
-
-    seq = iaa.Sequential([
-        iaa.Fliplr(0.5),  # horizontal flips
-        iaa.Crop(percent=(0, 0.1)),  # random crops
-        # Small gaussian blur with random sigma between 0 and 0.5.
-        # But we only blur about 50% of all images.
-        iaa.Sometimes(
-            0.5,
-            iaa.GaussianBlur(sigma=(0, 0.5))
-        ),
-        # Strengthen or weaken the contrast in each image.
-        iaa.LinearContrast((0.75, 1.5)),
-        # Add gaussian noise.
-        # For 50% of all images, we sample the noise once per pixel.
-        # For the other 50% of all images, we sample the noise per pixel AND
-        # channel. This can change the color (not only brightness) of the
-        # pixels.
-        iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05*255), per_channel=0.5),
-        # Make some images brighter and some darker.
-        # In 20% of all cases, we sample the multiplier once per channel,
-        # which can end up changing the color of the images.
-        iaa.Multiply((0.8, 1.2), per_channel=0.2),
-        # Apply affine transformations to each image.
-        # Scale/zoom them, translate/move them, rotate them and shear them.
-        iaa.Affine(
-            scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},
-            translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)},
-            rotate=(-25, 25),
-            shear=(-8, 8),
-        )
-    ], random_order=True)  # apply augmenters in random order
 
     def __init__(
             self,
@@ -97,34 +76,8 @@ class BasicDataset(Dataset):
 
         logging.info(f'Creating dataset with size {len(self.files)}')
 
-
     def __len__(self):
         return len(self.files)
-
-    @classmethod
-    def augment(cls, rs_rgb, rs_depth, zv_depth, crop_region_mask):
-        depths = np.concatenate((rs_depth[..., None], zv_depth[..., None]), axis=2)
-
-        heatmaps = HeatmapsOnImage(depths, min_value=np.nanmin(depths),
-                                   max_value=np.nanmax(depths),
-                                   shape=rs_rgb.shape)
-
-        # augmentation adds some random padding to depth maps
-        # this segmap sets this padding to NaN again
-        segmap = crop_region_mask
-        segmaps = SegmentationMapsOnImage(segmap, shape=rs_rgb.shape[:2])
-
-        augmented = cls.seq(image=rs_rgb, heatmaps=heatmaps,
-                             segmentation_maps=segmaps)
-
-        aug_rs_rgb = augmented[0]
-        aug_heatmaps = augmented[1].get_arr()
-        aug_segmap = augmented[2].get_arr()
-
-        aug_rs_depth = aug_heatmaps[..., 0]
-        aug_zv_depth = aug_heatmaps[..., 1]
-
-        return aug_rs_rgb, aug_rs_depth, aug_zv_depth, aug_segmap
 
     @classmethod
     def resize(cls, img: np.array, scale: float):
@@ -155,43 +108,49 @@ class BasicDataset(Dataset):
     @classmethod
     def preprocess_set(cls, rs_rgb, rs_depth, region_mask, zv_depth,
                        dataset_config: Config):
+        
+        # extend region mask to 3 dims to equal the images
+        if len(region_mask.shape) == 2:
+            region_mask = region_mask[..., None]
 
+        # if mask is still on a per object basis => union
         if region_mask.shape[2] > 1:
-            # mask is still on a per object basis => union
-            region_mask = np.sum(region_mask, axis=2) > 0
-
-        # normalize depth
-        if dataset_config.normalize_depths:
-            rs_depth = (rs_depth - np.nanmin(rs_depth)) / (np.nanmax(rs_depth) - np.nanmin(rs_depth))
-            zv_depth = (zv_depth - np.nanmin(zv_depth)) / (np.nanmax(zv_depth) - np.nanmin(zv_depth))
-
-        if dataset_config.enable_augmentation:
-            rs_rgb, rs_depth, zv_depth, region_mask = cls.augment(rs_rgb, rs_depth,
-                                                                   zv_depth, region_mask)
+            region_mask = np.sum(region_mask, axis=2, keepdims=True) > 0
 
         assert rs_rgb.shape[:2] == zv_depth.shape[:2], \
             f'Image and mask should be the same size, but are {rs_rgb.shape[:2]} and {zv_depth[:2]}'
 
+        # apply region mask
+        rs_rgb = np.where(region_mask, rs_rgb, 0)
+        rs_depth = np.where(region_mask, rs_depth[..., None], np.nan)
+        zv_depth = np.where(region_mask, zv_depth[..., None], np.nan)
+
+        # resize and transpose
         processed_rs_rgb = cls.preprocess(rs_rgb, dataset_config.scale)
         processed_rs_depth = cls.preprocess(rs_depth, dataset_config.scale)
         processed_region_mask = cls.preprocess(region_mask, dataset_config.scale)
         processed_zv_depth = cls.preprocess(zv_depth, dataset_config.scale)
 
-        # normalize
+        # normalize rgb and depth
         processed_rs_rgb = processed_rs_rgb.astype(np.float32) / 255
+        if dataset_config.normalize_depths:
+            params = dict(min=dataset_config.normalize_depths_min, max=dataset_config.normalize_depths_max)
+            processed_rs_depth = normalize_depth(processed_rs_depth, **params)
+            processed_zv_depth = normalize_depth(processed_zv_depth, **params)
 
-        # map nan to 0 and add mask to inform net about where nans are located
-        rs_nan_mask = np.logical_not(np.isnan(processed_rs_depth))
-        zv_nan_mask = np.logical_not(np.isnan(processed_zv_depth))
-        nan_mask = np.logical_and(rs_nan_mask, zv_nan_mask)
+        # map nan to 0
+        # add nan mask. 0 implies nan value in input region
+        nan_mask = ~np.logical_and(np.isnan(processed_rs_depth), processed_region_mask)
         processed_rs_depth = np.nan_to_num(processed_rs_depth)
         processed_zv_depth = np.nan_to_num(processed_zv_depth)
 
+        # some assertions to check channel correctness
         assert processed_rs_rgb.shape[0] == 3
         assert len(processed_rs_depth.shape) == 2 or processed_rs_depth.shape[0] == 1
         assert len(processed_region_mask.shape) == 2 or processed_region_mask.shape[0] == 1
         assert len(nan_mask.shape) == 2 or nan_mask.shape[0] == 1
 
+        # setup input and label
         input_tuple = (processed_rs_rgb, processed_rs_depth)
 
         if dataset_config.add_nan_mask_to_input:

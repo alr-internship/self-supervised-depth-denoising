@@ -76,3 +76,15 @@ def image_points_to_camera_points(image_points: np.array, ci: dict, depth_scale:
     y = (v - ci['cy']) * z / ci['fy']
 
     return np.concatenate((x[:, None], y[:, None], z[:, None]), axis=1)
+
+def normalize_depth(depth, min, max):
+    depth = (depth - min) / (max - min)
+    depth = np.where(depth > 1, 1, depth)
+    depth = np.where(depth < 0, 0, depth)
+    return depth
+
+def unnormalize_depth(depth, min, max):
+    depth = (depth * (max - min)) + min
+    depth = np.where(depth > max, max, depth)
+    depth = np.where(depth < min, min, depth)
+    return depth
