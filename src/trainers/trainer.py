@@ -152,7 +152,6 @@ class Trainer:
         val_loader = DataLoader(
             val_set,
             shuffle=False,
-            #             drop_last=True,
             **loader_args
         )
 
@@ -217,7 +216,6 @@ class Trainer:
                     # Evaluation round
                     if global_step % division_step == 0:
                         val_loss = self.evaluate(net, val_loader, loss_criterion)
-                        scheduler.step(val_loss)
 
                         logging.info('Validation Loss: {}'.format(val_loss))
 
@@ -270,6 +268,10 @@ class Trainer:
                                 experiment_log['input']['region-mask'] = wandb.Image(visualize_mask(region_mask))
 
                             experiment.log(experiment_log)
+
+                # call lr scheduler after each epoch
+                epoch_val_loss = self.evaluate(net, val_loader, loss_criterion)
+                scheduler.step(epoch_val_loss)
 
             if save_checkpoint:
                 dir_checkpoint.mkdir(parents=True, exist_ok=True)
