@@ -1,14 +1,18 @@
 name: depth-denoising_training
 channels:
   - pytorch
+  - open3d-admin
   - anaconda
   - conda-forge
   - defaults
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=1_llvm
+  - addict=2.4.0=py38h578d9bd_0
   - alsa-lib=1.2.3=h516909a_0
   - aom=3.2.0=h9c3ff4c_2
+  - argon2-cffi=21.3.0=pyhd3eb1b0_0
+  - argon2-cffi-bindings=21.2.0=py38h7f8727e_0
   - async_generator=1.10=py_0
   - attrs=20.2.0=py_0
   - autopep8=1.6.0=pyhd8ed1ab_1
@@ -80,15 +84,18 @@ dependencies:
   - ipykernel=6.5.0=py38he5a9106_1
   - ipython=7.29.0=py38he5a9106_2
   - ipython_genutils=0.2.0=py38_0
+  - ipywidgets=7.6.5=pyhd3eb1b0_1
   - jasper=2.0.33=ha77e612_0
   - jbig=2.1=h7f98852_2003
   - jedi=0.18.1=py38h578d9bd_0
   - jinja2=2.11.2=py_0
+  - joblib=1.1.0=pyhd8ed1ab_0
   - jpeg=9d=h36c2ea0_0
   - jsonschema=3.2.0=py38_1
   - jupyter_client=7.1.0=pyhd8ed1ab_0
   - jupyter_core=4.9.1=py38h578d9bd_1
   - jupyterlab_pygments=0.1.2=py_0
+  - jupyterlab_widgets=1.0.0=pyhd3eb1b0_1
   - jxrlib=1.1=h7f98852_2
   - kiwisolver=1.3.2=py38h1fd1430_1
   - krb5=1.19.2=hcc1bbae_3
@@ -166,10 +173,12 @@ dependencies:
   - nettle=3.6=he412f7d_0
   - networkx=2.6.3=pyhd8ed1ab_1
   - ninja=1.10.2=h4bd325d_1
+  - notebook=6.4.8=py38h06a4308_0
   - nspr=4.32=h9c3ff4c_1
   - nss=3.72=hb5efdd6_0
   - numpy=1.21.4=py38he2449b9_0
   - olefile=0.46=pyh9f0ad1d_1
+  - open3d=0.11.2=py38_0
   - opencv=4.5.5=py38h578d9bd_0
   - openh264=2.1.1=h780b84a_0
   - openjpeg=2.4.0=hb52868f_1
@@ -187,6 +196,8 @@ dependencies:
   - pillow=8.4.0=py38h8e6f84c_0
   - pip=21.3.1=pyhd8ed1ab_0
   - pixman=0.40.0=h36c2ea0_0
+  - plyfile=0.7.4=pyhd8ed1ab_0
+  - prometheus_client=0.13.1=pyhd3eb1b0_0
   - promise=2.3=py38h578d9bd_5
   - prompt-toolkit=3.0.22=pyha770c72_0
   - protobuf=3.19.3=py38h709712a_0
@@ -220,7 +231,9 @@ dependencies:
   - readline=8.1=h46c0cb4_0
   - requests=2.26.0=pyhd8ed1ab_1
   - scikit-image=0.19.1=py38h43a58ef_0
+  - scikit-learn=1.0.2=py38h1561384_0
   - scipy=1.7.3=py38h56a6a73_0
+  - send2trash=1.8.0=pyhd3eb1b0_1
   - sentry-sdk=1.5.0=pyhd8ed1ab_0
   - setuptools=59.2.0=py38h578d9bd_0
   - shapely=1.8.0=py38h596eeab_5
@@ -233,7 +246,9 @@ dependencies:
   - subprocess32=3.5.4=py_1
   - svt-av1=0.9.0=h9c3ff4c_0
   - termcolor=1.1.0=py_2
+  - terminado=0.13.1=py38h06a4308_0
   - testpath=0.4.4=py_0
+  - threadpoolctl=3.1.0=pyh8a188c0_0
   - tifffile=2021.11.2=pyhd8ed1ab_0
   - tk=8.6.11=h27826a3_1
   - toml=0.10.2=pyhd8ed1ab_0
@@ -242,6 +257,7 @@ dependencies:
   - tornado=6.1=py38h497a2fe_2
   - tqdm=4.62.3=pyhd8ed1ab_0
   - traitlets=5.1.1=pyhd8ed1ab_0
+  - typing-extensions=3.10.0.2=hd3eb1b0_0
   - typing_extensions=3.10.0.2=pyh06a4308_0
   - unicodedata2=14.0.0=py38h497a2fe_0
   - urllib3=1.26.7=pyhd8ed1ab_0
@@ -249,6 +265,7 @@ dependencies:
   - wcwidth=0.2.5=pyh9f0ad1d_2
   - webencodings=0.5.1=py38_1
   - wheel=0.37.0=pyhd8ed1ab_1
+  - widgetsnbextension=3.5.2=py38h06a4308_0
   - x264=1!161.3030=h7f98852_1
   - x265=3.5=h4bd325d_1
   - xorg-fixesproto=5.0=h7f98852_1002
@@ -275,5 +292,5 @@ dependencies:
   - zlib=1.2.11=h36c2ea0_1013
   - zstd=1.5.0=ha95c52a_0
 variables:
-  PYTHONPATH: /home/claudiusk/Documents/Studium/KIT/Master/Semester_1/DL_Praktikum/self-supervised-depth-denoising/src
+  PYTHONPATH: /home/claudiusk/Documents/Studium/self-supervised-depth-denoising/src
 prefix: /home/claudiusk/.conda/envs/depth-denoising_training
