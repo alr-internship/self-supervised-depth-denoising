@@ -20,7 +20,7 @@ network_config:
   bilinear: True # if bilinear connections should be used
   amp: False # amp active/deactive
   validation_interval: 250 # validation interval in samples
-  optimizer_name: 'rmpsprop' # name of optimizer to be used 'adam', 'rmpsprop'
+  optimizer_name: 'adam' # name of optimizer to be used 'adam', 'rmpsprop'
 
 dataset_config:
   scale_images: 1 # percentage all images get scaled with (1.0 implies no scaling)
