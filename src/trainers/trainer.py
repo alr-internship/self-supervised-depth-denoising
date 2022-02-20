@@ -92,7 +92,7 @@ class Trainer:
         save_checkpoint: bool,
         amp: bool,
         activate_wandb: bool,
-        optimizer_name: str='rmsprop',
+        optimizer_name: str,
     ):
         if save_checkpoint:
             dir_checkpoint = dir_checkpoint / f"{net.name}"
@@ -136,6 +136,7 @@ class Trainer:
             Dataset Config:      
                 {self.dataset_config.get_printout()}
             Mixed Precision:     {amp}
+            Optimizer:           {optimizer_name}
             ''')
 
         loader_args = dict(
@@ -158,14 +159,14 @@ class Trainer:
         loss_criterion = nn.L1Loss(reduction='sum')
 
         # Set up the optimizer, the loss, the learning rate scheduler and the loss scaling for AMP
-        if optimizer_name is 'rmpsprop':
+        if optimizer_name == 'rmpsprop':
             optimizer = optim.RMSprop(
                 net.parameters(),
                 lr=learning_rate,
                 weight_decay=1e-8,
                 momentum=0.9
             )
-        elif optimizer_name is 'adam':
+        elif optimizer_name == 'adam':
             optimizer = optim.Adam(
                 net.parameters(),
                 lr=learning_rate,
