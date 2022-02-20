@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=20
 #SBATCH --time=12:00:00
 #SBATCH --export=ALL,EXECUTABLE="dvc pull -f"
-#SBATCH --output="tmp2.out"
+#SBATCH --output="tmp_dvc.out"
 #SBATCH -J Tmp2
 
 #Usually you should set

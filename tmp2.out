@@ -1,19 +1,25 @@
 Executable dvc pull -f running on 20 cores with 10 threads
 dvc pull -f
-A       resources/
-1 file added and 5781 files fetched
+WARNING: Some of the cache files do not exist neither locally nor on remote. Missing cache files:
+name: None, md5: a616f71fc757e9410cbc60169b5e7df2.dir
+WARNING: No file hash info found for '/pfs/data5/home/kit/anthropomatik/jv4866/self-supervised-depth-denoising/resources'. It won't be created.
+1 file failed
+ERROR: failed to pull data from the cloud - Checkout failed for following targets:
+/pfs/data5/home/kit/anthropomatik/jv4866/self-supervised-depth-denoising/resources
+Is your cache up to date?
+<https://error.dvc.org/missing-files>
 
 ============================= JOB FEEDBACK =============================
 
-NodeName=uc2n417
-Job ID: 20479157
+NodeName=uc2n414
+Job ID: 20483182
 Cluster: uc2
 User/Group: jv4866/anthropomatik
-State: COMPLETED (exit code 0)
+State: FAILED (exit code 1)
 Nodes: 1
 Cores per node: 20
-CPU Utilized: 00:19:00
-CPU Efficiency: 0.67% of 1-23:06:20 core-walltime
-Job Wall-clock time: 02:21:19
-Memory Utilized: 285.02 MB
-Memory Efficiency: 1.27% of 21.97 GB
+CPU Utilized: 00:00:04
+CPU Efficiency: 0.39% of 00:17:00 core-walltime
+Job Wall-clock time: 00:00:51
+Memory Utilized: 57.70 MB
+Memory Efficiency: 0.26% of 21.97 GB

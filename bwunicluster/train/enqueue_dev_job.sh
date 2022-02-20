@@ -1,13 +1,13 @@
 #!/bin/bash
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=privat@claudiuskienle.de
+#SBATCH --mail-user=dapetri0@gmail.com
 #SBATCH --partition=dev_gpu_4,gpu_4,gpu_8
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=40
 #SBATCH --time=0:30:00
 #SBATCH --gres=gpu:2
 #SBATCH --export=ALL,EXECUTABLE="python ../../src/trainers/train_models.py configs/config_adam.yml"
-#SBATCH --output="dev_train_models.out"
+#SBATCH --output="tmp_train_unet.out"
 #SBATCH -J TrainUNet
 
 #Usually you should set
