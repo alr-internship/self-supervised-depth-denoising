@@ -49,8 +49,7 @@ class Trainer:
         #     label * nan_masks * region_masks
         # )
 
-        diff = torch.abs(prediction - label) * nan_masks * region_masks
-        batch_loss = torch.sum(diff)
+        batch_loss = torch.sum(torch.abs(prediction - label) * nan_masks * region_masks) / torch.sum(nan_masks * region_masks)
 
         loss = batch_loss / len(images)
 
