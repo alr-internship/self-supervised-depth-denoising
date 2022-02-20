@@ -35,7 +35,7 @@ def main(args):
         epochs=network_config['epochs'],
         batch_size=network_config['batch_size'],
         learning_rate=network_config['learning_rate'],
-        lr_patience=network_config['lr_patience']
+        lr_patience=network_config['lr_patience'],
         save_checkpoint=network_config['save'],
         amp=network_config['amp'],
         dir_checkpoint=evaluation_dir,
