@@ -67,6 +67,7 @@ def main(args):
             **params
         )
 
+    # depricated
     if oof_trainer['active']:
         oof = OutOfFoldTrainer(
             dataset_path=ROOT_DIR / oof_trainer['dataset_path'],
