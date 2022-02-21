@@ -44,12 +44,12 @@ class Trainer:
         prediction = net(images)
 
         # apply loss only on relevant regions
-        # batch_loss = loss_criterion(
-        #     prediction * nan_masks * region_masks,
-        #     label * nan_masks * region_masks
-        # )
+        loss = loss_criterion(
+            prediction * nan_masks * region_masks,
+            label * nan_masks * region_masks
+        ) / len(images)
 
-        loss = torch.sum(torch.abs(prediction - label) * nan_masks * region_masks) / torch.sum(nan_masks * region_masks)
+        # loss = torch.sum(torch.abs(prediction - label) * nan_masks * region_masks) / torch.sum(nan_masks * region_masks)
 
         # loss = batch_loss / len(images)
 
