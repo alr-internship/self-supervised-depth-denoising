@@ -9,7 +9,6 @@ import numpy as np
 import torch
 import cv2
 from torch.utils.data import Dataset
-from tqdm import tqdm
 
 from dataset.dataset_interface import DatasetInterface
 from utils.transformation_utils import normalize_depth
@@ -25,7 +24,8 @@ class BasicDataset(Dataset):
                 add_region_mask_to_input: bool = True,
                 normalize_depths: bool = False,
                 normalize_depths_min: float = 0,
-                normalize_depths_max: float = 3000
+                normalize_depths_max: float = 3000,
+                resize_region_to_fill_input: bool = False,
         ):
             assert 0 < scale <= 1, 'Scale must be between 0 and 1'
             self.scale = scale
@@ -34,6 +34,7 @@ class BasicDataset(Dataset):
             self.normalize_depths = normalize_depths
             self.normalize_depths_min = normalize_depths_min
             self.normalize_depths_max = normalize_depths_max
+            self.resize_region_to_fill_input = resize_region_to_fill_input
 
         @staticmethod
         def from_config(config: dict):
@@ -41,6 +42,7 @@ class BasicDataset(Dataset):
                 scale=config['scale_images'],
                 add_nan_mask_to_input=config['add_nan_mask_to_input'],
                 add_region_mask_to_input=config['add_region_mask_to_input'],
+                resize_region_to_fill_input=config['resize_region_to_fill_input'] if 'resize_region_to_fill_input' in config else False,
                 normalize_depths=config['normalize_depths']['active'],
                 normalize_depths_min=config['normalize_depths']['min'],
                 normalize_depths_max=config['normalize_depths']['max']
@@ -162,20 +164,21 @@ class BasicDataset(Dataset):
         rs_depth = np.where(region_mask, rs_depth[..., None], np.nan)
         zv_depth = np.where(region_mask, zv_depth[..., None], np.nan)
 
-        # scale to intersting region
-        # mask_indices = region_mask.nonzero()
-        # min = np.min(mask_indices, axis=1) - 5 # padding 5
-        # min = np.where(min < 0, 0, min)
-        # max = np.max(mask_indices, axis=1) + 5 # padding 5
-        # max = np.where(max > region_mask.shape, region_mask.shape, max)
-        # region_mask = region_mask[min[0]:max[0], min[1]:max[1]]
-        # rs_depth = rs_depth[min[0]:max[0], min[1]:max[1]]
-        # rs_rgb = rs_rgb[min[0]:max[0], min[1]:max[1]]
-        # zv_depth = zv_depth[min[0]:max[0], min[1]:max[1]]
-        # region_mask = cls.resize_to(region_mask, *original_size)
-        # zv_depth = cls.resize_to(zv_depth, *original_size)
-        # rs_rgb = cls.resize_to(rs_rgb, *original_size)
-        # rs_depth = cls.resize_to(rs_depth, *original_size)
+        # scale image to intersting region (region mask bounding box)
+        if dataset_config.resize_region_to_fill_input:
+            mask_indices = region_mask.nonzero()
+            min = np.min(mask_indices, axis=1) - 5 # padding 5
+            min = np.where(min < 0, 0, min)
+            max = np.max(mask_indices, axis=1) + 5 # padding 5
+            max = np.where(max > region_mask.shape, region_mask.shape, max)
+            region_mask = region_mask[min[0]:max[0], min[1]:max[1]]
+            rs_depth = rs_depth[min[0]:max[0], min[1]:max[1]]
+            rs_rgb = rs_rgb[min[0]:max[0], min[1]:max[1]]
+            zv_depth = zv_depth[min[0]:max[0], min[1]:max[1]]
+            region_mask = cls.resize_to(region_mask, *original_size)
+            zv_depth = cls.resize_to(zv_depth, *original_size)
+            rs_rgb = cls.resize_to(rs_rgb, *original_size)
+            rs_depth = cls.resize_to(rs_depth, *original_size)
 
         # resize and transpose
         processed_rs_rgb = cls.preprocess(rs_rgb, dataset_config.scale)
