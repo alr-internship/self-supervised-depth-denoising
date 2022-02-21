@@ -5,27 +5,29 @@ basic_trainer: # trains model on the whole train dataset
 
 oof_trainer: # trains three models with the oof strategy
   active: False # toggle if training should be activated
-  dataset_path: ''
+  dataset_path: ""
   oof_p: 0.33
 
 network_config:
   initial_channels: 8
   epochs: 100 # number of epochs to train
-  batch_size: 50 # batch size for training
-  learning_rate: 0.0001 # initial learning rate
+  batch_size: 20 # batch size for training
+  learning_rate: 0.01 # initial learning rate
+  lr_patience: 10
   load_from_model: None # either "None" or a file path to model weights
   wandb: True # if wandb should be activated for monitoring
   save: True # if checkpoints of the model should be saved
-  evaluation_dir: resource/models # directory all evaluation files will be saved to
+  evaluation_dir: resources/models # directory all evaluation files will be saved to
   bilinear: True # if bilinear connections should be used
   amp: False # amp active/deactive
   validation_interval: 250 # validation interval in samples
-  optimizer_name: 'adam' # name of optimizer to be used 'adam', 'rmpsprop'
+  optimizer_name: "adam" # name of optimizer to be used 'adam', 'rmpsprop'
 
 dataset_config:
   scale_images: 1 # percentage all images get scaled with (1.0 implies no scaling)
-  enable_augmentation: False # if images augmentation should be applied
   add_nan_mask_to_input: True # if nan mask should be concatented to input
   add_region_mask_to_input: True # if region mask should be concatenated to input
-  normalize_depths: False # normalized input and label depth d with (d - mean) / std channel wise
-
+  normalize_depths:
+    active: False # normalized input and label depth d with (d - mean) / std channel wise
+    min: 0
+    max: 0
