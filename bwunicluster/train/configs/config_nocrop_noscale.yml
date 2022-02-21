@@ -12,7 +12,7 @@ network_config:
   initial_channels: 64
   epochs: 50
   batch_size: 4
-  learning_rate: 0.05
+  learning_rate: 0.1
   lr_patience: 10
   load_from_model: None
   wandb: True
