@@ -11,14 +11,14 @@ oof_trainer: # trains three models with the oof strategy
 network_config:
   initial_channels: 8
   epochs: 100 # number of epochs to train
-  batch_size: 20 # batch size for training
-  learning_rate: 0.01 # initial learning rate
+  batch_size: 30 # batch size for training
+  learning_rate: 0.1 # initial learning rate
   lr_patience: 10
   load_from_model: None # either "None" or a file path to model weights
   wandb: True # if wandb should be activated for monitoring
   save: True # if checkpoints of the model should be saved
   evaluation_dir: resources/models # directory all evaluation files will be saved to
-  bilinear: True # if bilinear connections should be used
+  bilinear: False # if bilinear connections should be used
   amp: False # amp active/deactive
   validation_interval: 250 # validation interval in samples
   optimizer_name: "adam" # name of optimizer to be used 'adam', 'rmpsprop'
