@@ -82,11 +82,44 @@ class BasicDataset(Dataset):
     @classmethod
     def resize_to(cls, img: np.array, newH: int, newW: int):
         assert newW > 0 and newH > 0, 'Scale is too small, resized images would have no pixel'
+        assert len(img.shape) == 3, 'image must be 3 dimensional'
 
         if img.dtype == np.bool:
-            return cv2.resize(img.astype(np.uint8), (newW, newH), cv2.INTER_NEAREST).astype(np.bool)
-        else:
-            return cv2.resize(img, (newW, newH), cv2.INTER_AREA)
+            fill_value = False
+        elif img.dtype == np.uint8:
+            fill_value = 0
+        else: # float or else
+            fill_value = np.nan
+
+        currH, currW = img.shape[:2]
+        if currW / currH == newW / newH: # new aspect ration does match current aspect ratio
+            if img.dtype == np.bool:
+                return cv2.resize(img.astype(np.uint8), (newW, newH), cv2.INTER_NEAREST).astype(np.bool)
+            else:
+                return cv2.resize(img, (newW, newH), cv2.INTER_AREA)
+
+        else: # aspect ratio does not match -> add padding
+            if currW / currH > newW / newH: # aspect ratio larger -> add padding top, bottom
+                scale_factor = newW / currW 
+            elif currW / currH < newW / newH: # add padding to the left right
+                scale_factor = newH / currH
+
+            if img.dtype == np.bool:
+                r = cv2.resize(img.astype(np.uint8), None, fx=scale_factor, fy=scale_factor, interpolation=cv2.INTER_NEAREST).astype(np.bool)
+            else:
+                r = cv2.resize(img, None, fx=scale_factor, fy=scale_factor, interpolation=cv2.INTER_AREA)
+
+            if len(r.shape) == 2:
+                r = r[..., None]
+
+            resizedH, resizedW = r.shape[:2]
+            startH = (newH - resizedH) // 2
+            startW = (newW - resizedW) // 2
+
+            r_full = np.full((newH, newW, img.shape[2]), fill_value=fill_value, dtype=img.dtype)
+            r_full[startH:(resizedH + startH), startW:(resizedW + startW)] = r
+
+            return r_full
 
     @classmethod
     def resize(cls, img: np.array, scale: float):
@@ -130,17 +163,19 @@ class BasicDataset(Dataset):
         zv_depth = np.where(region_mask, zv_depth[..., None], np.nan)
 
         # scale to intersting region
-        mask_indices = region_mask.nonzero()
-        min = np.min(mask_indices, axis=1)
-        max = np.max(mask_indices, axis=1)
-        region_mask = region_mask[min[0]:min[1], max[0]:max[1]]
-        rs_depth = rs_depth[min[0]:min[1], max[0]:max[1]]
-        rs_rgb = rs_rgb[min[0]:min[1], max[0]:max[1]]
-        zv_depth = zv_depth[min[0]:min[1], max[0]:max[1]]
-        region_mask = cls.resize_to(region_mask, *original_size)
-        zv_depth = cls.resize_to(zv_depth, *original_size)
-        rs_rgb = cls.resize_to(rs_rgb, *original_size)
-        rs_depth = cls.resize_to(rs_depth, *original_size)
+        # mask_indices = region_mask.nonzero()
+        # min = np.min(mask_indices, axis=1) - 5 # padding 5
+        # min = np.where(min < 0, 0, min)
+        # max = np.max(mask_indices, axis=1) + 5 # padding 5
+        # max = np.where(max > region_mask.shape, region_mask.shape, max)
+        # region_mask = region_mask[min[0]:max[0], min[1]:max[1]]
+        # rs_depth = rs_depth[min[0]:max[0], min[1]:max[1]]
+        # rs_rgb = rs_rgb[min[0]:max[0], min[1]:max[1]]
+        # zv_depth = zv_depth[min[0]:max[0], min[1]:max[1]]
+        # region_mask = cls.resize_to(region_mask, *original_size)
+        # zv_depth = cls.resize_to(zv_depth, *original_size)
+        # rs_rgb = cls.resize_to(rs_rgb, *original_size)
+        # rs_depth = cls.resize_to(rs_depth, *original_size)
 
         # resize and transpose
         processed_rs_rgb = cls.preprocess(rs_rgb, dataset_config.scale)
