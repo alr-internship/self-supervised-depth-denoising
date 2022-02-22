@@ -9,14 +9,8 @@ from argparse import ArgumentParser
 
 from tqdm import tqdm
 from dataset.dataset_interface import DatasetInterface
-from utils.transformation_utils import imgs_to_pcd, pcd_to_imgs, rs_ci
+from utils.transformation_utils import imgs_to_pcd, pcd_to_imgs, rs_ci, fill_to_shape
 from utils.visualization_utils import to_rgb
-
-def fill_to_shape(array, shape, fill_value, dtype):
-    s = (min(shape[0], array.shape[0]), min(shape[1], array.shape[1]))
-    array_large = np.full(shape, fill_value=fill_value, dtype=dtype)
-    array_large[:s[0], :s[1]] = array[:s[0], :s[1]]
-    return array_large
 
 
 def sample_transformation():
