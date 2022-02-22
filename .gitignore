@@ -93,3 +93,5 @@ target/
 **/wandb
 **/*.out
 enqueue_dev_job.sh
+enqueue_job.sh
+bwunicluster/

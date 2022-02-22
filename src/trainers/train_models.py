@@ -17,39 +17,33 @@ def main(args):
     with open(args.config_path, 'r') as f:
         config = yaml.safe_load(f)
 
-    network_config = config['network_config']
+    network_config_yml = config['network_config']
     dataset_config = config['dataset_config']
     oof_trainer = config['oof_trainer']
     basic_trainer = config['basic_trainer']
 
     trainer_id = str(time.time())
 
-    evaluation_dir = ROOT_DIR / network_config['evaluation_dir'] / trainer_id
+    evaluation_dir = ROOT_DIR / network_config_yml['evaluation_dir'] / trainer_id
     evaluation_dir.mkdir(parents=True, exist_ok=True)
 
     # write config to evaluation directory
     with open(evaluation_dir / "config.yml", 'w') as f:
         yaml.safe_dump(config, f)
 
+    network_config = BasicTrainer.Config.from_config(network_config_yml)
+
     params = dict(
-        epochs=network_config['epochs'],
-        batch_size=network_config['batch_size'],
-        learning_rate=network_config['learning_rate'],
-        lr_patience=network_config['lr_patience'],
-        save_checkpoint=network_config['save'],
-        amp=network_config['amp'],
-        dir_checkpoint=evaluation_dir,
-        activate_wandb=network_config['wandb'],
-        val_interval=network_config['validation_interval'],
-        optimizer_name=network_config['optimizer_name']
+        evaluation_dir=evaluation_dir,
+        config=network_config
     )
 
     trainer_params = dict(
         device=device,
         dataset_config=BasicDataset.Config.from_config(dataset_config),
-        bilinear=network_config['bilinear'],
+        bilinear=network_config_yml['bilinear'],
         trainer_id=trainer_id,
-        initial_channels=network_config['initial_channels']
+        initial_channels=network_config_yml['initial_channels']
     )
 
     if basic_trainer['active']:
