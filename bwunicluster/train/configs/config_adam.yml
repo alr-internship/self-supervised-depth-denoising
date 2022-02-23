@@ -13,15 +13,15 @@ network_config:
   epochs: 100 # number of epochs to train
   batch_size: 30 # batch size for training
   learning_rate: 0.1 # initial learning rate
-  lr_patience: 10
+  lr_patience: 2
   load_from_model: None # either "None" or a file path to model weights
   wandb: True # if wandb should be activated for monitoring
   save: True # if checkpoints of the model should be saved
-  evaluation_dir: resources/models # directory all evaluation files will be saved to
+  evaluation_dir: resources_local/models # directory all evaluation files will be saved to
   bilinear: False # if bilinear connections should be used
   amp: False # amp active/deactive
   validation_interval: 250 # validation interval in samples
-  optimizer_name: "adam" # name of optimizer to be used 'adam', 'rmpsprop'
+  optimizer_name: "rmpsprop" # name of optimizer to be used 'adam', 'rmpsprop'
 
 dataset_config:
   scale_images: 1 # percentage all images get scaled with (1.0 implies no scaling)
