@@ -41,19 +41,21 @@ class Trainer:
         nan_masks = nan_masks.to(device=self.device)
         region_masks = region_masks.to(device=self.device)
 
-        predictions = net(images)
+        prediction = net(images)
 
         # apply loss only on relevant regions
-        loss = loss_criterion(
-            predictions * nan_masks * region_masks,
-            label * nan_masks * region_masks
-        ) / len(images) 
+        # loss = loss_criterion(
+        #     predictions * nan_masks * region_masks,
+        #     label * nan_masks * region_masks
+        # ) / len(images) 
 
+        # For pixel-wise loss
+        loss = torch.sum(loss_criterion(prediction, label) * nan_masks * region_masks) / torch.sum(nan_masks * region_masks)
         # loss = torch.sum(torch.abs(prediction - label) * nan_masks * region_masks) / torch.sum(nan_masks * region_masks)
 
         # loss = batch_loss / len(images)
 
-        return predictions, loss
+        return prediction, loss
 
     def evaluate(
         self,
@@ -160,6 +162,7 @@ class Trainer:
         #### LOSS ####
         ##############
         loss_criterion = nn.L1Loss(reduction='mean')
+        # loss_criterion = nn.HuberLoss()
 
         # Set up the optimizer, the loss, the learning rate scheduler and the loss scaling for AMP
         if optimizer_name == 'rmpsprop':
