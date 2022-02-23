@@ -12,9 +12,9 @@ from tqdm import tqdm
 from dataset.dataset_interface import DatasetInterface
 from dataset.data_loading import BasicDataset
 from utils.general_utils import split
-from utils.transformation_utils import imgs_to_pcd, pcd_to_imgs, resize, rs_ci
+from utils.transformation_utils import combine_point_clouds, imgs_to_pcd, pcd_to_imgs, resize, rs_ci
 
-def _filter_clusters(start_cluster: o3d.geometry.PointCloud, clusters: List[o3d.geometry.PointCloud]):
+def _filter_clusters(start_cluster: o3d.geometry.PointCloud, clusters: List[o3d.geometry.PointCloud], max_distance: float):
     rejected_clusters = []
     accepted_clusters = []
     # Reject some clusters based on cluster size (min/max)
@@ -25,7 +25,7 @@ def _filter_clusters(start_cluster: o3d.geometry.PointCloud, clusters: List[o3d.
     #      elif len(cluster.points) < self.heuristics_min_cluster_size:
     #          print(f"Rejecting cluster with {len(cluster.points)} points (too few points)")
     #          rejected_clusters.append(cluster)
-    _filter_clusters_recursive(start_cluster, clusters, accepted_clusters, rejected_clusters)
+    _filter_clusters_recursive(start_cluster, clusters, accepted_clusters, rejected_clusters, max_distance)
     # if True: #  self.debug:
     #     vis_clusters = []
     #     for cluster in accepted_clusters:
@@ -39,12 +39,17 @@ def _filter_clusters(start_cluster: o3d.geometry.PointCloud, clusters: List[o3d.
     #     o3d.visualization.draw_geometries(vis_clusters, "Data Processing: Cluster-based segmentation result")
     return accepted_clusters, rejected_clusters
 
-def _filter_clusters_recursive(cluster, all_clusters, accepted_clusters, rejected_clusters):
-    neighbors, _ = _get_neighbors(cluster, all_clusters)
+def _filter_clusters_recursive(cluster, all_clusters, accepted_clusters, rejected_clusters, max_distance: float):
+    possible_neighbours = [
+        cluster 
+        for cluster in all_clusters 
+        if cluster not in accepted_clusters and cluster not in rejected_clusters
+    ]
+    neighbors, _ = _get_neighbors(cluster, possible_neighbours, max_distance)
     for neighbor in neighbors:
         if neighbor not in accepted_clusters and neighbor not in rejected_clusters:
             accepted_clusters.append(neighbor)
-            _filter_clusters_recursive(neighbor, all_clusters, accepted_clusters, rejected_clusters)
+            _filter_clusters_recursive(neighbor, all_clusters, accepted_clusters, rejected_clusters, max_distance)
         #if neighbor not in accepted_clusters and neighbor not in rejected_clusters:
         #    neighbor_accepted, _, _ = self.color_filter.filter_clusters([neighbor])
         #    if len(neighbor_accepted) > 0:
@@ -54,29 +59,20 @@ def _filter_clusters_recursive(cluster, all_clusters, accepted_clusters, rejecte
         #        rejected_clusters.append(neighbor)
 
 
-def _get_neighbors(pcd: o3d.geometry.PointCloud, pcds: List[o3d.geometry.PointCloud]):
+def _get_neighbors(pcd: o3d.geometry.PointCloud, pcds: List[o3d.geometry.PointCloud], max_distance: float):
     neighbors = []
     not_neighbors = []
     for other in pcds:
         dist = np.min(np.asarray(pcd.compute_point_cloud_distance(other)))
-        if dist < 0.05: # distance in meters
+        if dist < max_distance: # distance in meters
             neighbors.append(other)
         else:
             not_neighbors.append(other)
     return neighbors, not_neighbors
 
 
-def combine_point_clouds(pcds: List[o3d.geometry.PointCloud]) -> o3d.geometry.PointCloud:
-    all_points = [np.asarray(pcd.points) for pcd in pcds]
-    all_colors = [np.asarray(pcd.colors) for pcd in pcds]
-    cloud = o3d.geometry.PointCloud()
-    cloud.points = o3d.utility.Vector3dVector(np.concatenate(all_points, axis=0))
-    cloud.colors = o3d.utility.Vector3dVector(np.concatenate(all_colors, axis=0))
-    return cloud
-
-
-def select_largest_cluster(pcd: o3d.geometry.PointCloud, debug: bool):
-    labels = np.array(pcd.cluster_dbscan(eps=0.02, min_points=10, print_progress=False))
+def select_largest_cluster(pcd: o3d.geometry.PointCloud, eps: float = 0.01, min_points=10, max_distance: float = 0.05, debug: bool = False):
+    labels = np.asarray(pcd.cluster_dbscan(eps=eps, min_points=min_points, print_progress=False))
     labels_vals, labels_counts = np.unique(labels, return_counts=True)
 
     if debug:
@@ -87,12 +83,17 @@ def select_largest_cluster(pcd: o3d.geometry.PointCloud, debug: bool):
         rs_pcd_vis.colors = o3d.utility.Vector3dVector(colors[:, :3])
         o3d.visualization.draw_geometries([rs_pcd_vis])
 
+    # delete outlier cluster
+    labels_vals = np.delete(labels_vals, 0)
+    labels_counts = np.delete(labels_counts, 0)
+
     clusters = [
         pcd.select_by_index((labels == label).nonzero()[0])
         for label in labels_vals
     ]
+
     largest_cluster = clusters[np.argmax(labels_counts)]
-    acc, _ = _filter_clusters(largest_cluster, clusters)
+    acc, _ = _filter_clusters(largest_cluster, clusters, max_distance)
 
     return combine_point_clouds(acc)
 
@@ -118,8 +119,8 @@ def clean_files(files, debug, in_dir, out_dir):
         rs_pcd = imgs_to_pcd(rs_rgb, rs_depth, rs_ci)
         zv_pcd = imgs_to_pcd(raw_zv_rgb, zv_depth, rs_ci)
 
-        rs_pcd_clusterd = select_largest_cluster(rs_pcd, debug)
-        zv_pcd_clusterd = select_largest_cluster(zv_pcd, debug)
+        rs_pcd_clusterd = select_largest_cluster(rs_pcd, debug=debug)
+        zv_pcd_clusterd = select_largest_cluster(zv_pcd, debug=debug)
 
         if debug:
             o3d.visualization.draw_geometries([raw_rs_pcd])
