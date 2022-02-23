@@ -90,6 +90,7 @@ target/
 .mypy_cache/
 /resources
 /local_resources
+/resources_local
 **/wandb
 **/*.out
 enqueue_dev_job.sh
