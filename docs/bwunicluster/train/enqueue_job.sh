@@ -1,13 +1,15 @@
 #!/bin/bash
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=dapetri0@gmail.com
-#SBATCH --partition=single
+#SBATCH --mail-user=privat@claudiuskienle.de
+#SBATCH --partition=gpu_4,gpu_8
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=20
-#SBATCH --time=12:00:00
-#SBATCH --export=ALL,EXECUTABLE="dvc pull -f"
-#SBATCH --output="tmp_dvc.out"
-#SBATCH -J Tmp2
+#SBATCH --cpus-per-task=40
+#SBATCH --time=5:00:00
+#SBATCH --gres=gpu:4
+#SBATCH --export=ALL,EXECUTABLE="python ../../src/trainers/train_models.py configs/config_med_nocrop_noscale.yml"
+#SBATCH --output="train_models.out"
+#SBATCH -J TrainUNet
+# #SBATCH --dependency afterok:20472048
 
 #Usually you should set
 export KMP_AFFINITY=compact,1,0

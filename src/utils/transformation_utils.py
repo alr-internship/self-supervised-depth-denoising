@@ -1,5 +1,6 @@
 import open3d as o3d
 import numpy as np
+import cv2
 
 from utils.visualization_utils import to_bgr, to_rgb
 
@@ -29,6 +30,16 @@ def imgs_to_pcd(bgr, depth, ci: dict, project_valid_depth_only: bool = True):
     pcd = o3d.geometry.PointCloud.create_from_rgbd_image(
         rgbd_image, ci, project_valid_depth_only=project_valid_depth_only)
     return pcd
+
+
+def fill_to_shape(array, shape, fill_value, dtype):
+    if len(shape) == 2 and len(array.shape) == 3: # append channel dimension if nesseccary
+        shape = shape + (array.shape[-1],)
+
+    s = (min(shape[0], array.shape[0]), min(shape[1], array.shape[1]))
+    array_large = np.full(shape, fill_value=fill_value, dtype=dtype)
+    array_large[:s[0], :s[1]] = array[:s[0], :s[1]]
+    return array_large
 
 
 def pcd_to_imgs(pcd, ci: dict, depth_scale: float = 1000.0):
@@ -62,6 +73,17 @@ def pcd_to_imgs(pcd, ci: dict, depth_scale: float = 1000.0):
     bgr_frame = to_bgr(rgb_frame)
 
     return bgr_frame, depth_frame, ul_corner, lr_corner
+
+def resize(bgr_frame, depth_frame, ul_corner, lr_corner, cropped: bool, resulting_shape: tuple):
+    if not cropped:
+        bgr_frame = fill_to_shape(bgr_frame, resulting_shape, 0, dtype=np.uint8)
+        depth_frame = fill_to_shape(depth_frame, resulting_shape, np.nan, dtype=np.float32)
+    else:
+        bgr_frame = bgr_frame[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
+        depth_frame = depth_frame[ul_corner[1]:lr_corner[1], ul_corner[0]:lr_corner[0]]
+        bgr_frame = cv2.resize(bgr_frame, resulting_shape)
+        depth_frame = cv2.resize(depth_frame, resulting_shape)
+    return bgr_frame, depth_frame
 
 
 def image_points_to_camera_points(image_points: np.array, ci: dict, depth_scale: float = 1000.0):

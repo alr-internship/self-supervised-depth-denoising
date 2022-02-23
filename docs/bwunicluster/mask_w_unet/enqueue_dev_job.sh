@@ -1,15 +1,14 @@
 #!/bin/bash
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=privat@claudiuskienle.de
-#SBATCH --partition=gpu_4,gpu_8
+#SBATCH --partition=dev_gpu_4,gpu_4,gpu_8
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=40
-#SBATCH --time=5:00:00
-#SBATCH --gres=gpu:2
-#SBATCH --export=ALL,EXECUTABLE="python ../../src/trainers/train_models.py configs/config_aug_nocrop_noscale.yml"
-#SBATCH --output="train_models.out"
-#SBATCH -J TrainUNet
-# #SBATCH --dependency afterok:20472048
+#SBATCH --time=00:30:00
+#SBATCH --gres=gpu:1
+#SBATCH --export=ALL,EXECUTABLE="python ../../src/data_processing/unet_segmentation.py ../../resources/images/calibrated/not-cropped ../../resources/images/calibrated_masked_unet/not-cropped"
+#SBATCH --output="mask_unet_segmentation.out"
+#SBATCH -J MaskUNet
 
 #Usually you should set
 export KMP_AFFINITY=compact,1,0

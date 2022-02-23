@@ -9,11 +9,11 @@ oof_trainer:
   oof_p: 0.33
 
 network_config:
-  initial_channels: 64
-  epochs: 50
-  batch_size: 4
-  learning_rate: 0.1
-  lr_patience: 10
+  initial_channels: 8
+  epochs: 100
+  batch_size: 35
+  learning_rate: 0.01
+  lr_patience: 4
   load_from_model: None
   wandb: True
   save: True

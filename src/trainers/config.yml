@@ -19,6 +19,7 @@ network_config:
   bilinear: True # if bilinear connections should be used
   amp: False # amp active/deactive
   validation_interval: 200 # validation interval in samples
+  loss_type: abs_l1_loss # which loss to use. possible losses are (abs_l1_loss,mean_l1_loss,mean_l2_loss)
   optimizer_name: # name of optimizer to be used 'adam', 'rmpsprop'
 
 dataset_config:

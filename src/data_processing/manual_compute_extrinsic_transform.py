@@ -3,7 +3,7 @@ from pathlib import Path
 import open3d as o3d
 import numpy as np
 from dataset.dataset_interface import DatasetInterface
-from utils.transformation_utils import imgs_to_pcd, pcd_to_imgs, rs_ci, zv_ci
+from utils.transformation_utils import imgs_to_pcd, rs_ci, zv_ci
 
 threshold = 1
 final_size = (1920, 1080)

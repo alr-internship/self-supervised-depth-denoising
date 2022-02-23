@@ -10,14 +10,14 @@ oof_trainer:
 
 network_config:
   initial_channels: 8
-  epochs: 100
-  batch_size: 20
-  learning_rate: 0.05
-  lr_patience: 10
+  epochs: 50
+  batch_size: 35
+  learning_rate: 0.1
+  lr_patience: 1
   load_from_model: None
   wandb: True
   save: True
-  evaluation_dir: resources/models
+  evaluation_dir: local_resources/models
   bilinear: True
   amp: False
   validation_interval: 250
@@ -25,8 +25,8 @@ network_config:
 
 dataset_config:
   scale_images: 1
-  add_nan_mask_to_input: True
-  add_region_mask_to_input: True
+  add_nan_mask_to_input: False
+  add_region_mask_to_input: False
   normalize_depths: 
     active: False # normalized input and label depth d with (d - mean) / std channel wise
     min: 0
