@@ -1,3 +1,4 @@
+from typing import List
 import open3d as o3d
 import numpy as np
 import cv2
@@ -110,3 +111,13 @@ def unnormalize_depth(depth, min, max):
     depth = np.where(depth > max, max, depth)
     depth = np.where(depth < min, min, depth)
     return depth
+
+
+def combine_point_clouds(pcds: List[o3d.geometry.PointCloud]) -> o3d.geometry.PointCloud:
+    all_points = [np.asarray(pcd.points) for pcd in pcds]
+    all_colors = [np.asarray(pcd.colors) for pcd in pcds]
+    cloud = o3d.geometry.PointCloud()
+    cloud.points = o3d.utility.Vector3dVector(np.concatenate(all_points, axis=0))
+    cloud.colors = o3d.utility.Vector3dVector(np.concatenate(all_colors, axis=0))
+    return cloud
+
