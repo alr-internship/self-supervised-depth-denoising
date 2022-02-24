@@ -31,9 +31,6 @@ def get_loss_criterion(loss_type: str):
     elif loss_type == 'huber_loss':
         return lambda i, t, r: nn.HuberLoss(reduction='sum')(i * r, t * r) / torch.sum(r)
 
-    elif loss_type == 'huber_loss':
-        return lambda i, t, r: nn.HuberLoss(reduction='mean', delta=1)(i * r, t * r)
-
     else:
         RuntimeError("loss function not given")
 
