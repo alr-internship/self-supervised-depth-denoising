@@ -31,11 +31,11 @@ def main(args):
     with open(evaluation_dir / "config.yml", 'w') as f:
         yaml.safe_dump(config, f)
 
-    network_config = BasicTrainer.Config.from_config(network_config_yml)
+    trainer_config = BasicTrainer.Config.from_config(network_config_yml)
 
     params = dict(
         evaluation_dir=evaluation_dir,
-        config=network_config
+        config=trainer_config
     )
 
     trainer_params = dict(
@@ -43,7 +43,8 @@ def main(args):
         dataset_config=BasicDataset.Config.from_config(dataset_config),
         bilinear=network_config_yml['bilinear'],
         trainer_id=trainer_id,
-        initial_channels=network_config_yml['initial_channels']
+        initial_channels=network_config_yml['initial_channels'],
+        network_config=network_config_yml
     )
 
     if basic_trainer['active']:
