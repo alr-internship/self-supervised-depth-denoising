@@ -41,9 +41,7 @@ def main(args):
     trainer_params = dict(
         device=device,
         dataset_config=BasicDataset.Config.from_config(dataset_config),
-        bilinear=network_config_yml['bilinear'],
         trainer_id=trainer_id,
-        initial_channels=network_config_yml['initial_channels'],
         network_config=network_config_yml
     )
 

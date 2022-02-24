@@ -36,17 +36,31 @@ class UNet(nn.Module):
                 output_activation=config['output_activation'] if 'output_activation' in config else 'none'
             )
 
+        def __iter__(self):
+            for attr, value in self.__dict__.items():
+                yield attr, value
+        
+        def get_printout(self):
+            return f"""
+                N input channels:  {self.n_input_channels}
+                N output channels: {self.n_output_channels}
+                Initial Channels:  {self.initial_channels}
+                Bilinear:          {self.bilinear}
+                Name:              {self.name}
+                Output Activation: {self.output_activation}
+            """
+
 
     @staticmethod
     def __get_output_activation(output_activation: str):
         if output_activation == 'none':
-            lambda x: x
-
-        if output_activation == 'relu':
-            lambda: nn.ReLU()
-
-        if output_activation == 'sigmoid':
-            lambda: nn.Sigmoid()
+            return lambda x: x
+        elif output_activation == 'relu':
+            return nn.ReLU()
+        elif output_activation == 'sigmoid':
+            return nn.Sigmoid()
+        else:
+            RuntimeError(f"invalid output activation given {output_activation}")
 
 
     def __init__(
@@ -54,6 +68,7 @@ class UNet(nn.Module):
         config: Config
     ):
         super().__init__()
+        self.config = config
 
         n_channels = config.n_input_channels
         n_classes = config.n_output_channels
