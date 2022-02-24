@@ -32,7 +32,7 @@ class UNet(nn.Module):
                 n_output_channels=config['n_output_channels'],
                 initial_channels=config['initial_channels'],
                 bilinear=config['bilinear'],
-                name=config['name'],
+                name=config['name'] if 'name' in config else 'UNet',
                 output_activation=config['output_activation'] if 'output_activation' in config else 'none'
             )
 
