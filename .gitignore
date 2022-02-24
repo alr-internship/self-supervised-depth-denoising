@@ -91,6 +91,7 @@ target/
 /resources
 /local_resources
 /resources_local
+/resources_new
 **/wandb
 **/*.out
 /enqueue_dev_job.sh
