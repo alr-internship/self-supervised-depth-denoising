@@ -1,16 +1,16 @@
 
 
+from argparse import ArgumentParser
 from copy import deepcopy
 from pathlib import Path
 import random
 from typing import List
-from joblib import Parallel, delayed
+from joblib import Parallel, delayed, cpu_count
 from matplotlib import pyplot as plt
 import numpy as np
 import open3d as o3d
 from tqdm import tqdm
 from dataset.dataset_interface import DatasetInterface
-from dataset.data_loading import BasicDataset
 from utils.general_utils import split
 from utils.transformation_utils import combine_point_clouds, imgs_to_pcd, pcd_to_imgs, resize, rs_ci
 
@@ -166,13 +166,13 @@ def clean_files(files, debug, db_clustering: DBClustering, in_dir, out_dir):
         DatasetInterface.save(rs_rgb, rs_depth, zv_rgb, zv_depth, mask, out_path)
 
 
-def main():
-    in_dir = Path("resources/images/calibrated_masked_rg/not-cropped/ycb_video")
-    out_dir = Path("resources/images/calibrated_masked_cleaned/not-cropped/ycb_video")
+def main(args):
+    in_dir = args.in_dir
+    out_dir = args.out_dir
     files = DatasetInterface.get_paths_in_dir(in_dir)
-    random.shuffle(files)
-    debug = True
-    jobs = 1  # cpu_count()
+    # random.shuffle(files)
+    debug = args.debug
+    jobs = args.jobs
 
     files_chunked = split(files, jobs)
 
@@ -189,4 +189,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    argparse = ArgumentParser()
+    argparse.add_argument("in_dir", type=Path)
+    argparse.add_argument("out_dir", type=Path)
+    argparse.add_argument("--jobs", type=int, default=cpu_count())
+    argparse.add_argument("--debug", action="store_true")
+    main(argparse.parse_args())
