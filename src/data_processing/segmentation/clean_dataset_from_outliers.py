@@ -37,7 +37,6 @@ class DBClustering():
         accepted_clusters = []
         # Reject some clusters based on cluster size (min/max)
         for cluster in clusters:
-            print(len(cluster.points))
             if len(cluster.points) > self.heuristics_max_cluster_size:
                 print(f"Rejecting cluster with {len(cluster.points)} points (too many points)")
                 rejected_clusters.append(cluster)

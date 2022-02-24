@@ -128,17 +128,30 @@ def compute_masks(files, in_dir: Path, out_dir: Path, zv_points_file: Path,
         if debug:
             o3d.visualization.draw_geometries([zv_pcd], window_name='original pcd')
 
+        # crop bounding box
         zv_pcd = crop_by_bbox(zv_pcd, zv_bbox_file, debug)
+        # cluster with normal based region growing 
         zv_pcd = remove_clusters_by_region(zv_pcd, zv_points_file, add_outliers, debug)
+        # cluster with density based region growing
         zv_pcd = db_clustering.select_largest_cluster(zv_pcd)
 
         if debug:
             o3d.visualization.draw_geometries([zv_pcd], window_name='final pcd')
 
+        # compute region mask 
         zv_rgb, zv_depth, zv_ul, zv_lr = pcd_to_imgs(zv_pcd, rs_ci)
         zv_rgb, zv_depth = resize(zv_rgb, zv_depth, zv_ul, zv_lr, cropped=False, resulting_shape=raw_zv_rgb.shape[:2])
-
         mask = np.where(np.isnan(zv_depth), False, True)
+
+        # refine mask with density based clustering on rs pcd
+        rs_depth = np.where(mask, rs_depth, np.nan)
+        rs_pcd = imgs_to_pcd(raw_rs_rgb, rs_depth, rs_ci)
+        rs_pcd = db_clustering.select_largest_cluster(rs_pcd)
+        rs_rgb, rs_depth, rs_ul, rs_lr = pcd_to_imgs(zv_pcd, rs_ci)
+        rs_rgb, rs_depth = resize(rs_rgb, rs_depth, rs_ul, rs_lr, cropped=False, resulting_shape=raw_rs_rgb.shape[:2])
+
+        # final object mask
+        mask = np.where(np.logical_and(~np.isnan(rs_depth), mask), True, False)
 
         if debug:
             rs_rgb = raw_rs_rgb * mask[..., None]
@@ -164,6 +177,7 @@ def main(args):
     add_outliers = True  # add outliers to first clustering result (will be removed in 2nd clustering)
 
     db_clustering = DBClustering(
+        heuristics_min_cluster_size=1000,
         max_neigbour_distance=0.15,
         min_points=50,
         eps=0.01,
