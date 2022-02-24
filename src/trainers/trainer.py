@@ -18,14 +18,18 @@ from tqdm import tqdm
 
 def get_loss_criterion(loss_type: str):
     # i -> input, t -> target, r -> region mask
+
     if loss_type == 'abs_l1_loss':
-        return lambda i, t, r: torch.sum(torch.abs(i - t) * r) / len(i)
+        return lambda i, t, r: nn.L1Loss(reduction='sum')(i * r, t * r) / len(i) 
 
     elif loss_type == 'mean_l1_loss':
-        return lambda i, t, r: torch.sum(torch.abs(i - t) * r) / torch.sum(r)
+        return lambda i, t, r: nn.L1Loss(reduction='sum')(i * r, t * r) / torch.sum(r)
 
     elif loss_type == 'mean_l2_loss':
-        return lambda i, t, r: torch.sum(((i - t) ** 2) * r) / torch.sum(r)
+        return lambda i, t, r: nn.MSELoss(reduction='sum')(i * r, t * r) / torch.sum(r)
+
+    elif loss_type == 'huber_loss':
+        return lambda i, t, r: nn.HuberLoss(reduction='sum')(i * r, t * r) / torch.sum(r)
 
     elif loss_type == 'huber_loss':
         return lambda i, t, r: nn.HuberLoss(reduction='mean', delta=1)(i * r, t * r)
@@ -154,7 +158,7 @@ class Trainer:
         return loss / num_val_batches
 
     def __evaluate_for_visualization(self, dataloader: DataLoader, net, loss_criterion):
-        idx = random.randint(0, len(dataloader))
+        idx = random.randint(0, len(dataloader) - 1)
         batch = list(iter(dataloader))[idx]
 
         predictions, _ = self.infer(net, batch, loss_criterion)
@@ -186,7 +190,7 @@ class Trainer:
             vis_depth_label = unnormalize_depth(vis_depth_label, **params)
             vis_depth_prediction = unnormalize_depth(vis_depth_prediction, **params)
 
-        experiment_log = {
+        return {
             'input': {
                 'rgb': wandb.Image(to_rgb(vis_image[..., :3])),
                 'depth': wandb.Image(visualize_depth(vis_depth_input)),
@@ -195,15 +199,12 @@ class Trainer:
                 'label': wandb.Image(visualize_depth(vis_depth_label)),
                 'pred': wandb.Image(visualize_depth(vis_depth_prediction)),
             },
+            'masks': {
+                'nan-mask': wandb.Image(visualize_mask(nan_mask)),
+                'region-mask': wandb.Image(visualize_mask(region_mask)),
+            },
             **histograms
         }
-
-        if self.dataset_config.add_nan_mask_to_input:
-            experiment_log['input']['nan-mask'] = wandb.Image(visualize_mask(nan_mask))
-        if self.dataset_config.add_region_mask_to_input:
-            experiment_log['input']['region-mask'] = wandb.Image(visualize_mask(region_mask))
-
-        return experiment_log
 
     def train(
         self,
