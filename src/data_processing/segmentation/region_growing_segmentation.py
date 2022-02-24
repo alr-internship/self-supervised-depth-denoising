@@ -11,9 +11,9 @@ import open3d as o3d
 import Regions as RG
 
 from tqdm import tqdm
-from data_processing.segmentation.clean_dataset_from_outliers import select_largest_cluster
+from data_processing.segmentation.clean_dataset_from_outliers import DBClustering
 from dataset.dataset_interface import DatasetInterface
-from utils.transformation_utils import imgs_to_pcd, pcd_to_imgs, resize, rs_ci, zv_ci, combine_point_clouds
+from utils.transformation_utils import imgs_to_pcd, pcd_to_imgs, resize, rs_ci, combine_point_clouds
 from utils.visualization_utils import to_rgb
 from utils.general_utils import split
 
@@ -108,7 +108,7 @@ ROOT_DIR = Path(__file__).parent.parent.parent.parent
 
 
 def compute_masks(files, in_dir: Path, out_dir: Path, zv_points_file: Path,
-                  zv_bbox_file: Path, add_outliers: bool, debug: bool):
+                  zv_bbox_file: Path, add_outliers: bool, db_clustering: DBClustering, debug: bool):
 
     for file in tqdm(files):
         raw_rs_rgb, raw_rs_depth, raw_zv_rgb, raw_zv_depth, _ = DatasetInterface.load(file)
@@ -130,7 +130,7 @@ def compute_masks(files, in_dir: Path, out_dir: Path, zv_points_file: Path,
 
         zv_pcd = crop_by_bbox(zv_pcd, zv_bbox_file, debug)
         zv_pcd = remove_clusters_by_region(zv_pcd, zv_points_file, add_outliers, debug)
-        zv_pcd = select_largest_cluster(zv_pcd, eps=0.01, min_points=50, max_distance=0.15, debug=debug)
+        zv_pcd = db_clustering.select_largest_cluster(zv_pcd)
 
         if debug:
             o3d.visualization.draw_geometries([zv_pcd], window_name='final pcd')
@@ -163,14 +163,20 @@ def main(args):
     jobs = args.jobs
     add_outliers = True  # add outliers to first clustering result (will be removed in 2nd clustering)
 
+    db_clustering = DBClustering(
+        max_neigbour_distance=0.15,
+        min_points=50,
+        eps=0.01,
+        debug=debug
+    )
+
     files = DatasetInterface.get_files_by_path(in_dir)
     random.shuffle(files)
 
     if jobs > 1:
         files_chunked = split(files, jobs)
         Parallel(jobs)(
-            delayed(compute_masks)(files_chunk, in_dir, out_dir, zv_points_file,
-                                   zv_bbox_file, add_outliers, debug)
+            delayed(compute_masks)(files_chunk, in_dir, out_dir, zv_points_file, zv_bbox_file, add_outliers, db_clustering, debug)
             for files_chunk in files_chunked
         )
 

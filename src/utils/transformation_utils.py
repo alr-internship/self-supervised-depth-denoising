@@ -23,7 +23,7 @@ def imgs_to_pcd(bgr, depth, ci: dict, project_valid_depth_only: bool = True):
 
     rgb = to_rgb(bgr)
     rgb = o3d.geometry.Image(rgb)
-    depth = o3d.geometry.Image(depth)
+    depth = o3d.geometry.Image(depth.astype(np.float32))
 
     rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(
         rgb, depth, convert_rgb_to_intensity=False)
