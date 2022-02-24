@@ -144,7 +144,7 @@ def compute_masks(files, in_dir: Path, out_dir: Path, zv_points_file: Path,
         mask = np.where(np.isnan(zv_depth), False, True)
 
         # refine mask with density based clustering on rs pcd
-        rs_depth = np.where(mask, rs_depth, np.nan)
+        rs_depth = np.where(mask, raw_rs_depth, np.nan)
         rs_pcd = imgs_to_pcd(raw_rs_rgb, rs_depth, rs_ci)
         rs_pcd = db_clustering.select_largest_cluster(rs_pcd)
         rs_rgb, rs_depth, rs_ul, rs_lr = pcd_to_imgs(zv_pcd, rs_ci)
@@ -196,7 +196,7 @@ def main(args):
 
     else:
         compute_masks(files, in_dir, out_dir, zv_points_file,
-                      zv_bbox_file, add_outliers, debug)
+                      zv_bbox_file, add_outliers, db_clustering, debug)
 
 
 if __name__ == "__main__":
