@@ -19,10 +19,10 @@ from tqdm import tqdm
 def get_loss_criterion(loss_type: str):
     # i -> input, t -> target, r -> region mask
     if loss_type == 'abs_l1_loss':
-        return lambda i, t, r: nn.L1Loss(reduction='sum')(i * r, t * r) / len(i)
+        return lambda i, t, r: torch.sum(torch.abs(i - t) * r) / len(i)
 
     elif loss_type == 'mean_l1_loss':
-        return lambda i, t, r: nn.L1Loss(reduction='mean')(i * r, t * r)
+        return lambda i, t, r: torch.sum(torch.abs(i - t) * r) / torch.sum(r)
 
     elif loss_type == 'mean_l2_loss':
         return lambda i, t, r: torch.sum(((i - t) ** 2) * r) / torch.sum(r)
