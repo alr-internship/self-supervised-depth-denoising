@@ -1,6 +1,7 @@
 from enum import Enum
 import logging
 from pathlib import Path
+import random
 import time
 import numpy as np
 import torch
@@ -18,10 +19,10 @@ from tqdm import tqdm
 def get_loss_criterion(loss_type: str):
     # i -> input, t -> target, r -> region mask
     if loss_type == 'abs_l1_loss':
-        return lambda i, t, r: nn.L1Loss(reduction='sum')(i * r, t * r) / len(i)
+        return lambda i, t, r: torch.sum(torch.abs(i - t) * r) / len(i)
 
     elif loss_type == 'mean_l1_loss':
-        return lambda i, t, r: nn.L1Loss(reduction='mean')(i * r, t * r)
+        return lambda i, t, r: torch.sum(torch.abs(i - t) * r) / torch.sum(r)
 
     elif loss_type == 'mean_l2_loss':
         return lambda i, t, r: torch.sum(((i - t) ** 2) * r) / torch.sum(r)
@@ -123,17 +124,6 @@ class Trainer:
 
         prediction = net(images)
 
-        # apply loss only on relevant regions
-        # loss = loss_criterion(
-        #     predictions * nan_masks * region_masks,
-        #     label * nan_masks * region_masks
-        # ) / len(images) 
-
-        # For pixel-wise loss
-        # loss = torch.sum(loss_criterion(prediction, label) * nan_masks * region_masks) / torch.sum(nan_masks * region_masks)
-        # loss = torch.sum(torch.abs(prediction - label) * nan_masks * region_masks) / torch.sum(nan_masks * region_masks)
-
-        # loss = batch_loss / len(images)
         loss = loss_criterion(prediction, label, nan_masks * region_masks)
 
         return prediction, loss
@@ -161,7 +151,9 @@ class Trainer:
         return loss / num_val_batches
 
     def __evaluate_for_visualization(self, dataloader: DataLoader, net, loss_criterion):
-        batch = next(iter(dataloader))
+        idx = random.randint(0, len(dataloader))
+        batch = list(iter(dataloader))[idx]
+
         predictions, _ = self.infer(net, batch, loss_criterion)
 
         histograms = {}
