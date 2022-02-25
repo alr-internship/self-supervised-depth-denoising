@@ -120,6 +120,9 @@ class DBClustering():
 def clean_files(files, debug, db_clustering: DBClustering, in_dir, out_dir):
     for file in tqdm(files):
         raw_rs_rgb, raw_rs_depth, raw_zv_rgb, raw_zv_depth, mask = DatasetInterface.load(file)
+        out_path = out_dir / file.relative_to(in_dir)
+        if out_path.exists():
+            continue
 
         mask = mask.squeeze()
 
@@ -156,13 +159,13 @@ def clean_files(files, debug, db_clustering: DBClustering, in_dir, out_dir):
         # update mask
         mask = np.where(np.logical_or(np.isnan(rs_depth), np.isnan(zv_depth)), False, mask)
 
-        _, ax = plt.subplots(1, 3)
-        ax[0].imshow(raw_rs_rgb)
-        ax[1].imshow(rs_rgb)
-        ax[2].imshow(mask)
-        plt.show()
+        if debug:
+            _, ax = plt.subplots(1, 3)
+            ax[0].imshow(raw_rs_rgb)
+            ax[1].imshow(rs_rgb)
+            ax[2].imshow(mask)
+            plt.show()
 
-        out_path = out_dir / file.relative_to(in_dir)
         DatasetInterface.save(rs_rgb, rs_depth, zv_rgb, zv_depth, mask, out_path)
 
 

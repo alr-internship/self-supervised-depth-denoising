@@ -25,12 +25,13 @@ def compute_bounds(files):
         min_depth = min(min_t, min_depth)
         max_depth = max(max_t, max_depth)
 
-        if min_t == 0 or max_t > 2800:
-            from utils.transformation_utils import imgs_to_pcd, rs_ci
-            import open3d as o3d
-            rs_pcd = imgs_to_pcd(rs_rgb, rs_depth, rs_ci)
-            zv_pcd = imgs_to_pcd(zv_rgb, zv_depth, rs_ci)
-            o3d.visualization.draw_geometries([rs_pcd, zv_pcd])
+        # if min_t == 0 or max_t > 2800:
+        #     from utils.transformation_utils import imgs_to_pcd, rs_ci
+        #     import open3d as o3d
+        #     rs_pcd = imgs_to_pcd(rs_rgb, rs_depth, rs_ci)
+        #     zv_pcd = imgs_to_pcd(zv_rgb, zv_depth, rs_ci)
+        #     o3d.visualization.draw_geometries([rs_pcd, zv_pcd])
+
     return min_depth, max_depth
 
 def main(args):
