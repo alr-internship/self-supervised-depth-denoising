@@ -293,7 +293,7 @@ class Trainer:
         else:
             RuntimeError(f"invalid optimizer name given {config.optimizer_name}")
 
-        lr_updates_per_epoch = 10
+        lr_updates_per_epoch = 2
         lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
             'min',
@@ -338,7 +338,7 @@ class Trainer:
                         experiment_log['epoch'] = epoch
                         experiment.log(experiment_log)
 
-                    if (global_step % (n_train // config.batch_size)) % lr_updates_per_epoch == 0:
+                    if global_step % (n_train // (config.batch_size * lr_updates_per_epoch)) == 0:
                         # validation round to adapt learning rate
                         epoch_val_loss = self.evaluate(net, val_loader, loss_criterion)
                         lr_scheduler.step(epoch_val_loss)
