@@ -293,10 +293,11 @@ class Trainer:
         else:
             RuntimeError(f"invalid optimizer name given {config.optimizer_name}")
 
+        lr_updates_per_epoch = 10
         lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
             'min',
-            patience=config.lr_patience,
+            patience=config.lr_patience * lr_updates_per_epoch,
             verbose=True
         )
         grad_scaler = torch.cuda.amp.GradScaler(enabled=config.amp)
@@ -337,10 +338,11 @@ class Trainer:
                         experiment_log['epoch'] = epoch
                         experiment.log(experiment_log)
 
-                # validation round to adapt learning rate
-                epoch_val_loss = self.evaluate(net, val_loader, loss_criterion)
-                lr_scheduler.step(epoch_val_loss)
-                logging.info('Validation Loss: {}'.format(epoch_val_loss))
+                    if (global_step % (n_train // config.batch_size)) % lr_updates_per_epoch == 0:
+                        # validation round to adapt learning rate
+                        epoch_val_loss = self.evaluate(net, val_loader, loss_criterion)
+                        lr_scheduler.step(epoch_val_loss)
+                        logging.info('Validation Loss: {}'.format(epoch_val_loss))
 
                 if config.activate_wandb:
                     experiment.log({
