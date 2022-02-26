@@ -165,13 +165,13 @@ class BasicDataset(Dataset):
         zv_depth = np.where(region_mask, zv_depth[..., None], np.nan)
 
         # clean depths
-        # diff_depth = np.abs(rs_depth - zv_depth)
-        # diff_mean = np.nanmean(diff_depth)
+        diff_depth = np.abs(rs_depth - zv_depth)
+        diff_mean = np.nanmean(diff_depth)
         # diff_std = np.nanstd(diff_depth)
-        # clean_mask = diff_depth > diff_mean
-        # rs_depth = np.where(clean_mask, np.nan, rs_depth)
-        # rs_rgb = rs_rgb * ~clean_mask
-        # zv_depth = np.where(clean_mask, np.nan, zv_depth)
+        clean_mask = diff_depth > (diff_mean * 3)
+        rs_depth = np.where(clean_mask, np.nan, rs_depth)
+        rs_rgb = rs_rgb * ~clean_mask
+        zv_depth = np.where(clean_mask, np.nan, zv_depth)
 
         # scale image to intersting region (region mask bounding box)
         if dataset_config.resize_region_to_fill_input:
