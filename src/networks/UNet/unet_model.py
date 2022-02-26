@@ -17,6 +17,7 @@ class UNet(nn.Module):
             bilinear: bool = True,
             name: str = 'UNet', # name for wandb
             output_activation: str = 'none',
+            skip_connections: bool = False,
         ):
             self.n_input_channels = n_input_channels
             self.n_output_channels = n_output_channels
@@ -24,6 +25,7 @@ class UNet(nn.Module):
             self.bilinear = bilinear
             self.name = name
             self.output_activation = output_activation
+            self.skip_connections = skip_connections
 
         @staticmethod
         def from_config(config: dict):
@@ -33,7 +35,8 @@ class UNet(nn.Module):
                 initial_channels=config['initial_channels'],
                 bilinear=config['bilinear'],
                 name=config['name'] if 'name' in config else 'UNet',
-                output_activation=config['output_activation'] if 'output_activation' in config else 'none'
+                output_activation=config['output_activation'] if 'output_activation' in config else 'none',
+                skip_connections=config['skip_connections'] 
             )
 
         def __iter__(self):
@@ -48,6 +51,7 @@ class UNet(nn.Module):
                 Bilinear:          {self.bilinear}
                 Name:              {self.name}
                 Output Activation: {self.output_activation}
+                Skip Connections:  {self.skip_connections}
             """
 
 
@@ -78,14 +82,17 @@ class UNet(nn.Module):
         self.n_classes = n_classes
         self.bilinear = config.bilinear
 
-        ic = config.initial_channels
+        self.skip_connections = config.skip_connections
 
-        self.inc = DoubleConv(n_channels, ic)
-        self.down1 = Down(ic, ic * 2)
-        self.down2 = Down(ic * 2, ic * 4)
-        self.down3 = Down(ic * 4, ic * 8)
+        ic = config.initial_channels
+        sc = config.n_input_channels if config.skip_connections else 0
+
+        self.inc = DoubleConv(n_channels, ic - sc)
+        self.down1 = Down(ic, ic * 2 - sc)
+        self.down2 = Down(ic * 2, ic * 4 - sc)
+        self.down3 = Down(ic * 4, ic * 8 - sc)
         factor = 2 if config.bilinear else 1
-        self.down4 = Down(ic * 8, ic * 16 // factor)
+        self.down4 = Down(ic * 8, ic * 16 // factor - sc)
         self.up1 = Up(ic * 16, ic * 8// factor, config.bilinear)
         self.up2 = Up(ic * 8, ic * 4 // factor, config.bilinear)
         self.up3 = Up(ic * 4, ic * 2 // factor, config.bilinear)
@@ -94,15 +101,36 @@ class UNet(nn.Module):
         self.out_activation = self.__get_output_activation(config.output_activation)
 
     def forward(self, inputs):
-        x1 = self.inc(inputs)
-        x2 = self.down1(x1)
-        x3 = self.down2(x2)
-        x4 = self.down3(x3)
-        x5 = self.down4(x4)
-        x = self.up1(x5, x4)
-        x = self.up2(x, x3)
-        x = self.up3(x, x2)
-        x = self.up4(x, x1)
-        logits = self.outc(x)
-        out = self.out_activation(logits)
-        return out
+        if not self.skip_connections:
+            x1 = self.inc(inputs)
+            x2 = self.down1(x1)
+            x3 = self.down2(x2)
+            x4 = self.down3(x3)
+            x5 = self.down4(x4)
+            x = self.up1(x5, x4)
+            x = self.up2(x, x3)
+            x = self.up3(x, x2)
+            x = self.up4(x, x1)
+            logits = self.outc(x)
+            out = self.out_activation(logits)
+            return out
+        else:
+            AdaptSize = nn.AvgPool2d(2, 2)
+            inputs_skip = [inputs]
+            for _ in range(4):
+                inputs_skip.append(AdaptSize(inputs_skip[-1]))
+
+            x1 = torch.cat([self.inc(inputs), inputs_skip[0]], 1)
+            x2 = torch.cat([self.down1(x1), inputs_skip[1]], 1)
+            x3 = torch.cat([self.down2(x2), inputs_skip[2]], 1)
+            x4 = torch.cat([self.down3(x3), inputs_skip[3]], 1)
+            x5 = torch.cat([self.down4(x4), inputs_skip[4]], 1)
+
+            x = self.up1(x5, x4)
+            x = self.up2(x, x3)
+            x = self.up3(x, x2)
+            x = self.up4(x, x1)
+            logits = self.outc(x)
+            out = self.out_activation(logits)
+
+            return out

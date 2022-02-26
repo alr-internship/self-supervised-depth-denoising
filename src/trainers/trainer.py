@@ -30,7 +30,7 @@ def get_loss_criterion(loss_type: str):
         return lambda i, t, r: nn.MSELoss(reduction='sum')(i * r, t * r) / torch.sum(r)
 
     elif loss_type == 'huber_loss':
-        return lambda i, t, r: nn.HuberLoss(reduction='sum')(i * r, t * r) / torch.sum(r)
+        return lambda i, t, r: nn.HuberLoss(reduction='sum', delta=1)(i * r, t * r) / torch.sum(r)
 
     else:
         RuntimeError("loss function not given")
@@ -51,7 +51,7 @@ class Trainer:
                 save_checkpoint: bool,
                 amp: bool,
                 activate_wandb: bool,
-                optimizer_name: str
+                optimizer_name: str,
         ):
             self.epochs = epochs
             self.batch_size = batch_size
@@ -76,7 +76,7 @@ class Trainer:
                 activate_wandb=config['wandb'],
                 loss_type=config['loss_type'],
                 val_interval=config['validation_interval'],
-                optimizer_name=config['optimizer_name']
+                optimizer_name=config['optimizer_name'],
             )
 
         def __iter__(self):

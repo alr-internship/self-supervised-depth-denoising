@@ -173,6 +173,8 @@ class BasicDataset(Dataset):
         # rs_rgb = rs_rgb * ~clean_mask
         # zv_depth = np.where(clean_mask, np.nan, zv_depth)
 
+
+        # TODO: back sizing for inference (+norm+augm)
         # scale image to intersting region (region mask bounding box)
         if dataset_config.resize_region_to_fill_input:
             mask_indices = region_mask.nonzero()
