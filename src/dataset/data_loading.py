@@ -172,6 +172,7 @@ class BasicDataset(Dataset):
         rs_rgb = rs_rgb * ~clean_mask
         zv_depth = np.where(clean_mask, np.nan, zv_depth)
 
+        print(f'Removed: {np.sum(clean_mask)} from {np.sum(rs_rgb')
 
         # TODO: back sizing for inference (+norm+augm)
         # scale image to intersting region (region mask bounding box)
