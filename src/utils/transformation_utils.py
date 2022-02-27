@@ -54,7 +54,7 @@ def pcd_to_imgs(pcd, ci: dict, depth_scale: float = 1000.0):
     # convert to 3d to 2d space
     depths = points[:, 2]
     pixels = points[:, :2] * f / np.expand_dims(depths, axis=1) + c
-    pixels = pixels.astype(np.uint16)
+    pixels = np.round(pixels).astype(np.uint16)
 
     # create empty frames for final rgb and depth images
     ul_corner = np.min(pixels, axis=0)

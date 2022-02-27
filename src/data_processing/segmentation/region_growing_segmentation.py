@@ -111,6 +111,10 @@ def compute_masks(files, in_dir: Path, out_dir: Path, zv_points_file: Path,
                   zv_bbox_file: Path, add_outliers: bool, db_clustering: DBClustering, debug: bool):
 
     for file in tqdm(files):
+        out_path = out_dir / file.relative_to(in_dir)
+        if out_path.exists():
+            continue
+
         raw_rs_rgb, raw_rs_depth, raw_zv_rgb, raw_zv_depth, _ = DatasetInterface.load(file)
         zv_pcd = imgs_to_pcd(raw_zv_rgb, raw_zv_depth, rs_ci)
 
@@ -141,7 +145,7 @@ def compute_masks(files, in_dir: Path, out_dir: Path, zv_points_file: Path,
         # compute region mask 
         zv_rgb, zv_depth, zv_ul, zv_lr = pcd_to_imgs(zv_pcd, rs_ci)
         zv_rgb, zv_depth = resize(zv_rgb, zv_depth, zv_ul, zv_lr, cropped=False, resulting_shape=raw_zv_rgb.shape[:2])
-        mask = np.where(np.isnan(zv_depth), False, True)
+        mask = ~np.isnan(zv_depth)
 
         # refine mask with density based clustering on rs pcd
         rs_depth = np.where(mask, raw_rs_depth, np.nan)
@@ -151,7 +155,7 @@ def compute_masks(files, in_dir: Path, out_dir: Path, zv_points_file: Path,
         rs_rgb, rs_depth = resize(rs_rgb, rs_depth, rs_ul, rs_lr, cropped=False, resulting_shape=raw_rs_rgb.shape[:2])
 
         # final object mask
-        mask = np.where(np.logical_and(~np.isnan(rs_depth), mask), True, False)
+        mask = np.logical_and(~np.isnan(rs_depth), mask)
 
         if debug:
             rs_rgb = raw_rs_rgb * mask[..., None]
@@ -163,7 +167,6 @@ def compute_masks(files, in_dir: Path, out_dir: Path, zv_points_file: Path,
             ax[1][1].imshow(to_rgb(rs_rgb))
             plt.show()
 
-        out_path = out_dir / file.relative_to(in_dir)
         DatasetInterface.save(raw_rs_rgb, raw_rs_depth, raw_zv_rgb, raw_zv_depth, mask, out_path)
 
 
