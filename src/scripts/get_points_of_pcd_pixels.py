@@ -8,9 +8,13 @@ from utils.transformation_utils import imgs_to_pcd, rs_ci
 import open3d as o3d
 
 
-file = Path("resources/images/calibrated_masked/not-cropped/ycb_video/10022022/1644493461.1656203.npz")
+file = Path("resources/images/calibrated_masked/not-cropped/ycb_video/10022022/1644493163.3312726.npz")
 
-rs_rgb, rs_depth, zv_rgb, zv_depth, _ = DatasetInterface.load(file)
+rs_rgb, rs_depth, zv_rgb, zv_depth, mask = DatasetInterface.load(file)
+
+if mask is not None:
+    zv_depth = np.where(mask, zv_depth, np.nan)
+
 rs_pcd = imgs_to_pcd(rs_rgb, rs_depth, rs_ci)
 zv_pcd = imgs_to_pcd(zv_rgb, zv_depth, rs_ci)
 
