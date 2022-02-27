@@ -298,6 +298,7 @@ class Trainer:
             optimizer,
             'min',
             threshold=1e-1,
+            cooldown=3,
             patience=config.lr_patience * lr_updates_per_epoch,
             verbose=True
         )
