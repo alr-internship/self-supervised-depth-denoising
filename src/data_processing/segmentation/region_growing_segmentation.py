@@ -151,7 +151,7 @@ def compute_masks(files, in_dir: Path, out_dir: Path, zv_points_file: Path,
         rs_depth = np.where(mask, raw_rs_depth, np.nan)
         rs_pcd = imgs_to_pcd(raw_rs_rgb, rs_depth, rs_ci)
         rs_pcd = db_clustering.select_largest_cluster(rs_pcd)
-        rs_rgb, rs_depth, rs_ul, rs_lr = pcd_to_imgs(zv_pcd, rs_ci)
+        rs_rgb, rs_depth, rs_ul, rs_lr = pcd_to_imgs(rs_pcd, rs_ci)
         rs_rgb, rs_depth = resize(rs_rgb, rs_depth, rs_ul, rs_lr, cropped=False, resulting_shape=raw_rs_rgb.shape[:2])
 
         # final object mask
@@ -188,7 +188,7 @@ def main(args):
     )
 
     files = DatasetInterface.get_files_by_path(in_dir)
-    random.shuffle(files)
+    # random.shuffle(files)
 
     if jobs > 1:
         files_chunked = split(files, jobs)
