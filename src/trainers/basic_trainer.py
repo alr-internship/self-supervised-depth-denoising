@@ -1,5 +1,6 @@
 import copy
 from pathlib import Path
+from numpy import datetime_as_string
 import torch
 from dataset.data_loading import BasicDataset
 from networks.UNet.unet_model import UNet
@@ -15,8 +16,7 @@ class BasicTrainer(Trainer):
         train_path: Path,
         val_path: Path,
         dataset_config: BasicDataset.Config,
-        bilinear: bool,
-        initial_channels: int,
+        network_config: dict
     ):
         super().__init__(trainer_id, device, dataset_config)
 
@@ -26,13 +26,12 @@ class BasicTrainer(Trainer):
         self.train_dataset = BasicDataset(train_path, dataset_config)
         self.val_dataset = BasicDataset(val_path, dataset_config)
         
-        n_input_channels = dataset_config.num_in_channels()
-        n_output_channels = 1
+        network_config = {
+            'name': 'M_total',
+            'n_input_channels': dataset_config.num_in_channels(),
+            'n_output_channels': 1,
+            **network_config
+        }
+        network_config = UNet.Config.from_config(network_config)
 
-        self.M_total = UNet(
-            n_input_channels=n_input_channels,
-            n_output_channels=n_output_channels,
-            initial_channels=initial_channels,
-            bilinear=bilinear,
-            name='M_total'
-        )
+        self.M_total = UNet(network_config)

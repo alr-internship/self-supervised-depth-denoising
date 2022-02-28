@@ -11,9 +11,9 @@ import open3d as o3d
 import Regions as RG
 
 from tqdm import tqdm
-from data_processing.segmentation.clean_dataset_from_outliers import select_largest_cluster
+from data_processing.segmentation.clean_dataset_from_outliers import DBClustering
 from dataset.dataset_interface import DatasetInterface
-from utils.transformation_utils import imgs_to_pcd, pcd_to_imgs, resize, rs_ci, zv_ci, combine_point_clouds
+from utils.transformation_utils import imgs_to_pcd, pcd_to_imgs, resize, rs_ci, combine_point_clouds
 from utils.visualization_utils import to_rgb
 from utils.general_utils import split
 
@@ -108,9 +108,13 @@ ROOT_DIR = Path(__file__).parent.parent.parent.parent
 
 
 def compute_masks(files, in_dir: Path, out_dir: Path, zv_points_file: Path,
-                  zv_bbox_file: Path, add_outliers: bool, debug: bool):
+                  zv_bbox_file: Path, add_outliers: bool, db_clustering: DBClustering, debug: bool):
 
     for file in tqdm(files):
+        out_path = out_dir / file.relative_to(in_dir)
+        if out_path.exists():
+            continue
+
         raw_rs_rgb, raw_rs_depth, raw_zv_rgb, raw_zv_depth, _ = DatasetInterface.load(file)
         zv_pcd = imgs_to_pcd(raw_zv_rgb, raw_zv_depth, rs_ci)
 
@@ -128,17 +132,30 @@ def compute_masks(files, in_dir: Path, out_dir: Path, zv_points_file: Path,
         if debug:
             o3d.visualization.draw_geometries([zv_pcd], window_name='original pcd')
 
+        # crop bounding box
         zv_pcd = crop_by_bbox(zv_pcd, zv_bbox_file, debug)
+        # cluster with normal based region growing 
         zv_pcd = remove_clusters_by_region(zv_pcd, zv_points_file, add_outliers, debug)
-        zv_pcd = select_largest_cluster(zv_pcd, eps=0.01, min_points=50, max_distance=0.15, debug=debug)
+        # cluster with density based region growing
+        zv_pcd = db_clustering.select_largest_cluster(zv_pcd)
 
         if debug:
             o3d.visualization.draw_geometries([zv_pcd], window_name='final pcd')
 
+        # compute region mask 
         zv_rgb, zv_depth, zv_ul, zv_lr = pcd_to_imgs(zv_pcd, rs_ci)
         zv_rgb, zv_depth = resize(zv_rgb, zv_depth, zv_ul, zv_lr, cropped=False, resulting_shape=raw_zv_rgb.shape[:2])
+        mask = ~np.isnan(zv_depth)
 
-        mask = np.where(np.isnan(zv_depth), False, True)
+        # refine mask with density based clustering on rs pcd
+        rs_depth = np.where(mask, raw_rs_depth, np.nan)
+        rs_pcd = imgs_to_pcd(raw_rs_rgb, rs_depth, rs_ci)
+        rs_pcd = db_clustering.select_largest_cluster(rs_pcd)
+        rs_rgb, rs_depth, rs_ul, rs_lr = pcd_to_imgs(rs_pcd, rs_ci)
+        rs_rgb, rs_depth = resize(rs_rgb, rs_depth, rs_ul, rs_lr, cropped=False, resulting_shape=raw_rs_rgb.shape[:2])
+
+        # final object mask
+        mask = np.logical_and(~np.isnan(rs_depth), mask)
 
         if debug:
             rs_rgb = raw_rs_rgb * mask[..., None]
@@ -150,7 +167,6 @@ def compute_masks(files, in_dir: Path, out_dir: Path, zv_points_file: Path,
             ax[1][1].imshow(to_rgb(rs_rgb))
             plt.show()
 
-        out_path = out_dir / file.relative_to(in_dir)
         DatasetInterface.save(raw_rs_rgb, raw_rs_depth, raw_zv_rgb, raw_zv_depth, mask, out_path)
 
 
@@ -163,20 +179,27 @@ def main(args):
     jobs = args.jobs
     add_outliers = True  # add outliers to first clustering result (will be removed in 2nd clustering)
 
+    db_clustering = DBClustering(
+        heuristics_min_cluster_size=1000,
+        max_neigbour_distance=0.15,
+        min_points=50,
+        eps=0.01,
+        debug=debug
+    )
+
     files = DatasetInterface.get_files_by_path(in_dir)
-    random.shuffle(files)
+    # random.shuffle(files)
 
     if jobs > 1:
         files_chunked = split(files, jobs)
         Parallel(jobs)(
-            delayed(compute_masks)(files_chunk, in_dir, out_dir, zv_points_file,
-                                   zv_bbox_file, add_outliers, debug)
+            delayed(compute_masks)(files_chunk, in_dir, out_dir, zv_points_file, zv_bbox_file, add_outliers, db_clustering, debug)
             for files_chunk in files_chunked
         )
 
     else:
         compute_masks(files, in_dir, out_dir, zv_points_file,
-                      zv_bbox_file, add_outliers, debug)
+                      zv_bbox_file, add_outliers, db_clustering, debug)
 
 
 if __name__ == "__main__":

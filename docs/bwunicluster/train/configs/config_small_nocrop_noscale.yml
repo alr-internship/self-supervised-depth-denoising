@@ -11,25 +11,25 @@ oof_trainer:
 network_config:
   initial_channels: 8
   epochs: 100
-  batch_size: 35
+  batch_size: 1
   learning_rate: 0.01
   lr_patience: 4
   load_from_model: None
-  wandb: True
+  wandb: False
   save: True
   evaluation_dir: local_resources/models
   bilinear: True
   amp: False
   validation_interval: 250
-  optimizer_name: 'rmsprop'
+  optimizer_name: rmsprop
+  loss_type: huber_loss
+  output_activation: relu
 
 dataset_config:
   scale_images: 1
   add_nan_mask_to_input: True
   add_region_mask_to_input: True
-  normalize_depths: 
+  normalize_depths:
     active: False # normalized input and label depth d with (d - mean) / std channel wise
     min: 0
     max: 0
-
-

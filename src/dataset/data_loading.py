@@ -4,6 +4,8 @@ Reference: https://github.com/milesial/Pytorch-UNet
 
 import logging
 from pathlib import Path
+from re import A
+from typing import List, Tuple
 
 import numpy as np
 import torch
@@ -11,7 +13,7 @@ import cv2
 from torch.utils.data import Dataset
 
 from dataset.dataset_interface import DatasetInterface
-from utils.transformation_utils import normalize_depth
+from utils.transformation_utils import normalize_depth, unnormalize_depth
 
 
 class BasicDataset(Dataset):
@@ -81,33 +83,36 @@ class BasicDataset(Dataset):
     def __len__(self):
         return len(self.files)
 
+    @staticmethod
+    def get_fill_type(dtype):
+        if dtype == np.bool:
+            return False
+        elif dtype == np.uint8:
+            return 0
+        else:  # float or else
+            return np.nan
+
     @classmethod
     def resize_to(cls, img: np.array, newH: int, newW: int):
         assert newW > 0 and newH > 0, 'Scale is too small, resized images would have no pixel'
         assert len(img.shape) == 3, 'image must be 3 dimensional'
 
-        if img.dtype == np.bool:
-            fill_value = False
-        elif img.dtype == np.uint8:
-            fill_value = 0
-        else: # float or else
-            fill_value = np.nan
-
         currH, currW = img.shape[:2]
-        if currW / currH == newW / newH: # new aspect ration does match current aspect ratio
+        if currW / currH == newW / newH:  # new aspect ration does match current aspect ratio
             if img.dtype == np.bool:
                 return cv2.resize(img.astype(np.uint8), (newW, newH), cv2.INTER_NEAREST).astype(np.bool)
             else:
                 return cv2.resize(img, (newW, newH), cv2.INTER_AREA)
 
-        else: # aspect ratio does not match -> add padding
-            if currW / currH > newW / newH: # aspect ratio larger -> add padding top, bottom
-                scale_factor = newW / currW 
-            elif currW / currH < newW / newH: # add padding to the left right
+        else:  # aspect ratio does not match -> add padding
+            if currW / currH > newW / newH:  # aspect ratio larger -> add padding top, bottom
+                scale_factor = newW / currW
+            elif currW / currH < newW / newH:  # add padding to the left right
                 scale_factor = newH / currH
 
             if img.dtype == np.bool:
-                r = cv2.resize(img.astype(np.uint8), None, fx=scale_factor, fy=scale_factor, interpolation=cv2.INTER_NEAREST).astype(np.bool)
+                r = cv2.resize(img.astype(np.uint8), None, fx=scale_factor, fy=scale_factor,
+                               interpolation=cv2.INTER_NEAREST).astype(np.bool)
             else:
                 r = cv2.resize(img, None, fx=scale_factor, fy=scale_factor, interpolation=cv2.INTER_AREA)
 
@@ -118,13 +123,14 @@ class BasicDataset(Dataset):
             startH = (newH - resizedH) // 2
             startW = (newW - resizedW) // 2
 
-            r_full = np.full((newH, newW, img.shape[2]), fill_value=fill_value, dtype=img.dtype)
+            r_full = np.full((newH, newW, img.shape[2]),
+                             fill_value=cls.get_fill_type(img.dtype), dtype=img.dtype)
             r_full[startH:(resizedH + startH), startW:(resizedW + startW)] = r
 
             return r_full
 
     @classmethod
-    def resize(cls, img: np.array, scale: float):
+    def resize_by(cls, img: np.array, scale: float):
         if scale == 1:
             return img
 
@@ -137,10 +143,101 @@ class BasicDataset(Dataset):
 
     @classmethod
     def preprocess(cls, img: np.array, scale: float):
-        img_ndarray = cls.resize(img, scale)
+        img_ndarray = cls.resize_by(img, scale)
         if len(img_ndarray.shape) == 2:  # expand dim on depth maps
             img_ndarray = img_ndarray[..., None]
         return img_ndarray.transpose((2, 0, 1))  # move WxHxC -> CxWxH
+
+    @classmethod
+    def postprocess(cls, img: np.array, scale: float):
+        if len(img.shape) == 3:
+            img = img.transpose((1, 2, 0))
+        img_ndarray = cls.resize_by(img, 1 / scale)
+        return img_ndarray
+
+    @classmethod
+    def resize_to_fill(cls, mask: np.array, arrays_to_fill: List[np.array]):
+        mask_indices = mask.nonzero()
+        original_size = mask.shape[:2]
+        min = np.min(mask_indices, axis=1) - 5  # padding 5
+        min = np.where(min < 0, 0, min)[:2]
+        max = np.max(mask_indices, axis=1) + 5  # padding 5
+        max = np.where(max > mask.shape, mask.shape, max)[:2]
+
+        return (min, max), [
+            cls.resize_to(array[min[0]:max[0], min[1]:max[1]], *original_size)
+            for array in arrays_to_fill
+        ]
+
+    @classmethod
+    def undo_resize_to_fill(cls, bbox: Tuple[np.array, np.array], mask, arrays_to_undo: Tuple[np.array]):
+        original_size = arrays_to_undo[0].shape[:2]
+        min, max = bbox
+        bbox_size = max - min
+
+        arrays_to_undo = [
+            array if len(array.shape) == 3 else array[..., None]
+            for array in arrays_to_undo
+        ]
+        
+        bbox_aspect_ratio = bbox_size[1] / bbox_size[0]
+        orig_aspect_ration = original_size[1] / original_size[0]
+        if bbox_aspect_ratio > orig_aspect_ration:
+            scale_factor = original_size[1] / bbox_size[1]
+        else:
+            scale_factor = original_size[0] / bbox_size[0]
+        
+        large_bbox_size = np.round(bbox_size * scale_factor).astype(np.int64)
+
+        startH = (original_size[0] - large_bbox_size[0]) // 2
+        startW = (original_size[1] - large_bbox_size[1]) // 2
+
+        unresized_arrays = [
+            cls.resize_to(array[startH:(startH +large_bbox_size[0]), startW:(large_bbox_size[1] + startW)], *bbox_size) 
+            for array in arrays_to_undo
+        ]
+
+        final_arrays = []
+        for unresized_array in unresized_arrays:
+            full_array = np.full(original_size + (unresized_array.shape[2],),
+                                 fill_value=cls.get_fill_type(unresized_array.dtype),
+                                 dtype=unresized_array.dtype)
+            full_array[min[0]:max[0], min[1]:max[1]] = unresized_array
+            final_arrays.append(full_array)
+        return tuple(final_arrays)
+
+    @classmethod
+    def postprocess_set(cls, set, orig_rm, unprocessed_prediction, dataset_config: Config):
+        nan_mask = set['nan-mask'].numpy()
+        processed_region_mask = set['region-mask'].numpy()
+        fill_input_bbox = set['fill-input-bbox']
+
+        # if dataset_config.add_nan_mask_to_input:
+        #     nan_mask = image[4]
+        # if dataset_config.add_region_mask_to_input:
+        #     processed_region_mask = image[4 + dataset_config.add_nan_mask_to_input]
+
+        # map 0 to nan
+        unprocessed_prediction = np.where(nan_mask, unprocessed_prediction, np.nan)
+
+        # unnormalize depths
+        if dataset_config.normalize_depths:
+            params = dict(min=dataset_config.normalize_depths_min, max=dataset_config.normalize_depths_max)
+            unprocessed_prediction = unnormalize_depth(unprocessed_prediction, **params)
+
+        # resize and tranpose
+        region_mask = cls.postprocess(processed_region_mask, dataset_config.scale)
+        prediction = cls.postprocess(unprocessed_prediction, dataset_config.scale)
+
+        # undo scale image to intersting region
+        if dataset_config.resize_region_to_fill_input:
+            prediction, region_mask = cls.undo_resize_to_fill(fill_input_bbox, region_mask, [prediction, region_mask])
+
+        # apply region mask (set to NaN)
+        prediction = np.where(region_mask, prediction, np.nan)
+        prediction = prediction.squeeze()
+
+        return prediction
 
     @classmethod
     def preprocess_set(cls, rs_rgb, rs_depth, region_mask, zv_depth,
@@ -157,8 +254,6 @@ class BasicDataset(Dataset):
         assert rs_rgb.shape[:2] == zv_depth.shape[:2], \
             f'Image and mask should be the same size, but are {rs_rgb.shape[:2]} and {zv_depth[:2]}'
 
-        original_size = rs_rgb.shape[:2]
-
         # apply region mask
         rs_rgb = np.where(region_mask, rs_rgb, 0)
         rs_depth = np.where(region_mask, rs_depth[..., None], np.nan)
@@ -168,28 +263,26 @@ class BasicDataset(Dataset):
         diff_depth = np.abs(rs_depth - zv_depth)
         diff_mean = np.nanmean(diff_depth)
         # diff_std = np.nanstd(diff_depth)
+<<<<<<< HEAD
         clean_mask = diff_depth > diff_mean 
         print(np.sum(clean_mask))
         rs_depth = np.where(clean_mask, np.nan, rs_depth)
         rs_rgb = rs_rgb * ~clean_mask
         zv_depth = np.where(clean_mask, np.nan, zv_depth)
 
+=======
+        # clean_mask = diff_depth > (diff_mean * 5)
+        # rs_depth = np.where(clean_mask, np.nan, rs_depth)
+        # rs_rgb = rs_rgb * ~clean_mask
+        # zv_depth = np.where(clean_mask, np.nan, zv_depth)
+>>>>>>> a43083f6d721746d21bb96581a27d0659ddbd8e3
 
         # scale image to intersting region (region mask bounding box)
         if dataset_config.resize_region_to_fill_input:
-            mask_indices = region_mask.nonzero()
-            min = np.min(mask_indices, axis=1) - 5 # padding 5
-            min = np.where(min < 0, 0, min)
-            max = np.max(mask_indices, axis=1) + 5 # padding 5
-            max = np.where(max > region_mask.shape, region_mask.shape, max)
-            region_mask = region_mask[min[0]:max[0], min[1]:max[1]]
-            rs_depth = rs_depth[min[0]:max[0], min[1]:max[1]]
-            rs_rgb = rs_rgb[min[0]:max[0], min[1]:max[1]]
-            zv_depth = zv_depth[min[0]:max[0], min[1]:max[1]]
-            region_mask = cls.resize_to(region_mask, *original_size)
-            zv_depth = cls.resize_to(zv_depth, *original_size)
-            rs_rgb = cls.resize_to(rs_rgb, *original_size)
-            rs_depth = cls.resize_to(rs_depth, *original_size)
+            bbox, outputs = cls.resize_to_fill(region_mask, [region_mask, rs_depth, rs_rgb, zv_depth])
+            region_mask, rs_depth, rs_rgb, zv_depth = outputs
+        else:
+            bbox = None
 
         # resize and transpose
         processed_rs_rgb = cls.preprocess(rs_rgb, dataset_config.scale)
@@ -233,7 +326,8 @@ class BasicDataset(Dataset):
             'image': torch.as_tensor(input.copy()).float().contiguous(),
             'label': torch.as_tensor(label.copy().astype(np.float32)).float().contiguous(),
             'nan-mask': torch.as_tensor(nan_mask.copy()),
-            'region-mask': torch.as_tensor(processed_region_mask.copy())
+            'region-mask': torch.as_tensor(processed_region_mask.copy()),
+            'fill-input-bbox': bbox
         }
 
     def __getitem__(self, idx):

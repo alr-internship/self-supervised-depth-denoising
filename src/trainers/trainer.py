@@ -10,6 +10,7 @@ from torch import optim
 from torch.utils.data import DataLoader
 import wandb
 from dataset.data_loading import BasicDataset
+from networks.UNet.unet_model import UNet
 from networks._original.common import act
 from utils.transformation_utils import unnormalize_depth
 from utils.visualization_utils import to_rgb, visualize_depth, visualize_mask
@@ -205,7 +206,7 @@ class Trainer:
 
     def train(
         self,
-        net: nn.Module,
+        net: UNet,
         config: Config,
         evaluation_dir: Path,
         train_set: list,
@@ -226,6 +227,7 @@ class Trainer:
                 dict(
                     **dict(self.dataset_config),
                     **dict(config),
+                    **dict(net.config),
                     trainer_id=self.trainer_id,
                     training_size=n_train,
                     validation_size=n_val,
@@ -233,18 +235,20 @@ class Trainer:
                 )
             )
 
-        net = nn.DataParallel(net)
-        net.to(self.device)
-
         logging.info(f'''Starting training:
             Training size:       {n_train}
             Validation size:     {n_val}
             Device:              {self.device.type}
+            Network Config:
+                {net.config.get_printout()}
             Dataset Config:      
                 {self.dataset_config.get_printout()}
             Trainer Config:
                 {config.get_printout()}
             ''')
+
+        net = nn.DataParallel(net)
+        net.to(self.device)
 
         loader_args = dict(
             batch_size=config.batch_size,
@@ -289,10 +293,13 @@ class Trainer:
         else:
             RuntimeError(f"invalid optimizer name given {config.optimizer_name}")
 
+        lr_updates_per_epoch = 2
         lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
             'min',
-            patience=config.lr_patience,
+            threshold=1e-1,
+            cooldown=3,
+            patience=config.lr_patience * lr_updates_per_epoch,
             verbose=True
         )
         grad_scaler = torch.cuda.amp.GradScaler(enabled=config.amp)
@@ -333,10 +340,11 @@ class Trainer:
                         experiment_log['epoch'] = epoch
                         experiment.log(experiment_log)
 
-                # validation round to adapt learning rate
-                epoch_val_loss = self.evaluate(net, val_loader, loss_criterion)
-                lr_scheduler.step(epoch_val_loss)
-                logging.info('Validation Loss: {}'.format(epoch_val_loss))
+                    if global_step % (n_train // (config.batch_size * lr_updates_per_epoch)) == 0:
+                        # validation round to adapt learning rate
+                        epoch_val_loss = self.evaluate(net, val_loader, loss_criterion)
+                        lr_scheduler.step(epoch_val_loss)
+                        logging.info('Validation Loss: {}'.format(epoch_val_loss))
 
                 if config.activate_wandb:
                     experiment.log({
