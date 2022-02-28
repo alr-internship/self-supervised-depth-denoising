@@ -297,6 +297,7 @@ class Trainer:
         lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
             'min',
+            threshold=1e-1,
             patience=config.lr_patience * lr_updates_per_epoch,
             verbose=True
         )
