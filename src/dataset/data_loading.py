@@ -263,19 +263,10 @@ class BasicDataset(Dataset):
         diff_depth = np.abs(rs_depth - zv_depth)
         diff_mean = np.nanmean(diff_depth)
         # diff_std = np.nanstd(diff_depth)
-<<<<<<< HEAD
-        clean_mask = diff_depth > diff_mean 
-        print(np.sum(clean_mask))
-        rs_depth = np.where(clean_mask, np.nan, rs_depth)
-        rs_rgb = rs_rgb * ~clean_mask
-        zv_depth = np.where(clean_mask, np.nan, zv_depth)
-
-=======
         # clean_mask = diff_depth > (diff_mean * 5)
         # rs_depth = np.where(clean_mask, np.nan, rs_depth)
         # rs_rgb = rs_rgb * ~clean_mask
         # zv_depth = np.where(clean_mask, np.nan, zv_depth)
->>>>>>> a43083f6d721746d21bb96581a27d0659ddbd8e3
 
         # scale image to intersting region (region mask bounding box)
         if dataset_config.resize_region_to_fill_input:
