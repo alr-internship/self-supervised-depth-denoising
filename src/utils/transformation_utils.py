@@ -92,7 +92,7 @@ def pcd_to_imgs(pcd, ci: dict, depth_scale: float = 1000.0):
     
     # replace all depths of duplicate pixel values with smallest depth value among duplicates
     unique, inv, counts = np.unique(pixels, return_counts=True, return_inverse=True, axis=0)
-    print(f'# total pixels: {len(pixels)}, # unique pixels: {len(counts)}')
+    # print(f'# total pixels: {len(pixels)}, # unique pixels: {len(counts)}')
 
     # len(inv) == len(depths) and inv[i] corresponds to index of
     # unique elemenet at depths[i], 
