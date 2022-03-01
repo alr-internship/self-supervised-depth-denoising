@@ -62,16 +62,15 @@ def pcd_to_imgs(pcd, ci: dict, depth_scale: float = 1000.0):
     unique, inv, counts = np.unique(pixels, return_counts=True, return_inverse=True, axis=0)
     print(f'# total pixels: {len(pixels)}, # unique pixels: {len(counts)}')
 
-    # len(inv) == len(depths) and index of inv element corresponds to 
-    # unique elemenet at same positionin unique and inv[i] corresponds
-    # to index of occurence of unique element in depths, 
-    # e.g. depths[inv[i]] == unique[i]
-    # unique_max_depths[inv] reconsturcts depths array with max depth
+    # len(inv) == len(depths) and inv[i] corresponds to index of
+    # unique elemenet at depths[i], 
+    # e.g. depths[i] == unique[inv[i]]
+    # unique_max_depths[inv] reconsturcts depths array with min depth
     # values of each unique element
     unique_max_depths = np.full(len(unique), np.inf)
     for i in range(len(inv)):
-        if unique_max_depths[i] > depths[inv[i]]:
-            unique_max_depths[i] = depths[inv[i]]
+        if unique_max_depths[inv[i]] > depths[i]:
+            unique_max_depths[inv[i]] = depths[i]
     depths = unique_max_depths[inv]
 
     # create empty frames for final rgb and depth images
