@@ -28,6 +28,7 @@ class BasicDataset(Dataset):
                 normalize_depths_min: float = 0,
                 normalize_depths_max: float = 3000,
                 resize_region_to_fill_input: bool = False,
+                clean_by_depth_distance: bool = False,
         ):
             assert 0 < scale <= 1, 'Scale must be between 0 and 1'
             self.scale = scale
@@ -37,6 +38,7 @@ class BasicDataset(Dataset):
             self.normalize_depths_min = normalize_depths_min
             self.normalize_depths_max = normalize_depths_max
             self.resize_region_to_fill_input = resize_region_to_fill_input
+            self.clean_by_depth_distance = clean_by_depth_distance
 
         @staticmethod
         def from_config(config: dict):
@@ -47,24 +49,28 @@ class BasicDataset(Dataset):
                 resize_region_to_fill_input=config['resize_region_to_fill_input'] if 'resize_region_to_fill_input' in config else False,
                 normalize_depths=config['normalize_depths']['active'],
                 normalize_depths_min=config['normalize_depths']['min'],
-                normalize_depths_max=config['normalize_depths']['max']
+                normalize_depths_max=config['normalize_depths']['max'],
+                clean_by_depth_distance=config['clean_by_depth_distance'] if 'clean_by_depth_distance' in config else False,
             )
 
         def __iter__(self):
-            yield 'img_scale', self.scale
-            yield 'add_nan_mask_to_input', self.add_nan_mask_to_input
-            yield 'add_region_mask_to_input', self.add_region_mask_to_input
-            yield 'normalize_depths', self.normalize_depths
+            for attr, value in self.__dict__.items():
+                yield attr, value
 
         def num_in_channels(self):
             return 4 + self.add_region_mask_to_input + self.add_nan_mask_to_input
 
         def get_printout(self):
             return f"""
-                Images scaling:      {self.scale}
-                NaNs Mask:           {self.add_nan_mask_to_input}
-                Region Mask:         {self.add_region_mask_to_input}
-                Normalize Depths:    {self.normalize_depths}
+                Images scaling:              {self.scale}
+                NaNs Mask:                   {self.add_nan_mask_to_input}
+                Region Mask:                 {self.add_region_mask_to_input}
+                Resize Region To Fill Input: {self.resize_region_to_fill_input}
+                Normalize Depths:    
+                    Active:                  {self.normalize_depths}
+                    Min:                     {self.normalize_depths_min}
+                    Max:                     {self.normalize_depths_max}
+                Clean By Depth Distance:     {self.clean_by_depth_distance}
             """
 
     def __init__(
@@ -260,13 +266,14 @@ class BasicDataset(Dataset):
         zv_depth = np.where(region_mask, zv_depth[..., None], np.nan)
 
         # clean depths
-        # diff_depth = np.abs(rs_depth - zv_depth)
-        # diff_mean = np.nanmean(diff_depth)
-        # diff_std = np.nanstd(diff_depth)
-        # clean_mask = diff_depth > (diff_mean * 5)
-        # rs_depth = np.where(clean_mask, np.nan, rs_depth)
-        # rs_rgb = rs_rgb * ~clean_mask
-        # zv_depth = np.where(clean_mask, np.nan, zv_depth)
+        if dataset_config.clean_by_depth_distance:
+            diff_depth = np.abs(rs_depth - zv_depth)
+            diff_mean = np.nanmean(diff_depth)
+            # diff_std = np.nanstd(diff_depth)
+            clean_mask = diff_depth > (diff_mean * 3)
+            rs_depth = np.where(clean_mask, np.nan, rs_depth)
+            rs_rgb = rs_rgb * ~clean_mask
+            zv_depth = np.where(clean_mask, np.nan, zv_depth)
 
         # print(f'Removed: {np.sum(clean_mask)} from {np.sum(region_mask)}')
 
@@ -276,7 +283,7 @@ class BasicDataset(Dataset):
             bbox, outputs = cls.resize_to_fill(region_mask, [region_mask, rs_depth, rs_rgb, zv_depth])
             region_mask, rs_depth, rs_rgb, zv_depth = outputs
         else:
-            bbox = None
+            bbox = 0
 
         # resize and transpose
         processed_rs_rgb = cls.preprocess(rs_rgb, dataset_config.scale)

@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 import random
 import time
+from typing import Optional
 import numpy as np
 import torch
 import torch.nn as nn
@@ -16,6 +17,8 @@ from utils.transformation_utils import unnormalize_depth
 from utils.visualization_utils import to_rgb, visualize_depth, visualize_mask
 from tqdm import tqdm
 
+
+ROOT_DIR = Path(__file__).parent.parent.parent
 
 def get_loss_criterion(loss_type: str):
     # i -> input, t -> target, r -> region mask
@@ -52,6 +55,10 @@ class Trainer:
                 amp: bool,
                 activate_wandb: bool,
                 optimizer_name: str,
+<<<<<<< HEAD
+=======
+                load_from_model: Optional[Path],
+>>>>>>> d39f4e59cc5ecdc48b3146e54a2f67eff338832c
         ):
             self.epochs = epochs
             self.batch_size = batch_size
@@ -63,6 +70,7 @@ class Trainer:
             self.amp = amp
             self.activate_wandb = activate_wandb
             self.optimizer_name = optimizer_name
+            self.load_from_model = load_from_model
 
         @staticmethod
         def from_config(config: dict):
@@ -77,6 +85,10 @@ class Trainer:
                 loss_type=config['loss_type'],
                 val_interval=config['validation_interval'],
                 optimizer_name=config['optimizer_name'],
+<<<<<<< HEAD
+=======
+                load_from_model=Path(config['load_from_model']) if config['load_from_model'] != "None" else None
+>>>>>>> d39f4e59cc5ecdc48b3146e54a2f67eff338832c
             )
 
         def __iter__(self):
@@ -98,6 +110,7 @@ class Trainer:
                 Loss Type:           {self.loss_type}
                 Validation Interval  {self.val_interval}
                 Optimizer Name:      {self.optimizer_name}
+                Load From Model:      {self.load_from_model}
             """
 
 
@@ -247,6 +260,9 @@ class Trainer:
                 {config.get_printout()}
             ''')
 
+        if config.load_from_model:
+            net.load_state_dict(torch.load(ROOT_DIR / config.load_from_model, map_location='cpu'))
+
         net = nn.DataParallel(net)
         net.to(self.device)
 
@@ -297,7 +313,7 @@ class Trainer:
         lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
             'min',
-            threshold=1e-1,
+#            threshold=1e-1,
             cooldown=3,
             patience=config.lr_patience * lr_updates_per_epoch,
             verbose=True
