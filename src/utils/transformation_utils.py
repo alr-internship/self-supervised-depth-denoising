@@ -59,13 +59,14 @@ def pcd_to_imgs(pcd, ci: dict, depth_scale: float = 1000.0):
     pixels = np.round(pixels).astype(np.uint16)
     
     # replace all depths of duplicate pixel values with smallest depth value among duplicates
-    _, inv, counts = np.unique(pixels, return_counts=True, return_inverse=True, axis=0)
+    unique, inv, counts = np.unique(pixels, return_counts=True, return_inverse=True, axis=0)
     print(f'# total pixels: {len(pixels)}, # unique pixels: {len(counts)}')
 
-    for i in range(len(counts)):
-        if counts[i] != 1:
-            indices = [j for j, x in enumerate(inv) if x == i]
-            depths[indices] = np.min(depths[indices])
+    unique_max_depths = np.full(len(unique), np.inf)
+    for i in range(inv):
+        if unique_max_depths[inv[i]] > depths[inv[i]]:
+            unique_max_depths[inv[i]] = depths[inv[i]]
+    depths = unique_max_depths[inv]
 
     # create empty frames for final rgb and depth images
     ul_corner = np.min(pixels, axis=0)
