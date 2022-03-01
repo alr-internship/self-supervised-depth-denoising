@@ -63,7 +63,7 @@ def pcd_to_imgs(pcd, ci: dict, depth_scale: float = 1000.0):
     print(f'# total pixels: {len(pixels)}, # unique pixels: {len(counts)}')
 
     unique_max_depths = np.full(len(unique), np.inf)
-    for i in range(inv):
+    for i in range(len(inv)):
         if unique_max_depths[inv[i]] > depths[inv[i]]:
             unique_max_depths[inv[i]] = depths[inv[i]]
     depths = unique_max_depths[inv]
