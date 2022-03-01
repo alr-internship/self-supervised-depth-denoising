@@ -1,3 +1,5 @@
+from enum import unique
+from itertools import count
 from typing import List
 import open3d as o3d
 import numpy as np
@@ -55,6 +57,15 @@ def pcd_to_imgs(pcd, ci: dict, depth_scale: float = 1000.0):
     depths = points[:, 2]
     pixels = points[:, :2] * f / np.expand_dims(depths, axis=1) + c
     pixels = np.round(pixels).astype(np.uint16)
+    
+    # replace all depths of duplicate pixel values with smallest depth value among duplicates
+    _, inv, counts = np.unique(pixels, return_counts=True, return_inverse=True, axis=0)
+    print(f'# total pixels: {len(pixels)}, # unique pixels: {len(counts)}')
+
+    for i in range(len(counts)):
+        if counts[i] != 1:
+            indices = [j for j, x in enumerate(inv) if x == i]
+            depths[indices] = np.min(depths[indices])
 
     # create empty frames for final rgb and depth images
     ul_corner = np.min(pixels, axis=0)
