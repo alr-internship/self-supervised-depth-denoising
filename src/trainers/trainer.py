@@ -55,10 +55,7 @@ class Trainer:
                 amp: bool,
                 activate_wandb: bool,
                 optimizer_name: str,
-<<<<<<< HEAD
-=======
                 load_from_model: Optional[Path],
->>>>>>> d39f4e59cc5ecdc48b3146e54a2f67eff338832c
         ):
             self.epochs = epochs
             self.batch_size = batch_size
@@ -85,10 +82,7 @@ class Trainer:
                 loss_type=config['loss_type'],
                 val_interval=config['validation_interval'],
                 optimizer_name=config['optimizer_name'],
-<<<<<<< HEAD
-=======
                 load_from_model=Path(config['load_from_model']) if config['load_from_model'] != "None" else None
->>>>>>> d39f4e59cc5ecdc48b3146e54a2f67eff338832c
             )
 
         def __iter__(self):
