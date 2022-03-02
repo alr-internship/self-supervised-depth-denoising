@@ -13,8 +13,7 @@ import Regions as RG
 from tqdm import tqdm
 from data_processing.segmentation.clean_dataset_from_outliers import DBClustering
 from dataset.dataset_interface import DatasetInterface
-from utils.transformation_utils import imgs_to_pcd, pcd_to_imgs, resize, rs_ci, combine_point_clouds
-from utils.visualization_utils import to_rgb
+from utils.transformation_utils import imgs_to_pcd, pcd_to_imgs, resize, rs_ci, combine_point_clouds, to_rgb
 from utils.general_utils import split
 
 

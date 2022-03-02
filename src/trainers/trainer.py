@@ -13,8 +13,8 @@ import wandb
 from dataset.data_loading import BasicDataset
 from networks.UNet.unet_model import UNet
 from networks._original.common import act
-from utils.transformation_utils import unnormalize_depth
-from utils.visualization_utils import to_rgb, visualize_depth, visualize_mask
+from utils.transformation_utils import unnormalize_depth, to_rgb
+from utils.visualization_utils import visualize_depth, visualize_mask
 from tqdm import tqdm
 
 

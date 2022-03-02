@@ -12,8 +12,7 @@ from psutil import cpu_count
 from tqdm import tqdm
 from dataset.dataset_interface import DatasetInterface
 from utils.general_utils import split
-from utils.transformation_utils import imgs_to_pcd, pcd_to_imgs, rs_ci, fill_to_shape
-from utils.visualization_utils import to_rgb
+from utils.transformation_utils import imgs_to_pcd, pcd_to_imgs, rs_ci, fill_to_shape, to_rgb
 
 
 def sample_transformation():
