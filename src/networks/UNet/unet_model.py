@@ -36,7 +36,7 @@ class UNet(nn.Module):
                 bilinear=config['bilinear'],
                 name=config['name'] if 'name' in config else 'UNet',
                 output_activation=config['output_activation'] if 'output_activation' in config else 'none',
-                skip_connections=config['skip_connections'] 
+                skip_connections=config['skip_connections'] if 'skip_connections' in config else False
             )
 
         def __iter__(self):
