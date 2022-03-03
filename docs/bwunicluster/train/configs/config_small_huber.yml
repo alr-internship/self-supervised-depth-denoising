@@ -13,15 +13,17 @@ network_config:
   epochs: 50
   batch_size: 35
   learning_rate: 0.1
-  lr_patience: 1
+  lr_patience: 2
   load_from_model: None
   wandb: True
   save: True
-  evaluation_dir: local_resources/models
+  evaluation_dir: local_resources/hp_models
   bilinear: False
   amp: False
   validation_interval: 250
-  optimizer_name: 'rmsprop'
+  optimizer_name: rmsprop
+  loss_type: huber_loss
+  output_activation: none
 
 dataset_config:
   scale_images: 1
@@ -31,5 +33,6 @@ dataset_config:
     active: False # normalized input and label depth d with (d - mean) / std channel wise
     min: 0
     max: 0
-
+  resize_region_to_fill_input: False
+  clean_by_depth_distance: True
 
