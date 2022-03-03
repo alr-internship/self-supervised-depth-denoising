@@ -213,7 +213,7 @@ class BasicDataset(Dataset):
         return tuple(final_arrays)
 
     @classmethod
-    def postprocess_set(cls, set, orig_rm, unprocessed_prediction, dataset_config: Config):
+    def postprocess_set(cls, set, unprocessed_prediction, dataset_config: Config):
         nan_mask = set['nan-mask'].numpy()
         processed_region_mask = set['region-mask'].numpy()
         fill_input_bbox = set['fill-input-bbox']
