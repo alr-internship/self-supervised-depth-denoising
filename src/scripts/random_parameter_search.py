@@ -76,7 +76,11 @@ def main(args):
     if not adaptions_file.exists():
         adaptions = generate_all_adaptions(num_configurations)
         adaptions_file.parent.mkdir(parents=True, exist_ok=True)
+        # file keeping track of processed adaptations
         with open(adaptions_file, 'w') as f:
+            json.dump(adaptions, f)
+        # file saving all adaptions
+        with open(adaptions_file.parent / "initial_adaptations.json", 'w') as f:
             json.dump(adaptions, f)
     else:
         with open(adaptions_file, 'r') as f:
