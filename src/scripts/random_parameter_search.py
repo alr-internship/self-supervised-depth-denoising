@@ -20,6 +20,7 @@ variations_config = {
     'dataset_config': {
         "depth_difference_threshold": lambda: sample([0, 1, 2, 3], 1)[0],
         "scale_images": lambda: sample([0.5, 1], 1)[0],
+        'add_region_mask_to_input': lambda: sample([False, True], 1)[0],
     }
 }
 
@@ -68,9 +69,9 @@ MAIN_SCRIPT = ROOT_DIR / "src/trainers/train_models.py"
 
 def main(args):
     default_config = ROOT_DIR / args.default_config
-    tmp_config = ROOT_DIR / "tmp_config.yml"
     num_configurations = args.num_configurations
     adaptions_file = args.adaptions_file
+    tmp_config = ROOT_DIR / f"tmp_config_for_{adaptions_file.stem}.yml"
 
     # get adaptions
     if not adaptions_file.exists():
