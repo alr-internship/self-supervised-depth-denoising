@@ -17,12 +17,16 @@ from torch.utils.data import DataLoader
 
 from trainers.trainer import get_loss_criterion
 
+ROOT_DIR = Path(__file__).parent.parent.parent
 
 def main(args):
     # load models
-    model_dirs = [model for model in args.models_dir.rglob("*") if model.is_dir()]
+    models_dir = ROOT_DIR / args.models_dir
+    model_dirs = [model for model in models_dir.glob("*") if model.is_dir()]
     model_dirs = natsorted(model_dirs, key=lambda l: l.name)
     assert len(model_dirs) > 0, "models dir has no models of type .pth"
+
+    print(f"found model directories: {len(model_dirs)}")
 
     losses = {
         'L1': get_loss_criterion('mean_l1_loss')
@@ -31,23 +35,24 @@ def main(args):
     def compute_metrics(i, o, t, r):
         metrics = {}
         for key, loss in losses.items():
-            metrics[key] = {
-                'it': loss(i, t, r),
-                'ot': loss(o, t, r),
-            }
+            metrics[f"{key}_it"] = loss(i, t, r).cpu().detach().numpy().item()
+            metrics[f"{key}_ot"] = loss(o, t, r).cpu().detach().numpy().item()
         return metrics
 
     def compute_metric_moments(metrics_list: List[dict]) -> Dict:
-        list_metrics = {k: [metrics[k] for metric in metrics_list] for k in metrics_list[0]}
+        print(metrics_list)
+        list_metrics = {k: [metric[k] for metric in metrics_list] for k in metrics_list[0]}
+        print(list_metrics)
         metrics_moments = {}
         for key, values in list_metrics.items():
             metrics_moments[f"{key}_mean"] = np.mean(values)
             metrics_moments[f"{key}_std"] = np.std(values)
+        print(metrics_moments)
         return metrics_moments
 
     metrics = []
     for model_dir in tqdm(model_dirs, desc='evaluated model dirs'):
-        model_name = model_dir.relative_to(args.models_dir).as_posix()
+        model_name = model_dir.relative_to(models_dir).as_posix()
 
         config_path = model_dir / "config.yml"
         with open(config_path) as f:
@@ -92,7 +97,7 @@ def main(args):
             logging.info(f'Loading model {model}, epoch {epoch}')
             net.load_state_dict(torch.load(model, map_location=device))
 
-            model_metrics = {}
+            model_metrics = []
             for batch in dl:
                 images = batch['image']
                 labels = batch['label']
@@ -117,7 +122,7 @@ def main(args):
                 **compute_metric_moments(model_metrics)
             })
 
-    with open(f'{args.models_dir}/eval.csv', 'w') as csvfile:
+    with open(f'{models_dir}/eval.csv', 'w') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=metrics[0].keys())
         writer.writeheader()
         writer.writerows(metrics)
