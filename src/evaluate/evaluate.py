@@ -1,3 +1,6 @@
+from typing import Dict, List
+from natsort import natsorted
+import yaml
 import csv
 import logging
 from pathlib import Path
@@ -6,46 +9,87 @@ import torch
 from torch import nn
 from tqdm import tqdm
 from dataset.data_loading import BasicDataset
+from dataset.dataset_interface import ROOT_DIR, DatasetInterface
 from networks.UNet.unet_model import UNet
 from argparse import ArgumentParser
 from pathlib import Path
 from torch.utils.data import DataLoader
 
+from trainers.trainer import get_loss_criterion
+
+ROOT_DIR = Path(__file__).parent.parent.parent
 
 def main(args):
-    add_nan_mask_to_input = True
-    add_region_mask_to_input = True
-    loss_criterion = nn.L1Loss(reduction='sum')
+    # load models
+    models_dir = ROOT_DIR / args.models_dir
+    model_dirs = [model for model in models_dir.glob("*") if model.is_dir()]
+    model_dirs = natsorted(model_dirs, key=lambda l: l.name)
+    assert len(model_dirs) > 0, "models dir has no models of type .pth"
 
-    ds = BasicDataset(args.dataset_path, scale=0.5,
-                      enable_augmentation=False, add_nan_mask_to_input=add_nan_mask_to_input, 
-                      add_region_mask_to_input=add_region_mask_to_input)
-    dl = DataLoader(ds, shuffle=False, batch_size=args.batch_size,
-                    num_workers=4, pin_memory=True)
-    dl_size = len(dl)
-    assert dl_size > 0, "test dataset is empty"
+    print(f"found model directories: {len(model_dirs)}")
 
-    models_dir = sorted([model for model in args.models_path.rglob("*") if model.is_dir()])
-    assert len(models_dir) > 0, "models dir has no models of type .pth"
+    losses = {
+        'L1': get_loss_criterion('mean_l1_loss')
+    }
 
-    n_input_channels = 4 + add_nan_mask_to_input + add_region_mask_to_input
+    def compute_metrics(i, o, t, r):
+        metrics = {}
+        for key, loss in losses.items():
+            metrics[f"{key}_it"] = loss(i, t, r).cpu().detach().numpy().item()
+            metrics[f"{key}_ot"] = loss(o, t, r).cpu().detach().numpy().item()
+        return metrics
 
-    net = UNet(n_input_channels=n_input_channels, n_output_channels=1)
-    net = nn.DataParallel(net)
-
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    logging.info(f'Using device {device}')
-
-    net.to(device=device)
-    net.eval()
+    def compute_metric_moments(metrics_list: List[dict]) -> Dict:
+        print(metrics_list)
+        list_metrics = {k: [metric[k] for metric in metrics_list] for k in metrics_list[0]}
+        print(list_metrics)
+        metrics_moments = {}
+        for key, values in list_metrics.items():
+            metrics_moments[f"{key}_mean"] = np.mean(values)
+            metrics_moments[f"{key}_std"] = np.std(values)
+        print(metrics_moments)
+        return metrics_moments
 
     metrics = []
-    for model_dir in tqdm(models_dir, desc='evaluated model dirs'):
-        model_name = model_dir.relative_to(args.models_dir).as_posix()
+    for model_dir in tqdm(model_dirs, desc='evaluated model dirs'):
+        model_name = model_dir.relative_to(models_dir).as_posix()
 
-        models = sorted(model_dir.glob("*.pth"))
+        config_path = model_dir / "config.yml"
+        with open(config_path) as f:
+            config = yaml.safe_load(f)
+
+        network_config = config['network_config']
+        trainer_config = config['basic_trainer']
+        dataset_config_yaml = config['dataset_config']
+        dataset_config = BasicDataset.Config.from_config(dataset_config_yaml)
+        network_config['n_input_channels'] = dataset_config.num_in_channels()
+        network_config['n_output_channels'] = 1
+        unet_config = UNet.Config.from_config(network_config)
+
+        test_dataset_path = ROOT_DIR / Path(trainer_config['train_path']).parent / "test_dataset.json"
+        if not test_dataset_path.exists():
+            print(f"can't evaluation model {model_name}. Dataset does not exist")
+            continue
+        ds = BasicDataset(test_dataset_path, dataset_config)
+        dl = DataLoader(ds, shuffle=False, batch_size=args.batch_size,
+                        num_workers=4, pin_memory=True)
+        dl_size = len(dl)
+        assert dl_size > 0, "test dataset is empty"
+
+        net = UNet(unet_config)
+
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        logging.info(f'Using device {device}')
+
+        net.to(device=device)
+        net.eval()
+
+        models = natsorted(model_dir.rglob("*.pth"), key=lambda l: l.name)
+        if len(models) == 0:
+            continue
+
         if not args.all_epochs:
-            models = models[-1]  # pick model with highest epoch
+            models = [models[-1]]  # pick model with highest epoch
 
         for model in tqdm(models, desc='evaluated models'):
             epoch = model.stem.split('e')[1]
@@ -53,43 +97,32 @@ def main(args):
             logging.info(f'Loading model {model}, epoch {epoch}')
             net.load_state_dict(torch.load(model, map_location=device))
 
-            ot_mse = []
-            it_mse = []
+            model_metrics = []
             for batch in dl:
                 images = batch['image']
                 labels = batch['label']
-                nan_mask = batch['nan-mask']
+                nan_masks = batch['nan-mask']
                 region_masks = batch['region-mask']
 
                 # move images and labels to correct device and type
                 images = images.to(device=device, dtype=torch.float32)
                 labels = labels.to(device=device, dtype=torch.float32)
-                nan_mask = nan_mask.to(device=device)
+                nan_masks = nan_masks.to(device=device)
                 region_masks = region_masks.to(device=device)
 
                 with torch.no_grad():
                     predictions = net(images)
 
-                    ot_mse.append(loss_criterion(
-                        predictions * nan_mask * region_masks,
-                        labels * nan_mask * region_masks
-                    ))
-                
-                it_mse.append(loss_criterion(
-                    images[:, 3] * nan_mask * region_masks,
-                    labels * nan_mask * region_masks
-                ))
+                    model_metrics.append(compute_metrics(
+                        images[:, 3], predictions, labels, nan_masks * region_masks))
 
             metrics.append({
                 "model": model_name,
                 "epoch": epoch,
-                "mean_ot_mse": np.mean(ot_mse),
-                "std_ot_mse": np.std(ot_mse),
-                "mean_it_mse": np.mean(it_mse),
-                "std_it)mse": np.std(it_mse)
+                **compute_metric_moments(model_metrics)
             })
 
-    with open(f'{args.models_dir}/eval.csv', 'w') as csvfile:
+    with open(f'{models_dir}/eval.csv', 'w') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=metrics[0].keys())
         writer.writeheader()
         writer.writerows(metrics)
@@ -97,8 +130,7 @@ def main(args):
 
 if __name__ == "__main__":
     argparse = ArgumentParser()
-    argparse.add_argument("models_path", type=Path)
-    argparse.add_argument("dataset_path", type=Path)
-    argparse.add_argument("--all-epochs", type=bool, default=True)
+    argparse.add_argument("models_dir", type=Path)
+    argparse.add_argument("--all-epochs", action="store_true")
     argparse.add_argument("--batch-size", type=int, default=1)
     main(argparse.parse_args())

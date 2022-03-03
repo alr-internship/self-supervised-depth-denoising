@@ -1,5 +1,9 @@
+from typing import List
 import numpy as np
 import cv2
+import open3d as o3d
+
+from utils.transformation_utils import combine_point_clouds
 
 def to_rgb(bgr):
     return cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
@@ -29,3 +33,14 @@ def visualize_depth(depth):
     depth = np.where(isnan, 0, depth)
     depth = cv2.applyColorMap(depth, cv2.COLORMAP_JET)
     return depth
+
+def visualize_geometries(pcds: List[o3d.geometry.PointCloud]):
+        o3d_visualizer = o3d.visualization.Visualizer()  # pylint: disable=no-member
+        o3d_visualizer.create_window()
+
+        geometries = combine_point_clouds(pcds)
+        o3d_visualizer.add_geometry(geometries)
+
+        o3d_visualizer.get_render_option().background_color = [0, 0, 0]
+        o3d_visualizer.run()
+        o3d_visualizer.destroy_window()

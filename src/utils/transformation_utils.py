@@ -5,7 +5,12 @@ import open3d as o3d
 import numpy as np
 import cv2
 
-from utils.visualization_utils import to_bgr, to_rgb
+
+def to_rgb(bgr):
+    return cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+
+def to_bgr(rgb):
+    return cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
 
 # this format to make open3d objects pickable
 zv_ci = dict(

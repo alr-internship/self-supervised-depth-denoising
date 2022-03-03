@@ -28,7 +28,7 @@ class BasicDataset(Dataset):
                 normalize_depths_min: float = 0,
                 normalize_depths_max: float = 3000,
                 resize_region_to_fill_input: bool = False,
-                clean_by_depth_distance: bool = False,
+                maximal_depth_distance: bool = 0,
         ):
             assert 0 < scale <= 1, 'Scale must be between 0 and 1'
             self.scale = scale
@@ -38,7 +38,7 @@ class BasicDataset(Dataset):
             self.normalize_depths_min = normalize_depths_min
             self.normalize_depths_max = normalize_depths_max
             self.resize_region_to_fill_input = resize_region_to_fill_input
-            self.clean_by_depth_distance = clean_by_depth_distance
+            self.depth_difference_threshold = maximal_depth_distance
 
         @staticmethod
         def from_config(config: dict):
@@ -50,7 +50,7 @@ class BasicDataset(Dataset):
                 normalize_depths=config['normalize_depths']['active'],
                 normalize_depths_min=config['normalize_depths']['min'],
                 normalize_depths_max=config['normalize_depths']['max'],
-                clean_by_depth_distance=config['clean_by_depth_distance'] if 'clean_by_depth_distance' in config else False,
+                maximal_depth_distance=config['depth_difference_threshold'] if 'depth_difference_threshold' in config else 0,
             )
 
         def __iter__(self):
@@ -70,7 +70,7 @@ class BasicDataset(Dataset):
                     Active:                  {self.normalize_depths}
                     Min:                     {self.normalize_depths_min}
                     Max:                     {self.normalize_depths_max}
-                Clean By Depth Distance:     {self.clean_by_depth_distance}
+                Depth difference threshold:  {self.depth_difference_threshold}
             """
 
     def __init__(
@@ -213,7 +213,7 @@ class BasicDataset(Dataset):
         return tuple(final_arrays)
 
     @classmethod
-    def postprocess_set(cls, set, orig_rm, unprocessed_prediction, dataset_config: Config):
+    def postprocess_set(cls, set, unprocessed_prediction, dataset_config: Config):
         nan_mask = set['nan-mask'].numpy()
         processed_region_mask = set['region-mask'].numpy()
         fill_input_bbox = set['fill-input-bbox']
@@ -266,11 +266,11 @@ class BasicDataset(Dataset):
         zv_depth = np.where(region_mask, zv_depth[..., None], np.nan)
 
         # clean depths
-        if dataset_config.clean_by_depth_distance:
+        if dataset_config.depth_difference_threshold > 0:
             diff_depth = np.abs(rs_depth - zv_depth)
             diff_mean = np.nanmean(diff_depth)
             # diff_std = np.nanstd(diff_depth)
-            clean_mask = diff_depth > (diff_mean * 3)
+            clean_mask = diff_depth > (diff_mean * dataset_config.depth_difference_threshold)
             rs_depth = np.where(clean_mask, np.nan, rs_depth)
             rs_rgb = rs_rgb * ~clean_mask
             zv_depth = np.where(clean_mask, np.nan, zv_depth)
