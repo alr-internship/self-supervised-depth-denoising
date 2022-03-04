@@ -19,6 +19,16 @@ from trainers.trainer import get_loss_criterion
 
 ROOT_DIR = Path(__file__).parent.parent.parent
 
+def get_l1loss_in_region(lower_bound: float, upper_bound: float):
+    def l1_loss_in_region(a, i, t, r) -> float:
+        diff = np.abs(i - t)
+        bound_mask = np.logical_and(lower_bound <= diff, diff < upper_bound)
+        mask = np.logical_and(bound_mask, r)
+        loss = np.sum(np.abs(a - t) * mask) / np.sum(mask)
+        return loss
+    return l1_loss_in_region
+
+
 def main(args):
     # load models
     models_dir = ROOT_DIR / args.models_dir
@@ -29,25 +39,25 @@ def main(args):
     print(f"found model directories: {len(model_dirs)}")
 
     losses = {
-        'L1': get_loss_criterion('mean_l1_loss')
+        'total_L1': lambda a, _, t, r: get_loss_criterion('mean_l1_loss')(a, t, r),
+        '0_to10mm_L1': get_l1loss_in_region(lower_bound=0, upper_bound=10),
+        '10_to20mm_L1': get_l1loss_in_region(lower_bound=10, upper_bound=20),
+        'above20mm_L1': get_l1loss_in_region(lower_bound=20, upper_bound=np.inf)
     }
 
     def compute_metrics(i, o, t, r):
         metrics = {}
         for key, loss in losses.items():
-            metrics[f"{key}_it"] = loss(i, t, r).cpu().detach().numpy().item()
-            metrics[f"{key}_ot"] = loss(o, t, r).cpu().detach().numpy().item()
+            metrics[f"{key}_it"] = loss(i, i, t, r).cpu().detach().numpy().item()
+            metrics[f"{key}_ot"] = loss(o, i, t, r).cpu().detach().numpy().item()
         return metrics
 
     def compute_metric_moments(metrics_list: List[dict]) -> Dict:
-        print(metrics_list)
         list_metrics = {k: [metric[k] for metric in metrics_list] for k in metrics_list[0]}
-        print(list_metrics)
         metrics_moments = {}
         for key, values in list_metrics.items():
             metrics_moments[f"{key}_mean"] = np.mean(values)
             metrics_moments[f"{key}_std"] = np.std(values)
-        print(metrics_moments)
         return metrics_moments
 
     metrics = []
