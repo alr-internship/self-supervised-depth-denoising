@@ -1,3 +1,4 @@
+import json
 from typing import Dict, List
 from natsort import natsorted
 import yaml
@@ -6,10 +7,8 @@ import logging
 from pathlib import Path
 import numpy as np
 import torch
-from torch import nn
 from tqdm import tqdm
 from dataset.data_loading import BasicDataset
-from dataset.dataset_interface import ROOT_DIR, DatasetInterface
 from networks.UNet.unet_model import UNet
 from argparse import ArgumentParser
 from pathlib import Path
@@ -132,10 +131,8 @@ def main(args):
                 "metrics": model_metrics
             })
 
-    with open(f'{models_dir}/eval.csv', 'w') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=metrics[0].keys())
-        writer.writeheader()
-        writer.writerows(metrics)
+    with open(f'{models_dir}/eval.json', 'w') as f:
+        json.dump(metrics, f)
 
 
 if __name__ == "__main__":
