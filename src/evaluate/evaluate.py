@@ -20,10 +20,10 @@ ROOT_DIR = Path(__file__).parent.parent.parent
 
 def get_l1loss_in_region(lower_bound: float, upper_bound: float):
     def l1_loss_in_region(a, i, t, r) -> float:
-        diff = np.abs(i - t)
-        bound_mask = np.logical_and(lower_bound <= diff, diff < upper_bound)
-        mask = np.logical_and(bound_mask, r)
-        loss = np.sum(np.abs(a - t) * mask) / np.sum(mask)
+        diff = torch.abs(i - t)
+        bound_mask = torch.logical_and(lower_bound <= diff, diff < upper_bound)
+        mask = torch.logical_and(bound_mask, r)
+        loss = torch.sum(torch.abs(a - t) * mask) / torch.sum(mask)
         return loss
     return l1_loss_in_region
 
