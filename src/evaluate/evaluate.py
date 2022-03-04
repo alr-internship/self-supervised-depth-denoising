@@ -129,7 +129,7 @@ def main(args):
             metrics.append({
                 "model": model_name,
                 "epoch": epoch,
-                **compute_metric_moments(model_metrics)
+                "metrics": model_metrics
             })
 
     with open(f'{models_dir}/eval.csv', 'w') as csvfile:
