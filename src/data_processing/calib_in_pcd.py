@@ -25,7 +25,7 @@ def align_cropped(rs_rgb, rs_depth, zv_rgb, zv_depth, debug: bool):
     if debug:
         rs_pcd = imgs_to_pcd(rs_rgb, rs_depth, rs_ci)
     zv_pcd = imgs_to_pcd(zv_rgb, zv_depth, zv_ci)
-    final_size = (rs_rgb.shape[1], rs_rgb[0])
+    final_size = (rs_rgb.shape[1], rs_rgb.shape[0])
 
     if debug:
         o3d.visualization.draw_geometries([zv_pcd, rs_pcd], "raw pcds")

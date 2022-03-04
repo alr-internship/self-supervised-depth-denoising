@@ -18,13 +18,17 @@ from trainers.trainer import get_loss_criterion
 
 ROOT_DIR = Path(__file__).parent.parent.parent
 
+
 def get_l1loss_in_region(lower_bound: float, upper_bound: float):
     def l1_loss_in_region(a, i, t, r) -> float:
         diff = torch.abs(i - t)
         bound_mask = torch.logical_and(lower_bound <= diff, diff < upper_bound)
         mask = torch.logical_and(bound_mask, r)
-        loss = torch.sum(torch.abs(a - t) * mask) / torch.sum(mask)
-        return loss
+        mask_sum = torch.sum(mask)
+        if mask_sum == 0:  # no difference in the given region
+            return 0
+        else:
+            return torch.sum(torch.abs(a - t) * mask) / torch.sum(mask)
     return l1_loss_in_region
 
 
@@ -45,10 +49,15 @@ def main(args):
     }
 
     def compute_metrics(i, o, t, r):
-        metrics = {}
+        it_metrics = {}
+        ot_metrics = {}
         for key, loss in losses.items():
-            metrics[f"{key}_it"] = loss(i, i, t, r).cpu().detach().numpy().item()
-            metrics[f"{key}_ot"] = loss(o, i, t, r).cpu().detach().numpy().item()
+            it_metrics[key] = loss(i, i, t, r).cpu().detach().numpy().item()
+            ot_metrics[key] = loss(o, i, t, r).cpu().detach().numpy().item()
+        metrics = {
+            'it': it_metrics,
+            'ot': ot_metrics
+        }
         return metrics
 
     def compute_metric_moments(metrics_list: List[dict]) -> Dict:
@@ -60,7 +69,7 @@ def main(args):
         return metrics_moments
 
     metrics = []
-    for model_dir in tqdm(model_dirs, desc='evaluated model dirs'):
+    for model_dir in tqdm(model_dirs, desc='evaluated model dirs', position=0):
         model_name = model_dir.relative_to(models_dir).as_posix()
 
         config_path = model_dir / "config.yml"
@@ -100,14 +109,14 @@ def main(args):
         if not args.all_epochs:
             models = [models[-1]]  # pick model with highest epoch
 
-        for model in tqdm(models, desc='evaluated models'):
+        for model in tqdm(models, desc='evaluated models', position=1):
             epoch = model.stem.split('e')[1]
 
             logging.info(f'Loading model {model}, epoch {epoch}')
             net.load_state_dict(torch.load(model, map_location=device))
 
             model_metrics = []
-            for batch in dl:
+            for batch in tqdm(dl, desc='evaluation progress', position=2):
                 images = batch['image']
                 labels = batch['label']
                 nan_masks = batch['nan-mask']
