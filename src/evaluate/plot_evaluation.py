@@ -1,7 +1,9 @@
 from argparse import ArgumentParser
 from distutils.ccompiler import new_compiler
 from pathlib import Path
+import random
 from matplotlib import pyplot as plt
+from matplotlib.lines import Line2D
 import numpy as np
 import yaml
 
@@ -10,6 +12,7 @@ import pandas as pd
 
 METRICS = ['totalL1', '0to10mmL1', '10to20mmL1', 'above20mmL1']
 METRICS_TITLE = ['L1Loss', 'L1Loss in [0,10) mm', 'L1Loss in [10,20) mm', 'L1Loss above 20 mm']
+
 
 def get_xticks(dir, trainer_ids):
 
@@ -74,32 +77,48 @@ def get_box_plot(df: pd.DataFrame):
         plt.setp(bp['caps'], color=color)
         plt.setp(bp['medians'], color=color)
 
-    _, ax = plt.subplots(1, len(METRICS), figsize=(10, 5))
-    for idx, metric in enumerate(METRICS):
+    df_grouped = df.groupby(['title', 'it_ot'])
+    print(df)
+    it_colors = {
+        title: np.asarray(plt.get_cmap('tab20')((2 * idx + 1) / 20))
+        for idx, title in enumerate(df.title.unique())  # without i/t pairs
+    }
+    ot_colors = {
+        title: np.asarray(plt.get_cmap('tab20')((2 * idx) / 20))
+        for idx, title in enumerate(df.title.unique())  # without i/t pairs
+    }
+
+    fig, ax = plt.subplots(1, len(METRICS), figsize=(10, 5))
+    for plot_idx, metric in enumerate(METRICS):
         width = 0.6
         inner_space = width * 2/3
         outer_space = 2
-        df_grouped = df.groupby(['title', 'it_ot'])[metric].apply(list)
-        df_ot_grouped = df_grouped.loc[:, 'output/target']
-        df_it_grouped = df_grouped.loc[:, 'input/target']
-        print(df_it_grouped)
+        df_grouped_metric = df_grouped[metric].apply(list)
+        df_ot_grouped = df_grouped_metric.loc[:, 'output/target']
+        df_it_grouped = df_grouped_metric.loc[:, 'input/target']
 
-        bp_it = ax[idx].boxplot(df_it_grouped, positions=np.array(range(len(df_it_grouped)))*outer_space-inner_space, sym='', widths=width) 
-        bp_ot = ax[idx].boxplot(df_ot_grouped, positions=np.array(range(len(df_ot_grouped)))*outer_space+inner_space, sym='', widths=width) 
-        set_box_color(bp_it, '#D7191C')
-        set_box_color(bp_ot, '#2C7BB6')
+        for idx, (title, value) in enumerate(df_it_grouped.iteritems()):
+            bp_it = ax[plot_idx].boxplot(value, positions=[idx * outer_space - inner_space],
+                                         sym='', widths=width)
+            set_box_color(bp_it, it_colors[title])
+        for idx, (title, value) in enumerate(df_ot_grouped.iteritems()):
+            bp_ot = ax[plot_idx].boxplot(value, positions=[idx * outer_space + inner_space],
+                                         sym='', widths=width)
+            set_box_color(bp_ot, ot_colors[title])
 
-        ax[idx].set_title(METRICS_TITLE[idx], fontdict=dict(fontsize=9))
+        ax[plot_idx].tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
 
-        # draw temporary red and blue lines and use them to create a legend
-        ax[idx].plot([], c='#D7191C', label='input/target')
-        ax[idx].plot([], c='#2C7BB6', label='output/target')
-        ax[idx].legend(prop={'size': 7})
+        ax[plot_idx].set_title(METRICS_TITLE[plot_idx], fontdict=dict(fontsize=9))
 
-        xticks = df_ot_grouped.index
-        ax[idx].set_xticks(range(0, len(xticks) * 2, 2), xticks, rotation=90)
+    custom_legend_lines = [
+        Line2D([0], [0], color=color, lw=4)
+        for color in ot_colors.values()
+    ]
 
-        plt.xlim(-2, len(xticks)*2)
+    fig.legend(custom_legend_lines, ot_colors.keys(), loc='upper right', ncol=(len(custom_legend_lines) // 4) + 1)
+
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0.15, top=0.75)
 
 
 def main(args):
@@ -130,8 +149,6 @@ def main(args):
     else:
         get_box_plot(df)
 
-    plt.tight_layout()
-    plt.subplots_adjust(wspace=0.3)
     # plt.show()
     plt.savefig(f"{args.eval_path.parent}/plt.png")  # , bbox_inches='tight', pad_inches=0)
 
