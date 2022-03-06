@@ -26,7 +26,7 @@ def get_l1loss_in_region(lower_bound: float, upper_bound: float):
         mask = torch.logical_and(bound_mask, r)
         mask_sum = torch.sum(mask)
         if mask_sum == 0:  # no difference in the given region
-            return 0
+            return torch.from_numpy(np.array(0))
         else:
             return torch.sum(torch.abs(a - t) * mask) / torch.sum(mask)
     return l1_loss_in_region
@@ -49,11 +49,15 @@ def main(args):
     }
 
     def compute_metrics(i, o, t, r):
+        i = i.squeeze()
+        o = o.squeeze()
+        t = t.squeeze()
+        r = r.squeeze()
         it_metrics = {}
         ot_metrics = {}
         for key, loss in losses.items():
-            it_metrics[key] = loss(i, i, t, r).cpu().detach().numpy().item()
-            ot_metrics[key] = loss(o, i, t, r).cpu().detach().numpy().item()
+            it_metrics[key] = loss(i, i, t, r).item()
+            ot_metrics[key] = loss(o, i, t, r).item()
         metrics = {
             'it': it_metrics,
             'ot': ot_metrics

@@ -1,7 +1,5 @@
 from argparse import ArgumentParser
-from distutils.ccompiler import new_compiler
 from pathlib import Path
-import random
 from matplotlib import pyplot as plt
 from matplotlib.lines import Line2D
 import numpy as np
@@ -10,7 +8,7 @@ import yaml
 import pandas as pd
 
 
-METRICS = ['totalL1', '0to10mmL1', '10to20mmL1', 'above20mmL1']
+METRICS = ['total_L1', '0_to10mm_L1', '10_to20mm_L1', 'above20mm_L1']
 METRICS_TITLE = ['L1Loss', 'L1Loss in [0,10) mm', 'L1Loss in [10,20) mm', 'L1Loss above 20 mm']
 
 
@@ -77,8 +75,18 @@ def get_box_plot(df: pd.DataFrame):
         plt.setp(bp['caps'], color=color)
         plt.setp(bp['medians'], color=color)
 
+    # sort first N models by loss
+    N = 10
     df_grouped = df.groupby(['title', 'it_ot'])
-    print(df)
+    df_grouped_mean = df_grouped.mean().reset_index()
+    df_grouped_mean = df_grouped_mean.loc[df_grouped_mean['it_ot'] == 'output/target']
+    df_grouped_mean.sort_values(by=['total_L1'], ascending=[True], inplace=True)
+    mean_threshold = df_grouped_mean['title'].iloc[:N]
+    df = df_grouped.filter(lambda x: x['title'].isin(mean_threshold).all())
+
+    # group by (title, it_ot) and create it/ot colors
+    df_grouped = df.groupby(['title', 'it_ot'])
+
     it_colors = {
         title: np.asarray(plt.get_cmap('tab20')((2 * idx + 1) / 20))
         for idx, title in enumerate(df.title.unique())  # without i/t pairs

@@ -10,12 +10,13 @@ import yaml
 
 variations_config = {
     'network_config': {
-        "learning_rate": lambda: sample([0.001, 0.01, 0.1], 1)[0],
+        "learning_rate": lambda: sample([0.01, 0.05, 0.1], 1)[0],
         "loss_type": lambda: sample(['huber_loss', 'mean_l1_loss', 'mean_l2_loss'], 1)[0],
         "bilinear": lambda: sample([True, False], 1)[0],
         "lr_patience": lambda: sample([1, 3], 1)[0],
         "output_activation": lambda: sample(['relu', 'none'], 1)[0],
         "initial_channels": lambda: sample([8, 16, 32], 1)[0],
+        "skip_connections": lambda: sample([False, True], 1)[0],
     },
     'dataset_config': {
         "depth_difference_threshold": lambda: sample([0, 1, 2, 3], 1)[0],
@@ -70,7 +71,7 @@ MAIN_SCRIPT = ROOT_DIR / "src/trainers/train_models.py"
 def main(args):
     default_config = ROOT_DIR / args.default_config
     num_configurations = args.num_configurations
-    adaptions_file = args.adaptions_file
+    adaptions_file = ROOT_DIR / args.adaptions_file
     tmp_config = ROOT_DIR / f"tmp_config_for_{adaptions_file.stem}.yml"
 
     # get adaptions
@@ -81,7 +82,7 @@ def main(args):
         with open(adaptions_file, 'w') as f:
             json.dump(adaptions, f)
         # file saving all adaptions
-        with open(adaptions_file.parent / "initial_adaptations.json", 'w') as f:
+        with open(adaptions_file.parent / "backup_adaptations.json", 'w') as f:
             json.dump(adaptions, f)
     else:
         with open(adaptions_file, 'r') as f:
