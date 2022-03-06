@@ -109,6 +109,7 @@ def get_box_plot(df: pd.DataFrame):
         ax[plot_idx].tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
 
         ax[plot_idx].set_title(METRICS_TITLE[plot_idx], fontdict=dict(fontsize=9))
+        ax[plot_idx].set_ylabel("mm")
 
     custom_legend_lines = [
         Line2D([0], [0], color=color, lw=4)
@@ -118,7 +119,7 @@ def get_box_plot(df: pd.DataFrame):
     fig.legend(custom_legend_lines, ot_colors.keys(), loc='upper right', ncol=(len(custom_legend_lines) // 4) + 1)
 
     plt.tight_layout()
-    plt.subplots_adjust(wspace=0.15, top=0.75)
+    plt.subplots_adjust(wspace=0.3, top=0.75)
 
 
 def main(args):
