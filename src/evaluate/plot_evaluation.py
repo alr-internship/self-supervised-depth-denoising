@@ -78,10 +78,13 @@ def get_box_plot(df: pd.DataFrame):
     # sort first N models by loss
     N = 10
     df_grouped = df.groupby(['title', 'it_ot'])
-    df_grouped_mean = df_grouped.mean().reset_index()
-    df_grouped_mean = df_grouped_mean.loc[df_grouped_mean['it_ot'] == 'output/target']
-    df_grouped_mean.sort_values(by=['total_L1'], ascending=[True], inplace=True)
-    mean_threshold = df_grouped_mean['title'].iloc[:N]
+    df_grouped_mean = df_grouped.mean().unstack()
+    df_grouped_mean_metric = df_grouped_mean['total_L1']
+    df_grouped_mean['metricDiff'] = df_grouped_mean_metric['output/target'] - df_grouped_mean_metric['input/target']
+    # print(df_grouped_mean)
+    # df_grouped_mean = df_grouped_mean.loc[df_grouped_mean['it_ot'] == 'output/target']
+    df_grouped_mean.sort_values(by=['metricDiff'], ascending=[False], inplace=True)
+    mean_threshold = df_grouped_mean.reset_index()['title'].iloc[:N]
     df = df_grouped.filter(lambda x: x['title'].isin(mean_threshold).all())
 
     # group by (title, it_ot) and create it/ot colors
