@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+import enum
 from pathlib import Path
 from matplotlib import pyplot as plt
 from matplotlib.lines import Line2D
@@ -84,19 +85,19 @@ def get_box_plot(df: pd.DataFrame):
     # print(df_grouped_mean)
     # df_grouped_mean = df_grouped_mean.loc[df_grouped_mean['it_ot'] == 'output/target']
     df_grouped_mean.sort_values(by=['metricDiff'], ascending=[False], inplace=True)
-    mean_threshold = df_grouped_mean.reset_index()['title'].iloc[:N]
-    df = df_grouped.filter(lambda x: x['title'].isin(mean_threshold).all())
+    sorted_titles = df_grouped_mean.reset_index()['title'].iloc[:N].to_list()
+    df = df_grouped.filter(lambda x: x['title'].isin(sorted_titles).all())
 
     # group by (title, it_ot) and create it/ot colors
     df_grouped = df.groupby(['title', 'it_ot'])
 
     it_colors = {
         title: np.asarray(plt.get_cmap('tab20')((2 * idx + 1) / 20))
-        for idx, title in enumerate(df.title.unique())  # without i/t pairs
+        for idx, title in enumerate(sorted_titles)  # without i/t pairs
     }
     ot_colors = {
         title: np.asarray(plt.get_cmap('tab20')((2 * idx) / 20))
-        for idx, title in enumerate(df.title.unique())  # without i/t pairs
+        for idx, title in enumerate(sorted_titles)  # without i/t pairs
     }
 
     fig, ax = plt.subplots(1, len(METRICS), figsize=(10, 5))
@@ -108,12 +109,14 @@ def get_box_plot(df: pd.DataFrame):
         df_ot_grouped = df_grouped_metric.loc[:, 'output/target']
         df_it_grouped = df_grouped_metric.loc[:, 'input/target']
 
-        for idx, (title, value) in enumerate(df_it_grouped.iteritems()):
-            bp_it = ax[plot_idx].boxplot(value, positions=[idx * outer_space - inner_space],
+        for idx, title in enumerate(sorted_titles):
+            it_value = df_it_grouped.loc[title]
+            bp_it = ax[plot_idx].boxplot(it_value, positions=[idx * outer_space - inner_space],
                                          sym='', widths=width)
             set_box_color(bp_it, it_colors[title])
-        for idx, (title, value) in enumerate(df_ot_grouped.iteritems()):
-            bp_ot = ax[plot_idx].boxplot(value, positions=[idx * outer_space + inner_space],
+
+            ot_value = df_ot_grouped.loc[title]
+            bp_ot = ax[plot_idx].boxplot(ot_value, positions=[idx * outer_space + inner_space],
                                          sym='', widths=width)
             set_box_color(bp_ot, ot_colors[title])
 
