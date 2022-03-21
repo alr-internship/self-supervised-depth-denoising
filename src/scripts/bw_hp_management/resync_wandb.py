@@ -11,7 +11,7 @@ with open(ROOT_DIR / "wandb.csv", 'r') as f:
 
 trainer_ids = csv_file['trainer_id'].to_list()
 
-models_dir = [d for d in (ROOT_DIR / "local_resources/hp_models").iterdir() if d.is_dir()]
+models_dir = [d for d in (ROOT_DIR / "local_resources/final_models").iterdir() if d.is_dir()]
 
 removed_count = 0
 for model_dir in models_dir:
