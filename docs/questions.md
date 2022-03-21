@@ -1,6 +1,0 @@
-- Does learning rate decrease too fast?
-- Do we have to few data?
-- Does the augmentation actuqlly make sense?
-- Can actual augmentation help?
-- NORMALIZATION?!
-- Resization: Resizing the masked data destroyes it

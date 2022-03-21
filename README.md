@@ -1,28 +1,36 @@
-Self-Supervised Depth-Denoising
+Self-Supervised Depth-Denoising of YCB Objects
 ==============================
+![](assets/results.png)
+Prediction result is displayed at the bottom left. Bottom right displays the HQ depth frame, top right the LQ depth frame.
 
+- [Self-Supervised Depth-Denoising of YCB Objects](#self-supervised-depth-denoising-of-ycb-objects)
 - [Environment](#environment)
-  - [Create](#create-environment)
-  - [Update](#update-environment)
-  - [Export](#export-environment)
+  - [Create Environment](#create-environment)
+  - [Update Environment](#update-environment)
+  - [Export Environment](#export-environment)
 - [Resources](#resources)
 - [Project Structure](#project-structure)
 - [Dataset Generation](#dataset-generation)
-    - [Retrieve Images for Calibration](#retrieve-images-for-calibration)
-    - [Compute Extrinsics Calibration](#compute-extrinsics-calibration)
-        - [CharuCo](#charuco)
-        - [Manual Feature Picking](#manual-feature-picking)
-    - [Retrieve Dataset](#retrieve-dataset)
-    - [Calibrated Dataset](#calibrate-dataset)
-    - [Compute Masks for Dataset](#compute-masks-for-dataset)
-    - [Augment Dataset](#augment-dataset)
-    - [Generate train/val/test sets](#generate-jsons-to-split-dataset-into-trainvaltest-set)
+  - [Retrieve Images for Calibration](#retrieve-images-for-calibration)
+  - [Compute Extrinsic Calibration](#compute-extrinsic-calibration)
+    - [CharuCo](#charuco)
+    - [Manual Feature Picking](#manual-feature-picking)
+  - [Retrieve Dataset](#retrieve-dataset)
+  - [Calibrate Dataset](#calibrate-dataset)
+  - [Compute Masks for Dataset](#compute-masks-for-dataset)
+    - [With Custom Algorithm](#with-custom-algorithm)
+    - [With MaskRCNN](#with-maskrcnn)
+  - [Augment Dataset](#augment-dataset)
+    - [Augment in 3D **preferred**](#augment-in-3d-preferred)
+    - [Augment by Mask (deprecated)](#augment-by-mask-deprecated)
+  - [Generate JSONs to split Dataset into train/val/test set](#generate-jsons-to-split-dataset-into-trainvaltest-set)
+  - [Compute Bounds for Depth Normalization](#compute-bounds-for-depth-normalization)
 - [Training](#training)
+  - [Hyperparameter Tuning](#hyperparameter-tuning)
 - [Evaluation](#evaluation)
-    - [Run](#run-evaluation)
-    - [Plot](#plot-evaluation)
-- [BwUniCluster 2.0](#bwunicluster-2.0)
-- [TODOs](#todos)
+  - [Run Evaluation](#run-evaluation)
+  - [Plot Evaluation](#plot-evaluation)
+- [BwUniCluster 2.0](#bwunicluster-20)
 
 Environment
 =====
@@ -136,8 +144,7 @@ Project Structure
 Dataset Generation
 ===
 
-The dataset generation includes multiple steps to retrieve a good enough result.
-All steps should be executed in the `depth-denoising_dataset` conda environment
+The dataset generation includes multiple steps to retrieve a good enough result. The steps including actual dataset recording should be executed in the `depth-denoising_dataset` conda environment. The other steps should be executed in the `depth-denoising_training` environment.
 
 1. Retrieve Images for Calibration
 1. Compute Extrinsics Calibration
@@ -154,20 +161,20 @@ Retrieve Images for Calibration
 
 At first, the cameras must be calibrated to each other. Therefore, multiple
 frames must be recorded, with the help of which the calibration can be computed.
-The kind of frames depends on the calibration method.
+What frames must be recorded depends on the calibration method.
 - For CharuCo Board calibration, capture frames of a CharuCo Board.
 - For Manual Feature Picking, capture frames where features can later be picked
 manually rather easy.
 
 For the capture process, use the notebook
 [00_retrieve_datset.ipynb](notebooks/00_retrieve_dataset.ipynb). This notebook
-helps immensively to generate pairs of LQ- and HQ rgb and depth frames.
+helps immensely to generate pairs of LQ- and HQ RGB and depth frames.
 
-Compute Extrinsics Calibration
+Compute Extrinsic Calibration
 ---
 
-There exist two methods to compute the extrinsics transformation matrix that
-maps the frame of the HQ camera plane onto the LQ camera`s plane.
+There exist two methods to compute the extrinsic transformation matrix that
+maps the frame of the HQ camera plane onto the LQ camera's plane.
 
 - CharuCo (**preferred**)
 - Manual Feature Picking
@@ -203,21 +210,21 @@ Retrieve Dataset
 ---
 When the calibration is computed, the first dataset can be recorded. For the
 capture process, use again the notebook
-[01_retrieve_datset.ipynb](notebooks/00_retrieve_dataset.ipynb).
+[00_retrieve_datset.ipynb](notebooks/00_retrieve_dataset.ipynb).
 
 Calibrate Dataset
 ---
-This step aligns the rgb and depth images of the HQ and LQ cameras with the
+This step aligns the RGB and depth images of the HQ and LQ cameras with the
 earlier computed extrinsic transformation matrix. The script
 [calib_in_pcd.py](src/data_processing/calib_in_pcd.py) should be used to
-calibrate a dataset. At the top of the script (~line 14), the transformation
-matrix is hardcoded into. This transformation matrix should be replaced with the
+calibrate a dataset. At the top of the script (~ line 16), the transformation
+matrix is hard-coded. This transformation matrix should be replaced with the
 one computed in the step before. The script has multiple parameters.
-- *$INPUT_DIR%*: The first, positional parameters are the input directory where
+- *$INPUT_DIR%*: The first positional parameter is the input directory where
 the raw files are located that should be computed.
 - *$OUTPUT_DIR%*: The second is the output directory the calibrated files are
 saved to. The file structure (including the file naming) of the input directory
-will be mirrored to the output directory. Therefore file
+will be mirrored to the output directory. Therefore, file
 `%INPUT_DIR%/DIR_1/file.npz` will later be located in
 `%OUTPUT_DIR%/DIR_1/file.npz`.
 - *--jobs*: number of jobs
@@ -229,6 +236,16 @@ will be mirrored to the output directory. Therefore file
 
 Compute Masks for Dataset
 ---
+There are two ways to compute masks for a YCB Dataset. 
+- **With custom algorithm (preferred)**
+- With MaskRCNN
+The first one is preferred, as it generates more precise masks.
+
+### With Custom Algorithm
+To compute the masks with the custom algorithm, use the script [region_growing_segmentation.py](src/data_processing/segmentation/region_growing_segmentation.py). The first two positional arguments are the input and output directory. The number of jobs can be defined with `--jobs`.
+The script requires two files that contain the scene bounding box and the list of points that should be filtered out. The paths to those two files are hard-coded. [get_points_of_pcd_picels.py](src/scripts/get_points_of_pcd_pixels.py) can be used to retrieve points of the point cloud by selection.
+
+### With MaskRCNN
 To compute masks for the [YCB Video Dataset](https://rse-lab.cs.washington.edu/projects/posecnn/),
 pull the submodule located at [3rdparty/mask_rcnn](3rdparty/mask_rcnn).
 Follow the respective readme to get a trained model of the MaskRCNN on the 
@@ -252,12 +269,20 @@ python mask_rcnn_segmentation.py -h
 
 Augment Dataset
 ---
-Since it is time consuming to record a large enough dataset for training, data
+There exist two types of augmentations, whereby the `Augment in 3D` is preferred, as it generates better training data.
+
+### Augment in 3D **preferred**
+This augmentation technique rotates and translates the input images in 3D within some bounds. 
+Use [augment_in_3d.py](src/data_processing/augment_in_3d.py) to generate the augmentations.
+The first two positional parameters must be input and output directory paths. The number of augmentations per image can be set with `--num-augs`, defaulting to 5. Parallelization is possible by setting `--jobs` to the number of threads.
+
+### Augment by Mask (deprecated)
+Since it is time-consuming to record a large enough dataset for training, data
 augmentation can be applied. The augmentation works the following: With the help
 of the previous step, each image pair also has the masks computed for each
 object detected in the image. These masks are used to generate multiple images
 for each image. It works the following: It generates all combinations of masks
-and applied the union of those masks on the image (sets regions outside of the
+and applied the union of those masks on the image (sets regions outside the
 masks to NaN). This generates for an image with 5 objects and therefore 5 masks
 5! - 1= 121 images. The script to use is
 [augment_by_mask.py](src/data_processing/augment_by_mask.py). The parameters to
@@ -265,13 +290,13 @@ pass to the script are self-explanatory. The generated augmentations for an
 image with name %NAME% are named %NAME%_n, whereby n indicates the n-th
 augmentation of this image. 
 
-**NOTE: After this step, the augmented images wont have any background
+**NOTE: After this step, the augmented images won't have any background
 information. A not masked image is currently not added to the augmentation.**
 
 Generate JSONs to split Dataset into train/val/test set
 ---
 
-To have always the same, but initialy randomly split sets,
+To have always the same, but initially randomly split sets,
 the script [generate_sets.py](src/data_processing/generate_sets.py) can be executed.
 This script will collect all paths to images in a given directory,
 shuffle the list of paths and split it into train/val/test set.
@@ -279,8 +304,8 @@ The percentage, the test and val set will have can be configured via parameters.
 The resulting split will be saved into three JSON files written to the dataset root.
 Those JSON files have all the same structure.
 They contain an absolute base path to the dataset and a list of paths relative to the base path
-that point to the indivial files.
-Typically the train and val set is used for training and valuation,
+that point to the individual files.
+Typically, the train and val set is used for training and valuation,
 the test set is then later used for evaluation.
 
 Compute Bounds for Depth Normalization
@@ -288,7 +313,7 @@ Compute Bounds for Depth Normalization
 
 To improve training, it is possible to enable depth normalization.
 This maps the depth values from [min_depth, max_depth] to [0, 1].
-To compute min_depth, max_depth, use the script [compute_depth_bounds.py](src/data_processing/compute_depth_bounds.py).
+To compute min_depth, max_depth, use the script [compute_depth_bounds.py](src/scripts/compute_depth_bounds.py).
 The script takes the directory containing the dataset and computes the maximum
 and minimum depth values.
 The values get printed to stdout at the end.
@@ -315,14 +340,19 @@ file. The configuration file contains many arguments that are explained in the
 the path to the configuration file that should be used for training.
 
 All paths in the config file, that should point to a dataset can either 
-be directory or a file. If it's a direcotry, all .npz files in that directory will be used as dataset.
+be directory or a file. If it's a directory, all .npz files in that directory will be used as dataset.
 If it points to a (JSON) file, the files in that file fill form the dataset.
 
 *Recommended:*
 
 - The `train_path` should point to a `train_dataset.json`
-- The `val_path` should point ot a `val_dataset.json`
+- The `val_path` should point to a `val_dataset.json`
 - The `dataset_path` should point to a `directory`, or `train_dataset.json`.
+
+Hyperparameter Tuning
+---
+The hyperparameter tuning via random search can be started with [random_parameter_search.py](src/scripts/random_parameter_search.py). This will sample N different training configurations and train the model.
+The first positional argument should point to the default config file to use. This config file will be used as base config file. All config parameters sampled from the random parameter search algorithm will overwrite the values from this base config file. `--num-configurations` indicates how many adaptations to generate for the base config. The generates adaptations will be saved to `--adaptations-file`. This allows to continue hyperparameter search after the script has terminated.
 
 Evaluation
 ===
@@ -336,27 +366,27 @@ dataset.
 To test the model and generate evaluation metrics, use the script [evaluate.py](src/evaluate/evaluate.py)
 The script can be executed the following:
 ```bash
-python evaluate.py %MODEL_PATH% %DATASET_PATH%
+python evaluate.py %MODEL_PATH%
 ```
 
 %MODEL_PATH% must point to a directory. 
-The script will then gather all subdirectories (not only direct children!) in this directory.
+The script will then gather all direct subdirectories in this directory.
 The relative path to the subdirectory will act as model name.
-All files like e%EPOCH%.pth will be interepreted as a snapshot of the model.
+All files like e%EPOCH%.pth will be interpreted as a snapshot of the model.
 
-%DATASET_PATH% must point to a file or directory.
-Those will be interpreted as in training.
+The evaluation will use the stored config.yml in the model directory. The dataset for evaluation will be set to equal the train dataset specified in the config.yml, but with test_dataset.json as file name.
 
-If the argument `--all-epochs` is active, all epochs of a model will be evaluated.
+If the argument `--all-epochs` is passed, all epochs of a model will be evaluated.
 Otherwise, the snapshot with the epoch will be evaluated only.
-The evaluation results will be saved to a CSV file in the `%MODEL_PATH%` directory.
+The evaluation results will be saved to a JSON file in the `%MODEL_PATH%` directory.
 
 Plot Evaluation
 ---
-There exists a script [plot_evaluation.py](src/evaluate/plot_evaluation.py).
-This script can be used to plot the computed evaluation results.
-The script tasks the path to the CSV file, generated in the previous step, as input.
-The resulting plot will be shown and printed as `plt.png` to the CSVs directory.
+The script [plot_evaluation.py](src/evaluate/plot_evaluation.py) can be used for evaluation plotting.
+Per default, this script generates diagrams containing 5 Box plots each. 
+A hard-coded flag can be changed to generate bar plots instead.
+The script tasks the path to the JSON file, generated in the previous step, as input.
+The resulting plot will be printed as `plt.png` to the JSONs directory.
 
 BwUniCluster 2.0
 ====

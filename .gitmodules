@@ -8,6 +8,3 @@
 [submodule "report/seminar"]
 	path = report/seminar
 	url = https://git.overleaf.com/61efcee3385aeef5be755f7b
-[submodule "3rdparty/ycb_unet"]
-	path = 3rdparty/ycb_unet
-	url = git@github.com:alr-internship/Pytorch-UNet.git
