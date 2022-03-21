@@ -356,12 +356,12 @@ class Trainer:
                         lr_scheduler.step(epoch_val_loss)
                         logging.info('Validation Loss: {}'.format(epoch_val_loss))
 
-                if config.activate_wandb:
-                    experiment.log({
-                        'step': global_step * config.batch_size,
-                        'epoch': epoch,
-                        'validation loss': epoch_val_loss,
-                    })
+                        if config.activate_wandb:
+                            experiment.log({
+                                'step': global_step * config.batch_size,
+                                'epoch': epoch,
+                                'validation loss': epoch_val_loss,
+                            })
 
             if config.save_checkpoint:
                 dir_checkpoint.mkdir(parents=True, exist_ok=True)
