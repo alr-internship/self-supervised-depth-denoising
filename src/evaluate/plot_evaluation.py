@@ -17,6 +17,9 @@ def get_xticks(dir, trainer_ids):
 
     mapping = {}
     for trainer_id in trainer_ids:
+        if trainer_id in mapping.keys():
+            continue
+
         config_path = dir / trainer_id / 'config.yml'
         with open(config_path) as f:
             config = yaml.safe_load(f)
@@ -28,7 +31,7 @@ def get_xticks(dir, trainer_ids):
         lr = nw_config['learning_rate']
         lt = nw_config['loss_type']
         o = nw_config['output_activation'] if 'output_activation' in nw_config else 'none'
-        sk = nw_config['skip_connections'] if 'skip_connections' in nw_config else 0
+        sk = int(nw_config['skip_connections']) if 'skip_connections' in nw_config else 0
 
         if lt == 'huber_loss':
             lt = 'h'
@@ -42,7 +45,11 @@ def get_xticks(dir, trainer_ids):
         elif o == 'relu':
             o = 'r'
 
-        mapping[trainer_id] = f"dd{dd}_s{s}_ic{ic}_lr{lr}_l{lt}_o{o}_sk{sk}"
+        base_title = f"dd{dd}_s{s}_ic{ic}_lr{lr}_l{lt}_o{o}_sk{sk}"
+
+        num_titles = [v.startswith(base_title) for v in mapping.values()].count(True)
+        title = base_title + f"_{num_titles}" 
+        mapping[trainer_id] = title
 
     return mapping
 
@@ -77,14 +84,12 @@ def get_box_plot(df: pd.DataFrame):
         plt.setp(bp['medians'], color=color)
 
     # sort first N models by loss
-    N = 10
+    N = 5 # 10
     df_grouped = df.groupby(['title', 'it_ot'])
-    df_grouped_mean = df_grouped.mean().unstack()
-    df_grouped_mean_metric = df_grouped_mean['total_L1']
+    df_grouped_mean = df_grouped.median().unstack()
+    df_grouped_mean_metric = df_grouped_mean[METRICS[0]]
     df_grouped_mean['metricDiff'] = df_grouped_mean_metric['output/target'] - df_grouped_mean_metric['input/target']
-    # print(df_grouped_mean)
-    # df_grouped_mean = df_grouped_mean.loc[df_grouped_mean['it_ot'] == 'output/target']
-    df_grouped_mean.sort_values(by=['metricDiff'], ascending=[False], inplace=True)
+    df_grouped_mean.sort_values(by=['metricDiff'], ascending=[True], inplace=True)
     sorted_titles = df_grouped_mean.reset_index()['title'].iloc[:N].to_list()
     df = df_grouped.filter(lambda x: x['title'].isin(sorted_titles).all())
 
@@ -100,7 +105,7 @@ def get_box_plot(df: pd.DataFrame):
         for idx, title in enumerate(sorted_titles)  # without i/t pairs
     }
 
-    fig, ax = plt.subplots(1, len(METRICS), figsize=(10, 5))
+    fig, ax = plt.subplots(1, len(METRICS), figsize=(10, 4))
     for plot_idx, metric in enumerate(METRICS):
         width = 0.6
         inner_space = width * 2/3
@@ -123,7 +128,7 @@ def get_box_plot(df: pd.DataFrame):
         ax[plot_idx].tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
 
         ax[plot_idx].set_title(METRICS_TITLE[plot_idx], fontdict=dict(fontsize=9))
-        ax[plot_idx].set_ylabel("mm")
+        ax[plot_idx].set_ylabel("mm", labelpad=2.0)
 
     custom_legend_lines = [
         Line2D([0], [0], color=color, lw=4)
@@ -146,9 +151,13 @@ def main(args):
     # metrics dict to columns
     df = df.drop('metrics', axis=1).join(pd.DataFrame(df.metrics.values.tolist())).drop('index', axis=1)
     df.rename(columns={'it': 'input/target', 'ot': 'output/target'}, inplace=True)
+    
+    # filter out trainer_ids
+    blacklisted_trainer_ids = ["1646936119.3354385", "1646987487.7802982", "1647161196.55366"]
+    df = df.loc[df['model'].apply(lambda x: x not in blacklisted_trainer_ids)]
 
     df = df.set_index(['model', 'epoch'])
-
+    
     df = df.stack().to_frame(name='metrics')
     df.index.set_names('it_ot', level=2, inplace=True)
 
@@ -156,7 +165,8 @@ def main(args):
     df = df.reset_index()
 
     xticks = get_xticks(args.eval_path.parent, df['model'].to_list())
-    df.insert(0, 'title', [xticks[t] for t in df['model']])
+    df.insert(0, 'title', df['model'].apply(lambda v: xticks[v]))
+    # df['title'] = df['title'] + "_" + df['epoch']
     df = df.drop(['model', 'epoch'], axis=1)
 
     if plot_bar:

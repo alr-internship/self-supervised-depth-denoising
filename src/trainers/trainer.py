@@ -20,11 +20,12 @@ from tqdm import tqdm
 
 ROOT_DIR = Path(__file__).parent.parent.parent
 
+
 def get_loss_criterion(loss_type: str):
     # i -> input, t -> target, r -> region mask
 
     if loss_type == 'abs_l1_loss':
-        return lambda i, t, r: nn.L1Loss(reduction='sum')(i * r, t * r) / len(i) 
+        return lambda i, t, r: nn.L1Loss(reduction='sum')(i * r, t * r) / len(i)
 
     elif loss_type == 'mean_l1_loss':
         return lambda i, t, r: nn.L1Loss(reduction='sum')(i * r, t * r) / torch.sum(r)
@@ -106,7 +107,6 @@ class Trainer:
                 Optimizer Name:      {self.optimizer_name}
                 Load From Model:      {self.load_from_model}
             """
-
 
     def __init__(
         self,
@@ -303,11 +303,11 @@ class Trainer:
         else:
             RuntimeError(f"invalid optimizer name given {config.optimizer_name}")
 
-        lr_updates_per_epoch = 2
+        lr_updates_per_epoch = max(n_train // 2000, 1)
         lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
             'min',
-#            threshold=1e-1,
+            #            threshold=1e-1,
             cooldown=3,
             patience=config.lr_patience * lr_updates_per_epoch,
             verbose=True
@@ -345,15 +345,19 @@ class Trainer:
 
                     # Visualization round
                     if global_step % division_step == 0 and config.activate_wandb:
+                        logging.debug("visualization round")
                         experiment_log = self.__evaluate_for_visualization(val_loader, net, loss_criterion)
                         experiment_log['step'] = global_step * config.batch_size,
                         experiment_log['epoch'] = epoch
                         experiment.log(experiment_log)
 
                     if global_step % (n_train // (config.batch_size * lr_updates_per_epoch)) == 0:
+                        logging.debug("evaluation round")
                         # validation round to adapt learning rate
                         epoch_val_loss = self.evaluate(net, val_loader, loss_criterion)
                         lr_scheduler.step(epoch_val_loss)
+                        logging.info(
+                            f"lr info: num_bad_epochs {lr_scheduler.num_bad_epochs}, patience {lr_scheduler.patience}, cooldown {lr_scheduler.cooldown_counter} best {lr_scheduler.best}")
                         logging.info('Validation Loss: {}'.format(epoch_val_loss))
 
                         if config.activate_wandb:
@@ -361,6 +365,7 @@ class Trainer:
                                 'step': global_step * config.batch_size,
                                 'epoch': epoch,
                                 'validation loss': epoch_val_loss,
+                                'lr patience': lr_scheduler.num_bad_epochs / lr_scheduler.patience
                             })
 
             if config.save_checkpoint:

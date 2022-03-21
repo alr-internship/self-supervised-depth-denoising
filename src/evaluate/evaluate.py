@@ -43,6 +43,7 @@ def main(args):
 
     losses = {
         'total_L1': lambda a, _, t, r: get_loss_criterion('mean_l1_loss')(a, t, r),
+        'total_L2': lambda a, _, t, r: get_loss_criterion('mean_l2_loss')(a, t, r),
         '0_to10mm_L1': get_l1loss_in_region(lower_bound=0, upper_bound=10),
         '10_to20mm_L1': get_l1loss_in_region(lower_bound=10, upper_bound=20),
         'above20mm_L1': get_l1loss_in_region(lower_bound=20, upper_bound=np.inf)
@@ -84,16 +85,21 @@ def main(args):
         trainer_config = config['basic_trainer']
         dataset_config_yaml = config['dataset_config']
         dataset_config = BasicDataset.Config.from_config(dataset_config_yaml)
+        # overwrite depth difference to get comparalbe eevaluation
+        dataset_config.depth_difference_threshold = 0
         network_config['n_input_channels'] = dataset_config.num_in_channels()
         network_config['n_output_channels'] = 1
         unet_config = UNet.Config.from_config(network_config)
+        batch_size = network_config['batch_size'] if args.batch_size == -1 else args.batch_size
 
-        test_dataset_path = ROOT_DIR / Path(trainer_config['train_path']).parent / "test_dataset.json"
+        # test_dataset_path = ROOT_DIR / Path(trainer_config['train_path']).parent / "test_dataset.json"
+        test_dataset_path = ROOT_DIR / "resources/images/calibrated_masked/not-cropped/ycb_video/test_dataset.json"
+
         if not test_dataset_path.exists():
             print(f"can't evaluation model {model_name}. Dataset does not exist")
             continue
         ds = BasicDataset(test_dataset_path, dataset_config)
-        dl = DataLoader(ds, shuffle=False, batch_size=args.batch_size,
+        dl = DataLoader(ds, shuffle=False, batch_size=batch_size,
                         num_workers=4, pin_memory=True)
         dl_size = len(dl)
         assert dl_size > 0, "test dataset is empty"
@@ -152,5 +158,5 @@ if __name__ == "__main__":
     argparse = ArgumentParser()
     argparse.add_argument("models_dir", type=Path)
     argparse.add_argument("--all-epochs", action="store_true")
-    argparse.add_argument("--batch-size", type=int, default=1)
+    argparse.add_argument("--batch-size", type=int, default=-1, help="batch size to use. If -1, the batch size defined in the respective configs will be used")
     main(argparse.parse_args())

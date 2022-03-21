@@ -1,10 +1,12 @@
 from argparse import ArgumentParser
 import copy
 import json
+import logging
 import os
 from pathlib import Path
 from random import sample
 import subprocess
+from tqdm import tqdm
 
 import yaml
 
@@ -91,20 +93,26 @@ def main(args):
     with open(default_config, 'r') as f:
         cfg = yaml.safe_load(f)
 
-    adaptions_without_processed = adaptions
-    for adaption in adaptions:
+    adaptions_without_processed = copy.deepcopy(adaptions)
+    for adaption in tqdm(adaptions, desc='processed adaptions'):
         adapted_config = get_adapted_config(cfg, adaption)
 
         with open(tmp_config, 'w') as f:
             yaml.safe_dump(adapted_config, f)
 
-        subprocess.call(["python", MAIN_SCRIPT, tmp_config.as_posix()], cwd=os.getcwd())
+        p = subprocess.run(["python", MAIN_SCRIPT, tmp_config.as_posix()], cwd=os.getcwd())
 
-        adaptions_without_processed.remove(adaption)
+        if p.returncode == 0:
+            adaptions_without_processed.remove(adaption)
 
-        with open(adaptions_file, 'w') as f:
-            json.dump(adaptions_without_processed, f)
+            with open(adaptions_file, 'w') as f:
+                json.dump(adaptions_without_processed, f)
 
+        else:
+            logging.info(f"exception for training {adaption}")
+            logging.info("continuing with next adaption")
+
+    logging.info("processed all adaptions")
     tmp_config.unlink()
 
 
