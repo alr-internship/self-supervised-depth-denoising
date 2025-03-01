@@ -1,5 +1,19 @@
 Self-Supervised Depth-Denoising of YCB Objects
 ==============================
+
+If you use this library in an academic context, please cite the following publication:
+
+```bash
+@misc{kienle2023multiobject,
+      title={Multi-Object Self-Supervised Depth Denoising}, 
+      author={Claudius Kienle and David Petri},
+      year={2023},
+      eprint={2305.05778},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+}
+```
+
 ![](assets/results.png)
 Prediction result is displayed at the bottom left. Bottom right displays the HQ depth frame, top right the LQ depth frame.
 
@@ -405,20 +419,3 @@ The process will be logged into `train_models.out`
 
 For further information, visit
 [https://wiki.bwhpc.de/e/BwUniCluster_2.0_Slurm_common_Features](https://wiki.bwhpc.de/e/BwUniCluster_2.0_Slurm_common_Features)
-
-
-Citing
-====
-
-If you use this library in an academic context, please cite the following publication:
-
-```bash
-@misc{kienle2023multiobject,
-      title={Multi-Object Self-Supervised Depth Denoising}, 
-      author={Claudius Kienle and David Petri},
-      year={2023},
-      eprint={2305.05778},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG}
-}
-```
